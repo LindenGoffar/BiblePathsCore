@@ -1,0 +1,99 @@
+﻿@page
+@model BiblePathsCore.SelectChapterModel
+
+@{
+    ViewData["Title"] = "Select a Book then Chapter";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@* We'll loop through the books twice, once for each testament*@
+    <div class="container">
+        <h4>Old Testament</h4>
+        @foreach (var book in Model.BibleBooks)
+        {
+            if (book.TestamentNumber == 1)
+            {
+                <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+                    @book.Name
+                </button>
+                <!-- The Chapter list as a Modal -->
+                <div class="modal" id="Book-@book.BookNumber">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6 class="modal-title">@book.Name: Select a Chapter</h6>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                @foreach (var chapter in book.BibleChapters)
+                                {
+                                    <a class="btn btn-outline-light btn-lg" asp-page="AddStep" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Back to the Books</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            }
+        }
+        <hr />
+        <h4>New Testament</h4>
+    </div>
+
+
+@*<h1>SelectChapters</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.BibleBooks[0].Testament)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BibleBooks[0].TestamentNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BibleBooks[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BibleBooks[0].Chapters)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BibleBooks[0].Bible)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.BibleBooks) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Testament)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TestamentNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Chapters)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Bible.Id)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>*@

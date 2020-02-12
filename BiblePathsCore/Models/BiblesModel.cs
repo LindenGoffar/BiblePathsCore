@@ -10,6 +10,8 @@ namespace BiblePathsCore.Models.DB
 {
     public partial class Bibles
     {
+        public const string DefaultBibleId = "KJV-EN";
+
         [NotMapped]
         public string LegalNote { get; set; }
 

@@ -124,9 +124,9 @@ namespace BiblePathsCore.API
         //    return bibles;
         //}
 
-        private bool BiblesExists(string id)
-        {
-            return _context.Bibles.Any(e => e.Id == id);
-        }
+        //private bool BiblesExists(string id)
+        //{
+        //    return _context.Bibles.Any(e => e.Id == id);
+        //}
     }
 }

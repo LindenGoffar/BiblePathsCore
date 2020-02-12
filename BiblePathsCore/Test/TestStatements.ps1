@@ -8,11 +8,23 @@ $BaseURI = "https://biblepathstaging.azurewebsites.net"
 # load for Local Debug
 $BaseURI = "https://localhost:44387"
 
-# Get all bibles from Debug session
+# Get all bibles
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles"
 
 # Get a specific bible
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles/KJV-EN"
+
+
+try {
+    Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles/KJV-EN"
+} catch {
+    # Dig into the exception to get the Response details.
+    # Note that value__ is not a typo.
+    Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+    $Exception = $_.Exception
+}
+
 
 # Get all Paths.
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BiblePaths"

@@ -6,5 +6,18 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome to @ViewData["Title"]</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p><strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study.</p>
 </div>
+<div class="col-md-8 offset-md-2 text-left">
+    <div class="card">
+        <div class="card-body">
+            <a asp-page="Paths/Index" class="stretched-link">Find and Follow a Bible Path</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <a asp-page="Paths/MyPaths" class="stretched-link">Build a Bible Path of your own</a>
+        </div>
+    </div>
+</div>
+

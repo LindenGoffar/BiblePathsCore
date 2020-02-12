@@ -17,9 +17,10 @@ namespace BiblePathsCore.Pages
             _logger = logger;
         }
 
+        public string CatchPhrase { get; set; }
         public void OnGet()
         {
-
+            CatchPhrase = "Lost? Find your path here...";
         }
     }
 }

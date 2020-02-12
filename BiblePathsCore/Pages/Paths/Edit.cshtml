@@ -1,0 +1,96 @@
+﻿@page
+@model BiblePathsCore.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>Paths</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Paths.Id" />
+            <div class="form-group">
+                <label asp-for="Paths.Name" class="control-label"></label>
+                <input asp-for="Paths.Name" class="form-control" />
+                <span asp-validation-for="Paths.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Length" class="control-label"></label>
+                <input asp-for="Paths.Length" class="form-control" />
+                <span asp-validation-for="Paths.Length" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.ComputedRating" class="control-label"></label>
+                <input asp-for="Paths.ComputedRating" class="form-control" />
+                <span asp-validation-for="Paths.ComputedRating" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Created" class="control-label"></label>
+                <input asp-for="Paths.Created" class="form-control" />
+                <span asp-validation-for="Paths.Created" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Modified" class="control-label"></label>
+                <input asp-for="Paths.Modified" class="form-control" />
+                <span asp-validation-for="Paths.Modified" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Owner" class="control-label"></label>
+                <input asp-for="Paths.Owner" class="form-control" />
+                <span asp-validation-for="Paths.Owner" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.OwnerBibleId" class="control-label"></label>
+                <input asp-for="Paths.OwnerBibleId" class="form-control" />
+                <span asp-validation-for="Paths.OwnerBibleId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Topics" class="control-label"></label>
+                <input asp-for="Paths.Topics" class="form-control" />
+                <span asp-validation-for="Paths.Topics" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Paths.IsPublished" /> @Html.DisplayNameFor(model => model.Paths.IsPublished)
+                </label>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Paths.IsPublicEditable" /> @Html.DisplayNameFor(model => model.Paths.IsPublicEditable)
+                </label>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Paths.IsDeleted" /> @Html.DisplayNameFor(model => model.Paths.IsDeleted)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.StepCount" class="control-label"></label>
+                <input asp-for="Paths.StepCount" class="form-control" />
+                <span asp-validation-for="Paths.StepCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Paths.Reads" class="control-label"></label>
+                <input asp-for="Paths.Reads" class="form-control" />
+                <span asp-validation-for="Paths.Reads" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
