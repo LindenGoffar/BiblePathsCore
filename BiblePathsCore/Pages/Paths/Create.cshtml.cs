@@ -39,7 +39,7 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public Paths Paths { get; set; }
+        public Paths Path { get; set; }
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
@@ -56,13 +56,13 @@ namespace BiblePathsCore
 
             if (await TryUpdateModelAsync<Paths>(
                 emptyPath,
-                "Paths",   // Prefix for form value.
+                "Path",   // Prefix for form value.
                 p => p.Name, p => p.IsPublicEditable, p => p.OwnerBibleId))
             {
                 _context.Paths.Add(emptyPath);
                 await _context.SaveChangesAsync();
 
-                return RedirectToPage("./Index");
+                return RedirectToPage("./MyPaths");
             }
 
             return Page();

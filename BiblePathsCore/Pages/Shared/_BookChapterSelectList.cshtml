@@ -1,0 +1,67 @@
+﻿@model List<BiblePathsCore.Models.DB.BibleBooks>
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+<h4>Old Testament</h4>
+@foreach (var book in Model)
+{
+    if (book.TestamentNumber == 1)
+    {
+        <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+            @book.Name
+        </button>
+        <!-- The Chapter list as a Modal -->
+        <div class="modal" id="Book-@book.BookNumber">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">@book.Name: Select a Chapter</h6>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        @foreach (var chapter in book.BibleChapters)
+                        {
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@ViewData["TargetPage"]" asp-route-BibleId="@ViewData["BibleId"]" asp-route-PathId="@ViewData["PathId"]" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@ViewData["StepPosition"]">@chapter.ChapterNumber</a>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Back to the Books</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+<hr />
+<h4>New Testament</h4>
+@foreach (var book in Model)
+{ 
+    if (book.TestamentNumber == 2)
+    {   
+        <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+            @book.Name
+        </button>
+        <!-- The Chapter list as a Modal -->
+        <div class="modal" id="Book-@book.BookNumber">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">@book.Name: Select a Chapter</h6>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        @foreach (var chapter in book.BibleChapters)
+                        {
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@ViewData["TargetPage"]" asp-route-BibleId="@ViewData["BibleId"]" asp-route-PathId="@ViewData["PathId"]" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@ViewData["StepPosition"]">@chapter.ChapterNumber</a>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Back to the Books</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+

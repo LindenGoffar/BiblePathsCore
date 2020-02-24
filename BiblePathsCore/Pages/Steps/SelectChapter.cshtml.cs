@@ -22,11 +22,13 @@ namespace BiblePathsCore
         public IList<BibleBooks> BibleBooks { get; set; }
         public Bibles Bible { get; set;  }
         public Paths Path { get; set; }
+        public int StepPosition { get; set; }
 
-        public async Task OnGetAsync(string BibleId, int PathId)
+        public async Task OnGetAsync(string BibleId, int PathId, int Position)
         {
             BibleId = await GetValidBibleIdAsync(BibleId);
             Bible = await _context.Bibles.FindAsync(BibleId);
+            StepPosition = Position;
             BibleBooks = await _context.BibleBooks
                 .Include(B => B.BibleChapters).Where(B => B.BibleId == Bible.Id).ToListAsync();
             Path = await _context.Paths.FindAsync(PathId);

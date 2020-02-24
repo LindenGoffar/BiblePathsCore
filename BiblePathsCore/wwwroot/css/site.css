@@ -7,6 +7,12 @@ a.navbar-brand {
   word-break: break-all;
 }
 
+/* Bible Paths specific style overrides */
+.mark, mark {
+    padding: 0;
+    background-color: #FFFF99;
+}
+
 /* Provide sufficient contrast against white background */
 a {
   color: #0366d6;

@@ -8,7 +8,7 @@
 
     <div class="container-fluid">
         <p>
-            <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id">Add a Step</a>
+            <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add a Step</a>
         </p>
 
         @foreach (var Node in Model.PathNodes)
@@ -25,6 +25,9 @@
                     }
                 </div>
             </div>
+            <p>
+                <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position=@Node.Position>Add a Step</a>
+            </p>
         }
     </div>
 

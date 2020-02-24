@@ -1,0 +1,62 @@
+﻿
+<!-- This function sets Step_StartVerse whenever a verse is selected by touch or click. -->
+<script>
+    function SelectVerse(VerseNum) {
+        $("#Step_StartVerse").val(VerseNum);
+        $("#Step_StartVerse").change();
+        $("#Step_EndVerse").val(VerseNum);
+        $("#Step_EndVerse").change();
+    }
+</script>
+
+
+<script>
+    // Used in BuilderSteps both add and edit: Highlights Start -> End Verses
+    for (i= 1; i <= @ViewData["VerseCount"]; i++){
+        if (i >=  parseInt($("#Step_StartVerse").val()) && i <= parseInt($("#Step_EndVerse").val())){
+            $('#text-' + i).addClass("mark");
+        }
+        else {
+            $('#text-' + i).removeClass("mark");
+        }
+    }
+    // Now we want to ensure highlighting changes happen when Start or End Verse changes.
+    $("#Step_StartVerse").change(function () {
+        if (parseInt($("#Step_EndVerse").val()) < parseInt($("#Step_StartVerse").val()))
+        {
+            $("#Step_EndVerse").val($("#Step_StartVerse").val());
+        }
+        for (i = 1; i <= @ViewData["VerseCount"]; i++){
+            if (i >= parseInt($("#Step_StartVerse").val()) && i <= parseInt($("#Step_EndVerse").val())){
+                $('#text-' + i).addClass("mark");
+            }
+            else {
+                $('#text-' + i).removeClass("mark");
+            }
+        }
+        // Here we ensure we're scrolled to the highlighted section.
+        var i = parseInt($("#Step_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    });
+    $("#Step_EndVerse").change(function () {
+        if (parseInt($("#Step_StartVerse").val()) > parseInt($("#Step_EndVerse").val()))
+        {
+            $("#Step_StartVerse").val($("#Step_EndVerse").val());
+        }
+        for (i= 1; i <= @ViewData["VerseCount"]; i++){
+            if (i >= parseInt($("#Step_StartVerse").val()) && i <= parseInt($("#Step_EndVerse").val())){
+                $('#text-' + i).addClass("mark");
+            }
+            else {
+                $('#text-' + i).removeClass("mark");
+            }
+        }
+        // Here we ensure we're scrolled to the highlighted section.
+        var i = parseInt($("#Step_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    })
+</script>

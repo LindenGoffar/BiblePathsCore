@@ -4,60 +4,51 @@
 @{
     ViewData["Title"] = "Add a Step";
     Layout = "~/Pages/Shared/_Layout.cshtml";
-}
+    ViewData["VerseCount"] = Model.Step.Verses.Count;
+ }
 
 <div class="container-fluid">
-    <div class="col-sm-8">
-
-
+    <div class="row">
+        <h4>@ViewData["Title"]: @Model.Path.Name</h4>
+        <hr />
     </div>
-
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="PathNodes.PathId" class="control-label"></label>
-                <select asp-for="PathNodes.PathId" class ="form-control" asp-items="ViewBag.PathId"></select>
+    <div class="row">
+        <div class="col-sm-8">
+            <h4>@Model.Step.BookName @Model.Step.Chapter</h4>
+            @foreach (var Verse in Model.Step.Verses)
+            {
+                <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
+                    <sup>@Verse.Verse </sup>@Verse.Text
+                </div>
+            }
+        </div>
+        <div class="col-sm-4">
+            <div class="card follow-scroll">
+                <div class="card-body">
+                    <p class="card-title">@Model.Step.BookName @Model.Step.Chapter</p>
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-group">
+                            Verse
+                            <select asp-for="Step.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
+                            <span asp-validation-for="Step.StartVerse" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            to
+                            <select asp-for="Step.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
+                            <span asp-validation-for="Step.EndVerse" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <input type="hidden" asp-for="Step.PathId" />
+                            <input type="hidden" asp-for="Step.BookNumber" />
+                            <input type="hidden" asp-for="Step.Chapter" />
+                            <input type="hidden" asp-for="Step.Position" />
+                            <input type="submit" value="Add Step" class="btn btn-primary" />
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.Position" class="control-label"></label>
-                <input asp-for="PathNodes.Position" class="form-control" />
-                <span asp-validation-for="PathNodes.Position" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.BookNumber" class="control-label"></label>
-                <input asp-for="PathNodes.BookNumber" class="form-control" />
-                <span asp-validation-for="PathNodes.BookNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.Chapter" class="control-label"></label>
-                <input asp-for="PathNodes.Chapter" class="form-control" />
-                <span asp-validation-for="PathNodes.Chapter" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.StartVerse" class="control-label"></label>
-                <input asp-for="PathNodes.StartVerse" class="form-control" />
-                <span asp-validation-for="PathNodes.StartVerse" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.EndVerse" class="control-label"></label>
-                <input asp-for="PathNodes.EndVerse" class="form-control" />
-                <span asp-validation-for="PathNodes.EndVerse" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.Created" class="control-label"></label>
-                <input asp-for="PathNodes.Created" class="form-control" />
-                <span asp-validation-for="PathNodes.Created" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PathNodes.Modified" class="control-label"></label>
-                <input asp-for="PathNodes.Modified" class="form-control" />
-                <span asp-validation-for="PathNodes.Modified" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -66,5 +57,7 @@
 </div>
 
 @section Scripts {
+    <partial name="_FollowScrollHelpers" />
+    <partial name="_VerseSelectionHelpers" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

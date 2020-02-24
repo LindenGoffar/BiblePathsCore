@@ -14,8 +14,8 @@
             <div class="form-group">
                 @*<label asp-for="Paths.Name" class="control-label"></label>*@
                 <h2>Name your new Path</h2>
-                <input asp-for="Paths.Name" class="form-control" />
-                <span asp-validation-for="Paths.Name" class="text-danger"></span>
+                <input asp-for="Path.Name" class="form-control" />
+                <span asp-validation-for="Path.Name" class="text-danger"></span>
             </div>
             @*<div class="form-group">
                 <label asp-for="Paths.Length" class="control-label"></label>
@@ -45,8 +45,8 @@
             <div class="form-group">
                 <h4>Select a default Bible language and version</h4>
                 @*<label asp-for="Paths.OwnerBibleId" class="control-label"></label>*@
-                <select asp-for="Paths.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control" ></select>
-                <span asp-validation-for="Paths.OwnerBibleId" class="text-danger"></span>
+                <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control" ></select>
+                <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
             </div>
             @*<div class="form-group">
                 <label asp-for="Paths.Topics" class="control-label"></label>
@@ -60,7 +60,7 @@
             </div>*@
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Paths.IsPublicEditable" /> <strong>allow others to edit this Path?</strong> @*@Html.DisplayNameFor(model => model.Paths.IsPublicEditable)*@
+                    <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <strong>allow others to edit this Path?</strong> @*@Html.DisplayNameFor(model => model.Paths.IsPublicEditable)*@
                 </label>
             </div>
             @*<div class="form-group form-check">

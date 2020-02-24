@@ -1,0 +1,28 @@
+﻿<!-- This function allows various elements to follow as the user scrolls -->
+<script>
+        // Let's go ahead and scroll to the hightlighted text on page ready.
+    $( document ).ready(function() {
+        var i = parseInt($("#Step_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    });
+
+    (function ($) {
+        var element = $('.follow-scroll'),
+            originalY = element.offset().top;
+        // Space between element and top of screen (when scrolling)
+        var topMargin = 300;
+
+        $(window).on('scroll', function (event) {
+            var scrollTop = $(window).scrollTop();
+            element.stop(false, false).animate({
+                top: scrollTop < originalY
+                    ? 20
+                    : scrollTop - originalY + topMargin
+            }, 300);
+        });
+    })(jQuery);
+
+</script>
+

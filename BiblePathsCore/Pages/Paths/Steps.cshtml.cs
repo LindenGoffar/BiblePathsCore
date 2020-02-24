@@ -45,8 +45,8 @@ namespace BiblePathsCore
             // Add our Bible Verse Data to each node. 
             foreach (PathNodes step in PathNodes)
             {
-                _ = await step.AddStepPropertiesAsync(_context, Bible.Id);
-                step.Verses = await step.GetBibleVersesAsync(_context, Bible.Id, true);
+                _ = await step.AddBookNameAsync(_context, Bible.Id);
+                step.Verses = await step.GetBibleVersesAsync(_context, Bible.Id, true, false);
             }
             return Page();
         }

@@ -18,7 +18,7 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public string BookName { get; set; }
 
-        public async Task<bool> AddStepPropertiesAsync(BiblePathsCoreDbContext context, string bibleId)
+        public async Task<bool> AddFwdBackStepAsync(BiblePathsCoreDbContext context)
         {
             // Get BWStepID
             try
@@ -36,6 +36,11 @@ namespace BiblePathsCore.Models.DB
             }
             catch (InvalidOperationException) { FWStepId = 0; }
 
+            return true;
+        }
+
+        public async Task<bool> AddBookNameAsync(BiblePathsCoreDbContext context, string bibleId)
+        {
             // Get BookName 
             BibleBooks Book = await context.BibleBooks.Where(B => B.BibleId == bibleId && B.BookNumber == BookNumber).FirstAsync();
             BookName = Book.Name;
@@ -43,29 +48,38 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
-        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly)
+        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly, bool includeProximity)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();
             // First retrieve all of the verses, 
-            bibleVerses = await context.BibleVerses.Where(v => v.BibleId == bibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
-            foreach (BibleVerses verse in bibleVerses)
+            if (inPathOnly)
             {
-                verse.InPath = false; //default all verses to false
-                if (verse.Verse < StartVerse) { verse.Proximity = StartVerse - verse.Verse; }
-                if ((verse.Verse >= StartVerse) && (verse.Verse <= EndVerse))
-                {   //These two are essentially the same thing. 
-                    verse.InPath = true;
-                    verse.Proximity = 0;
-                }
-                if (verse.Verse > EndVerse) { verse.Proximity = verse.Verse - EndVerse; }
-                
-                if (inPathOnly && verse.InPath == false)
+                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == bibleId && v.BookNumber == BookNumber && v.Chapter == Chapter && v.Verse >= StartVerse && v.Verse <= EndVerse).OrderBy(v => v.Verse).ToListAsync();
+            }
+            else
+            {
+                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == bibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
+            }
+            if (includeProximity)
+            {
+                foreach (BibleVerses verse in bibleVerses)
                 {
-                    bibleVerses.Remove(verse);
+                    verse.InPath = false; //default all verses to false
+                    if (verse.Verse < StartVerse) { verse.Proximity = StartVerse - verse.Verse; }
+                    if ((verse.Verse >= StartVerse) && (verse.Verse <= EndVerse))
+                    {   //These two are essentially the same thing. 
+                        verse.InPath = true;
+                        verse.Proximity = 0;
+                    }
+                    if (verse.Verse > EndVerse) { verse.Proximity = verse.Verse - EndVerse; }
+
+                    if (inPathOnly && verse.InPath == false)
+                    {
+                        bibleVerses.Remove(verse);
+                    }
                 }
             }
             return bibleVerses;
-
         }
     }
 }
