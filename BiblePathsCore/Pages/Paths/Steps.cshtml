@@ -2,98 +2,96 @@
 @model BiblePathsCore.StepsModel
 
 @{
-    ViewData["Title"] = "Steps: " + Model.Path.Name;
+    ViewData["Title"] = Model.Path.Name;
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-    <div class="container-fluid">
+<div class="container-fluid">
+
+    <h4>@ViewData["Title"]</h4>
+
+    @if (Model.IsPathOwner || Model.IsPathEditor)
+    {
         <p>
             <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add a Step</a>
         </p>
+    }
 
-        @foreach (var Node in Model.PathNodes)
-        {
-            <div class="card">
-                <div class="card-body">
-                    @{string VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
-                        if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
-                    }
-                    <p class="card-title">@VerseRef</p>
+    @foreach (var Node in Model.PathNodes)
+    {
+        <div class="card">
+            <div class="card-body">
+                @{string VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
+                    if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
+                }
+
+                @if (Model.IsPathOwner) // Only owners can delete a step... 
+                {
+                    <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal">
+                        Delete
+                    </button>
+                    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Step" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Step?</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>@VerseRef</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form asp-page="/Steps/DeleteStep" method="post">
+                                        <input type="hidden" name="id" value="@Node.Id" />
+                                        <input type="hidden" name="pathId" value="@Model.Path.Id" />
+                                        <input type="submit" value="Confirm" class="btn btn-danger" />
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <p class="card-title">@VerseRef</p>
+                <p class="card-text">
                     @foreach (var Verse in Node.Verses)
                     {
-                        <p class="card-text"><sup>@Verse.Verse</sup>@Verse.Text</p>
+                        <sup>@Verse.Verse</sup>@Verse.Text<br />
                     }
-                </div>
+                </p>
             </div>
+        </div>
+        @if (Model.IsPathOwner || Model.IsPathEditor)
+        {
             <p>
-                <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position=@Node.Position>Add a Step</a>
+                <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add a Step</a>
             </p>
         }
-    </div>
-
-@*<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].Position)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].BookNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].Chapter)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].StartVerse)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].EndVerse)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].Created)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].Modified)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PathNodes[0].Path)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.PathNodes) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Position)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BookNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Chapter)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartVerse)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndVerse)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Created)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Modified)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Path.Id)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>*@
+    }
+</div>
+<div>
+    @if (Model.IsPathOwner)
+    {
+        @if (Model.Path.IsPublished)
+        {
+            <form asp-page="./publish" asp-page-handler="UnPublish" method="post">
+                <input type="hidden" name="id" value="@Model.Path.Id" />
+                <input type="submit" value="UnPublish this Path" class="btn btn-primary btn-sm" />
+            </form>
+        }
+        else
+        {
+            <a asp-page="./publish" asp-route-id="@Model.Path.Id" class="btn btn-primary btn-sm">Publish this Path</a>
+        }
+    }
+    <hr />
+    @if (Model.IsPathOwner || Model.IsPathEditor)
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+        <a asp-page="./MyPaths">Back to My Paths</a><br />
+    }
+    <a asp-page="./Index">Back to Paths</a>
+</div>

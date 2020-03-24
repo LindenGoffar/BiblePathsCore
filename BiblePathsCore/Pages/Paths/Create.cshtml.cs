@@ -29,12 +29,7 @@ namespace BiblePathsCore
         public List<SelectListItem> BibleSelectList { get; set; }
         public async Task<IActionResult> OnGetAsync()
         {
-            BibleSelectList = await _context.Bibles.Select(b =>
-                              new SelectListItem
-                              {
-                                  Value = b.Id,
-                                  Text = b.Language + "-" + b.Version
-                              }).ToListAsync();
+            BibleSelectList = await GetBibleSelectListAsync();
             return Page();
         }
 
@@ -45,6 +40,7 @@ namespace BiblePathsCore
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            BibleSelectList = await GetBibleSelectListAsync();
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -66,6 +62,16 @@ namespace BiblePathsCore
             }
 
             return Page();
+        }
+
+        private async Task<List<SelectListItem>> GetBibleSelectListAsync()
+        {
+            return await _context.Bibles.Select(b =>
+                              new SelectListItem
+                              {
+                                  Value = b.Id,
+                                  Text = b.Language + "-" + b.Version
+                              }).ToListAsync();
         }
     }
 }

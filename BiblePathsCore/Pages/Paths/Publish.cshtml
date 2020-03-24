@@ -1,0 +1,51 @@
+﻿@page
+@model BiblePathsCore.PublishModel
+@{
+    ViewData["Title"] = "Publish: " + Model.Path.Name;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+<div class="row">
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Path.Id" />
+        <div class="form-group input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Name</span>
+            </div>
+            <input asp-for="Path.Name" class="form-control" />
+            <span asp-validation-for="Path.Name" class="text-danger"></span>
+            <p class="text-muted">Note: A Path Name may contain only words or phrases taken from the passages below, this ensures content in Bible Paths is taken only from the Scripture.</p><br />
+        </div>
+        <div class="form-group input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Topics</span>
+            </div>
+            <input asp-for="Path.Topics" class="form-control" />
+            <span asp-validation-for="Path.Topics" class="text-danger"></span>
+            <p class="text-muted">Topics may contain only comma seperated words or phrases taken from the passages below, this ensures content in Bible Paths is taken only from the Scripture.</p><br />
+        </div>
+        <div class="form-group">
+            <input type="submit" asp-page-handler="Publish" asp-route-id="@Model.Path.Id" value="Publish" class="btn btn-primary" />
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="text-muted">
+        @foreach (var Verse in Model.BibleVerses)
+        {
+            @Verse.Text
+        }
+    </div>
+</div>
+<div>
+    <a asp-page="./Steps" asp-route-id="@Model.Path.Id">Add or Remove Steps</a><br />
+    <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+    <a asp-page="./MyPaths">Back to My Paths</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

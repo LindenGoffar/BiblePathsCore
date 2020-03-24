@@ -67,6 +67,19 @@ namespace BiblePathsCore.Models.DB
             return retVal;
         }
 
+        public async Task<List<BibleVerses>> GetPathVersesAsync(BiblePathsCoreDbContext context)
+        {
+            List<BibleVerses> returnVerses = new List<BibleVerses>();
+            List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(P => P.Position).ToListAsync();
+            foreach (PathNodes node in pathNodes)
+            {
+                returnVerses.AddRange(await context.BibleVerses
+                   .Where(v => v.BibleId == OwnerBibleId && v.BookNumber == node.BookNumber && v.Chapter == node.Chapter && v.Verse >= node.StartVerse && v.Verse <= node.EndVerse)
+                   .ToListAsync());
+            }
+            return returnVerses;
+        }
+
         public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context,  int FromPosition)
         {
             int DefaultInterval = 10;

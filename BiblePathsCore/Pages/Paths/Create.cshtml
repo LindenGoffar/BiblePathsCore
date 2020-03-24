@@ -6,78 +6,26 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<hr />
-<div class="row">
-    <div class="col-md-8 mx-auto">
+<h4>@ViewData["Title"]</h4>
+<div class="container-fluid">
+    <div class="col">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                @*<label asp-for="Paths.Name" class="control-label"></label>*@
-                <h2>Name your new Path</h2>
+                <label asp-for="Path.Name" class="control-label">Name your new Path</label>
                 <input asp-for="Path.Name" class="form-control" />
                 <span asp-validation-for="Path.Name" class="text-danger"></span>
             </div>
-            @*<div class="form-group">
-                <label asp-for="Paths.Length" class="control-label"></label>
-                <input asp-for="Paths.Length" class="form-control" />
-                <span asp-validation-for="Paths.Length" class="text-danger"></span>
-            </div>*@
-            @*<div class="form-group">
-                <label asp-for="Paths.ComputedRating" class="control-label"></label>
-                <input asp-for="Paths.ComputedRating" class="form-control" />
-                <span asp-validation-for="Paths.ComputedRating" class="text-danger"></span>
-            </div>
             <div class="form-group">
-                <label asp-for="Paths.Created" class="control-label"></label>
-                <input asp-for="Paths.Created" class="form-control" />
-                <span asp-validation-for="Paths.Created" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Paths.Modified" class="control-label"></label>
-                <input asp-for="Paths.Modified" class="form-control" />
-                <span asp-validation-for="Paths.Modified" class="text-danger"></span>
-            </div>*@
-            @*<div class="form-group">
-                <label asp-for="Paths.Owner" class="control-label"></label>
-                <input asp-for="Paths.Owner" class="form-control" />
-                <span asp-validation-for="Paths.Owner" class="text-danger"></span>
-            </div>*@
-            <div class="form-group">
-                <h4>Select a default Bible language and version</h4>
-                @*<label asp-for="Paths.OwnerBibleId" class="control-label"></label>*@
-                <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control" ></select>
+                <label asp-for="Path.OwnerBibleId" class="control-label">Select a default Bible language and version</label>
+                <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
                 <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
             </div>
-            @*<div class="form-group">
-                <label asp-for="Paths.Topics" class="control-label"></label>
-                <input asp-for="Paths.Topics" class="form-control" />
-                <span asp-validation-for="Paths.Topics" class="text-danger"></span>
-            </div>*@
-            @*<div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Paths.IsPublished" /> @Html.DisplayNameFor(model => model.Paths.IsPublished)
-                </label>
-            </div>*@
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <strong>allow others to edit this Path?</strong> @*@Html.DisplayNameFor(model => model.Paths.IsPublicEditable)*@
+                    <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <strong>allow others to edit this Path?</strong>
                 </label>
             </div>
-            @*<div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Paths.IsDeleted" /> @Html.DisplayNameFor(model => model.Paths.IsDeleted)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="Paths.StepCount" class="control-label"></label>
-                <input asp-for="Paths.StepCount" class="form-control" />
-                <span asp-validation-for="Paths.StepCount" class="text-danger"></span>
-            </div>*@
-            @*<div class="form-group">
-                <label asp-for="Paths.Reads" class="control-label"></label>
-                <input asp-for="Paths.Reads" class="form-control" />
-                <span asp-validation-for="Paths.Reads" class="text-danger"></span>
-            </div>*@
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
@@ -86,7 +34,8 @@
 </div>
 
 <div>
-    <a asp-page="Index">Back to List</a>
+    <hr />
+    <a asp-page="MyPaths">Back to My Paths</a>
 </div>
 
 @section Scripts {

@@ -23,7 +23,7 @@ namespace BiblePathsCore
 
         public async Task OnGetAsync()
         {
-            Paths = await _context.Paths.ToListAsync();
+            Paths = await _context.Paths.Where(P => P.IsDeleted == false && P.IsPublished == true).OrderBy(P => P.ComputedRating).ToListAsync();
         }
     }
 }

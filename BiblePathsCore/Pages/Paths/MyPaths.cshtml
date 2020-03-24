@@ -6,104 +6,73 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h4>Index</h4>
+<h4>@ViewData["Title"]</h4>
 
 <p>
     <a asp-page="Create">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Length)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].ComputedRating)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Created)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Modified)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Owner)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].OwnerBibleId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Topics)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].IsPublished)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].IsPublicEditable)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].IsDeleted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].StepCount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Paths[0].Reads)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Paths) {
-        <tr>
-            <td>
-                <a asp-page="Steps" asp-route-PathId="@item.Id">@Html.DisplayFor(modelItem => item.Name)</a>
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Length)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ComputedRating)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Created)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Modified)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Owner)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OwnerBibleId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Topics)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsPublished)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsPublicEditable)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsDeleted)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StepCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Reads)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.Id">Settings</a> |
-                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="container-fluid">
+    <div class="row"><strong>UnPublished Paths</strong></div>
+    @foreach (var item in Model.Paths)
+    {
+        if (item.IsPublished == false)
+        {
+            <div class="row">
+                <div class="col-6">
+                    <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                    <span> - @item.Topics</span>
+                </div>
+                <div class="col">
+                    <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
+                    <div id="Details-@item.Id" class="collapse">
+                        <small>Length: @item.Length min</small><br />
+                        <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                        <small>Reads: @item.Reads</small><br />
+                        <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
+                        <small>Created: @Html.DisplayFor(modelItem => item.Created)</small><br />
+                        <small>Modified: @Html.DisplayFor(modelItem => item.Modified)</small>
+                    </div>
+                </div>
+                <div class="col">
+                    <a asp-page="./Publish" asp-route-id="@item.Id">Publish</a> <br />
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Settings</a> <br />
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </div>
+            </div>
+        }
+    }
+    <div class="row"><strong>Published Paths</strong></div>
+    @foreach (var item in Model.Paths)
+    {
+        if (item.IsPublished == true)
+        {
+            <div class="row">
+                <div class="col-6">
+                    <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                    <span> - @item.Topics</span>
+                </div>
+                <div class="col">
+                    <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
+                    <div id="Details-@item.Id" class="collapse">
+                        <small>Length: @item.Length min</small><br />
+                        <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                        <small>Reads: @item.Reads</small><br />
+                        <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
+                        <small>Created: @Html.DisplayFor(modelItem => item.Created)</small><br />
+                        <small>Modified: @Html.DisplayFor(modelItem => item.Modified)</small>
+                    </div>
+                </div>
+                <div class="col">
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Settings</a> <br />
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </div>
+            </div>
+        }
+    }
+
+</div>
+
+<div>
+    <hr />
+    <a asp-page="/Index">Back to Home</a>
+</div>

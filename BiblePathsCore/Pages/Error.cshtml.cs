@@ -12,6 +12,7 @@ namespace BiblePathsCore.Pages
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ErrorModel : PageModel
     {
+        public string ErrorMessage { get; set; }
         public string RequestId { get; set; }
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
@@ -23,8 +24,9 @@ namespace BiblePathsCore.Pages
             _logger = logger;
         }
 
-        public void OnGet()
+        public void OnGet(string errorMessage)
         {
+            ErrorMessage = errorMessage;
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         }
     }

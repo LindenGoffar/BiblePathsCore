@@ -7,35 +7,39 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Identity;
 
 namespace BiblePathsCore
 {
     public class DeleteModel : PageModel
     {
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public DeleteModel(BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public DeleteModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
+            _userManager = userManager;
             _context = context;
         }
 
         [BindProperty]
-        public Paths Paths { get; set; }
+        public Paths Path { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            return RedirectToPage("/error", new { errorMessage = "That's Odd! This page should never be hit... " });
+            //if (id == null)
+            //{
+            //    return NotFound();
+            //}
 
-            Paths = await _context.Paths.FirstOrDefaultAsync(m => m.Id == id);
+            //Path = await _context.Paths.FirstOrDefaultAsync(m => m.Id == id);
 
-            if (Paths == null)
-            {
-                return NotFound();
-            }
-            return Page();
+            //if (Path == null)
+            //{
+            //    return NotFound();
+            //}
+            // return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
@@ -45,15 +49,36 @@ namespace BiblePathsCore
                 return NotFound();
             }
 
-            Paths = await _context.Paths.FindAsync(id);
-
-            if (Paths != null)
+            try
             {
-                _context.Paths.Remove(Paths);
-                await _context.SaveChangesAsync();
+                Path = await _context.Paths.Include(P => P.PathNodes).Where(P => P.Id == id).SingleAsync();
+            }
+            catch {
+                return RedirectToPage("/error", new
+                {
+                    errorMessage = "That's Odd! We were unable to retrieve this path... Not sure what to tell you!"
+                });
             }
 
-            return RedirectToPage("./Index");
+            // confirm Path Owner
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner may delete a Path" }); }
+
+            // First we need to iterate through each Step and delete them one by one, steps are a leaf node so this should be OK.
+            foreach (PathNodes step in Path.PathNodes)
+            {
+                _context.PathNodes.Remove(step);
+                await _context.SaveChangesAsync();
+            }
+            // Then we set the Path to isDeleted
+            if (Path != null)
+            {
+                _context.Attach(Path).State = EntityState.Modified;
+                Path.Modified = DateTime.Now;
+                Path.IsDeleted = true;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToPage("./MyPaths");
         }
     }
 }

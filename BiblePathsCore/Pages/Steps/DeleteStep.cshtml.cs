@@ -7,15 +7,18 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Identity;
 
 namespace BiblePathsCore
 {
     public class DeleteStepModel : PageModel
     {
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public DeleteStepModel(BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public DeleteStepModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
+            _userManager = userManager;
             _context = context;
         }
 
@@ -24,22 +27,23 @@ namespace BiblePathsCore
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            return RedirectToPage("/error", new { errorMessage = "That's Odd! This page should never be hit... " });
+            //if (id == null)
+            //{
+            //    return NotFound();
+            //}
 
-            PathNodes = await _context.PathNodes
-                .Include(p => p.Path).FirstOrDefaultAsync(m => m.Id == id);
+            //PathNodes = await _context.PathNodes
+            //    .Include(p => p.Path).FirstOrDefaultAsync(m => m.Id == id);
 
-            if (PathNodes == null)
-            {
-                return NotFound();
-            }
-            return Page();
+            //if (PathNodes == null)
+            //{
+            //    return NotFound();
+            //}
+            //return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id, int pathId)
         {
             if (id == null)
             {
@@ -53,8 +57,7 @@ namespace BiblePathsCore
                 _context.PathNodes.Remove(PathNodes);
                 await _context.SaveChangesAsync();
             }
-
-            return RedirectToPage("./Index");
+            return RedirectToPage("/Paths/Steps", new { PathId = pathId });
         }
     }
 }

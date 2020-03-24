@@ -27,15 +27,22 @@ namespace BiblePathsCore
         public IList<PathNodes> PathNodes { get;set; }
         public Paths Path { get; set; }
         public bool IsPathOwner { get; set; }
+        public bool IsPathEditor { get; set; }
         public Bibles Bible { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int PathId)
         {
+            IsPathEditor = false;
+            IsPathOwner = false;
             // Confirm Path 
             Path = await _context.Paths.FindAsync(PathId);
             if (Path == null) { return NotFound(); }
-            var user = await _userManager.GetUserAsync(User);
-            IsPathOwner = Path.IsPathOwner(user.Email);
+            // Check whether user is Auth'd since we support either way. 
+            if (User.Identity.IsAuthenticated){
+                var user = await _userManager.GetUserAsync(User);
+                IsPathOwner = Path.IsPathOwner(user.Email);
+                IsPathEditor = Path.IsValidPathEditor(user.Email);
+            }
 
             // in this case we don't accept a BibleId on URL, instead we use the one supplied by the owner. 
             Bible = await _context.Bibles.FindAsync(Path.OwnerBibleId);
