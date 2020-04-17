@@ -4,14 +4,10 @@
 @{
     ViewData["Title"] = "Select a Book then Chapter";
     Layout = "~/Pages/Shared/_Layout.cshtml";
-    ViewData["BibleId"] = Model.Bible.Id;
-    ViewData["PathId"] = Model.Path.Id;
-    ViewData["StepPosition"] = Model.StepPosition;
-    ViewData["TargetPage"] = "AddStep";
 }
 
 <div class="container">
-    <partial name="_BookChapterSelectList" model="@Model.BibleBooks" />
+    <partial name="_BookChapterSelectList" model="@Model" />
 </div>
 
 

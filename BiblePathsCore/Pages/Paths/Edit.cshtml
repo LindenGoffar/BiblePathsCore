@@ -2,127 +2,142 @@
 @model BiblePathsCore.EditModel
 
 @{
-    ViewData["Title"] = "Edit Path: " + Model.Path.Name;
+    ViewData["Title"] = "Path Settings: " + Model.Path.Name;
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h4>@ViewData["Title"]</h4>
-<div class="row">
-    <div class="col-md-8">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Path.Id" />
-            @if (Model.Path.IsPublished)
-            {
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name</span>
-                    </div>
-                    <input asp-for="Path.Name" class="form-control" disabled />
-                    <span asp-validation-for="Path.Name" class="text-danger"></span>
-                    <p class="text-muted">Note: Published Paths cannot be renamed, you need to unpublish this Path to rename it.</p><br />
-                </div>
-            }
-            else
-            {
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name</span>
-                    </div>
-                    <input asp-for="Path.Name" class="form-control" />
-                    <span asp-validation-for="Path.Name" class="text-danger"></span>
-                    <p class="text-muted">Note: When you Publish this path you will be required to select a Name from the Bible passages included in this path.</p><br />
-                </div>
-            }
 
-            <div class="form-group input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Bible</span>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-8">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Path.Id" />
+                @if (Model.Path.IsPublished)
+                {
+                    <small class="text-muted">Note: Published Paths cannot be renamed, you need to unpublish this Path to rename it.</small>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input asp-for="Path.Name" class="form-control" disabled />
+                    </div>
+                    <span asp-validation-for="Path.Name" class="text-danger"></span>
+                }
+                else
+                {
+                    <small class="text-muted">Note: When you Publish this path you will be required to select a Name from the Bible passages included in this path.</small>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input asp-for="Path.Name" class="form-control" />
+                    </div>
+                    <span asp-validation-for="Path.Name" class="text-danger"></span>
+                }
+                @if (Model.Path.IsPublished)
+                {
+                    <small class="text-muted">Note: Topics can not be modified on a published Path.</small>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Topics</span>
+                        </div>
+                        <input asp-for="Path.Topics" class="form-control" disabled />
+                    </div>
+                    <span asp-validation-for="Path.Topics" class="text-danger"></span>
+                }
+                else
+                {
+                    <small class="text-muted">Note: When you Publish this path you will be required to select Topics from the Bible passages included in this path.</small><br />
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Topics</span>
+                        </div>
+                        <input asp-for="Path.Topics" class="form-control" />
+                    </div>
+                    <span asp-validation-for="Path.Topics" class="text-danger"></span>
+                }
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Bible</span>
+                    </div>
+                    <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
                 </div>
-                <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
                 <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
-            </div>
-            @if (Model.Path.IsPublished)
-            {
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Topics</span>
-                    </div>
-                    <input asp-for="Path.Topics" class="form-control" disabled />
-                    <span asp-validation-for="Path.Topics" class="text-danger"></span>
-                    <p class="text-muted">Note: Topics can not be modified on a published Path.</p><br />
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <span>allow others to edit this Path?</span>
+                    </label>
                 </div>
-            }
-            else
-            {
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Topics</span>
+                <div class="card">
+                    <div class="card-body">
+                        @Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)<br/>
+                        @Html.DisplayNameFor(model => model.Path.ComputedRating): @Html.DisplayFor(model => model.Path.ComputedRating)<br/>
+                        @Html.DisplayNameFor(model => model.Path.Created): @Html.DisplayFor(model => model.Path.Created)<br/>
+                        @Html.DisplayNameFor(model => model.Path.Modified): @Html.DisplayFor(model => model.Path.Modified)<br/>
+                        @Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)<br/>
+                        @Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)<br/>
+                        @Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)<br/>
+                        @Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)<br/>
+                        @Html.DisplayNameFor(model => model.Path.Reads): @Html.DisplayFor(model => model.Path.Reads)
                     </div>
-                    <input asp-for="Path.Topics" class="form-control" />
-                    <span asp-validation-for="Path.Topics" class="text-danger"></span>
-                    <p class="text-muted">Note: When you Publish this path you will be required to select Topics from the Bible passages included in this path.</p><br />
                 </div>
-            }
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <span>allow others to edit this Path?</span>
-                </label>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
-            Delete this Path
-        </button>
-        <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Path?</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>@Model.Path.Name</p>
-                    </div>
-                    <div class="modal-footer">
-                        <form asp-page="/Paths/Delete" method="post">
-                            <input type="hidden" name="id" value="@Model.Path.Id" />
-                            <input type="submit" value="Confirm" class="btn btn-danger" />
-                        </form>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    </div>
+                <br />
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
+        Delete this Path
+    </button>
+    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Path?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>@Model.Path.Name</p>
+                </div>
+                <div class="modal-footer">
+                    <form asp-page="/Paths/Delete" method="post">
+                        <input type="hidden" name="id" value="@Model.Path.Id" />
+                        <input type="submit" value="Confirm" class="btn btn-danger" />
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="row">
-    <button data-toggle="collapse" data-target="#AdditionalProperties">Additional Properties</button>
-    <br />
-    <div id="AdditionalProperties" class="collapse">
-        <ul class="list-group">
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.ComputedRating): @Html.DisplayFor(model => model.Path.ComputedRating)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Created): @Html.DisplayFor(model => model.Path.Created)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Modified): @Html.DisplayFor(model => model.Path.Modified)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)</li>
-            <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Reads): @Html.DisplayFor(model => model.Path.Reads)</li>
-        </ul>
+    @*<div class="row">
+        <button data-toggle="collapse" data-target="#AdditionalProperties" class="btn btn-link">Additional Properties</button>
     </div>
+    <div class="row">
+        <div id="AdditionalProperties" class="collapse">
+            <ul class="list-group">
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.ComputedRating): @Html.DisplayFor(model => model.Path.ComputedRating)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Created): @Html.DisplayFor(model => model.Path.Created)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Modified): @Html.DisplayFor(model => model.Path.Modified)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Reads): @Html.DisplayFor(model => model.Path.Reads)</li>
+            </ul>
+        </div>
+    </div>*@
 </div>
 
 <div>
     <hr />
+    <a asp-page="./steps" asp-route-PathId="@Model.Path.Id">Add or Remove Steps</a><br />
     <a asp-page="./MyPaths">Back to My Paths</a>
 </div>
 

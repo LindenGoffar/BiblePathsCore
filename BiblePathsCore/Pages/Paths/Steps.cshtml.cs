@@ -9,6 +9,7 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BiblePathsCore
 {
@@ -28,15 +29,23 @@ namespace BiblePathsCore
         public Paths Path { get; set; }
         public bool IsPathOwner { get; set; }
         public bool IsPathEditor { get; set; }
-        public Bibles Bible { get; set; }
+        // public Bibles Bible { get; set; }
+        public List<SelectListItem> BibleSelectList { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string BibleId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public bool? CountAsRead { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int PathId)
         {
+            CountAsRead = CountAsRead.HasValue ? CountAsRead.Value : false;
             IsPathEditor = false;
             IsPathOwner = false;
             // Confirm Path 
             Path = await _context.Paths.FindAsync(PathId);
-            if (Path == null) { return NotFound(); }
+            if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find the requested Path" }); }
             // Check whether user is Auth'd since we support either way. 
             if (User.Identity.IsAuthenticated){
                 var user = await _userManager.GetUserAsync(User);
@@ -44,18 +53,31 @@ namespace BiblePathsCore
                 IsPathEditor = Path.IsValidPathEditor(user.Email);
             }
 
-            // in this case we don't accept a BibleId on URL, instead we use the one supplied by the owner. 
-            Bible = await _context.Bibles.FindAsync(Path.OwnerBibleId);
+            BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
 
             PathNodes = await _context.PathNodes
                 .Where(pn => pn.PathId == Path.Id).OrderBy(pn => pn.Position).ToListAsync();
             // Add our Bible Verse Data to each node. 
             foreach (PathNodes step in PathNodes)
             {
-                _ = await step.AddBookNameAsync(_context, Bible.Id);
-                step.Verses = await step.GetBibleVersesAsync(_context, Bible.Id, true, false);
+                _ = await step.AddBookNameAsync(_context, BibleId);
+                step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
             }
+
+            // Now let's conditionally register this as a Path Read
+            if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
+
+            BibleSelectList = await GetBibleSelectListAsync(BibleId);
             return Page();
+        }
+        private async Task<List<SelectListItem>> GetBibleSelectListAsync(string BibleId)
+        {
+            return await _context.Bibles.Select(b =>
+                              new SelectListItem
+                              {
+                                  Value = b.Id,
+                                  Text = b.Language + "-" + b.Version
+                              }).ToListAsync();
         }
     }
 }

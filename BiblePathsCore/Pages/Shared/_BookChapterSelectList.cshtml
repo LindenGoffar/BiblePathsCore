@@ -1,10 +1,10 @@
-﻿@model List<BiblePathsCore.Models.DB.BibleBooks>
+﻿@model SelectChapterModel
 @*
     For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 *@
 
 <h4>Old Testament</h4>
-@foreach (var book in Model)
+@foreach (var book in Model.BibleBooks)
 {
     if (book.TestamentNumber == 1)
     {
@@ -22,7 +22,20 @@
                     <div class="modal-body">
                         @foreach (var chapter in book.BibleChapters)
                         {
-                            <a class="btn btn-light btn-sm mb-2" asp-page="@ViewData["TargetPage"]" asp-route-BibleId="@ViewData["BibleId"]" asp-route-PathId="@ViewData["PathId"]" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@ViewData["StepPosition"]">@chapter.ChapterNumber</a>
+                            switch (Model.TargetPage)
+                            {
+                                case "AddStep":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+
+                                case "EditStep":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+
+                                default:
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+                            }
                         }
                     </div>
                     <div class="modal-footer">
@@ -35,10 +48,10 @@
 }
 <hr />
 <h4>New Testament</h4>
-@foreach (var book in Model)
-{ 
+@foreach (var book in Model.BibleBooks)
+{
     if (book.TestamentNumber == 2)
-    {   
+    {
         <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
             @book.Name
         </button>
@@ -53,7 +66,20 @@
                     <div class="modal-body">
                         @foreach (var chapter in book.BibleChapters)
                         {
-                            <a class="btn btn-light btn-sm mb-2" asp-page="@ViewData["TargetPage"]" asp-route-BibleId="@ViewData["BibleId"]" asp-route-PathId="@ViewData["PathId"]" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@ViewData["StepPosition"]">@chapter.ChapterNumber</a>
+                            switch (Model.TargetPage)
+                            {
+                                case "AddStep":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+
+                                case "EditStep":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+
+                                default:
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="AddStep" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    break;
+                            }
                         }
                     </div>
                     <div class="modal-footer">

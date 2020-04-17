@@ -9,17 +9,25 @@
 <h4>@ViewData["Title"]</h4>
 
 <div class="container-fluid">
-    @foreach  (var item in Model.Paths)
+    @foreach (var item in Model.Paths)
     {
     <div class="row">
-        <div class="col-6">
-            <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
-            <span> - @item.Topics</span>
+        <div class="col-8">
+            <div class="card mb-2 mr-0">
+                <div class="card-body">
+                    <strong><a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a></strong>
+                    <small> @item.Topics</small>
+                </div>
+            </div>
         </div>
-        <div class="col">
-            <small>Length: @item.Length min</small><br />
-            <small><strong>Rating: </strong>@item.ComputedRating</small><br />
-            <small>Reads: @item.Reads</small>
+        <div class="col-4">
+            <div class="card mb-2 ml-0">
+                <div class="card-body">
+                    <small>Length: @item.Length min</small><br />
+                    <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                    <small>Reads: @item.Reads</small>
+                </div>
+            </div>
         </div>
     </div>
     }

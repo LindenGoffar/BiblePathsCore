@@ -25,9 +25,9 @@ namespace BiblePathsCore
         [BindProperty]
         public Paths Path { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public void OnGet(int? id)
         {
-            return RedirectToPage("/error", new { errorMessage = "That's Odd! This page should never be hit... " });
+            RedirectToPage("/error", new { errorMessage = "That's Odd! This page should never be hit... " });
             //if (id == null)
             //{
             //    return NotFound();
@@ -70,11 +70,15 @@ namespace BiblePathsCore
                 _context.PathNodes.Remove(step);
                 await _context.SaveChangesAsync();
             }
-            // Then we set the Path to isDeleted
+            // Let's track this event 
+            _ = await Path.RegisterEventAsync(_context, EventType.PathDeleted, Path.Id.ToString());
+
+            // Then we set the Path to isDeleted, we also unPublish it in case a filter is incorrectly not checking for deleted.
             if (Path != null)
             {
                 _context.Attach(Path).State = EntityState.Modified;
                 Path.Modified = DateTime.Now;
+                Path.IsPublished = false;
                 Path.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }

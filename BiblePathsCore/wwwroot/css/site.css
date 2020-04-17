@@ -12,6 +12,27 @@ a.navbar-brand {
     padding: 0;
     background-color: #FFFF99;
 }
+.text-verse {
+    font-family: Verdana, Arial, Georgia, sans-serif;
+    font-size: larger;
+    line-height: 1.5;
+}
+.text-inRelatedPath {
+    color: black;
+    background-color: #a8f5a8;
+}
+
+.text-proximity1 {
+    color: #999999;
+}
+
+.text-proximity2 {
+    color: #CCCCCC;
+}
+
+.text-proximity3 {
+    color: #E5E5E5;
+}
 
 /* Provide sufficient contrast against white background */
 a {

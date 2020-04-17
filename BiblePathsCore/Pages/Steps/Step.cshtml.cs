@@ -7,11 +7,19 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BiblePathsCore
 {
     public class StepModel : PageModel
     {
+        public enum StepScenarios
+        {
+            Step,
+            Context, 
+            Study
+        }
+
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
         public StepModel(BiblePathsCore.Models.BiblePathsCoreDbContext context)
@@ -19,23 +27,83 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public PathNodes PathNodes { get; set; }
+        public PathNodes Step { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        [BindProperty(SupportsGet = true)]
+        public string BibleId { get; set; }
+        public StepScenarios Scenario { get; set; }
+        public string PageTitle { get; set;  }
+        public List<SelectListItem> BibleSelectList { get; set; }
+        public int PrevChapter { get; set; }
+        public int NextChapter { get; set;  }
+
+
+        public async Task<IActionResult> OnGetAsync(int? id, string BibleId, int? BookNumber, int? Chapter)
         {
-            if (id == null)
+            bool hasValidStepId = false;
+            Step = new PathNodes();
+
+            // TODO: How does this work with Form Post and Get scenarios? 
+            if (this.BibleId != null) { BibleId = this.BibleId; }
+            BibleId = await Step.GetValidBibleIdAsync(_context, BibleId);
+            this.BibleId = BibleId;
+            
+            // There are three distinct scenarios to account for here: 
+            // 1. Step Scenario, we have an id of a step but no BookNumber or Chapter, this is the most basic step scenario.
+            // 2. Context Scenario, we have an id of a step and a BookNumber and Chapter, user is navigating for context.
+            // 3. Study Scenario, we have no id of a step, but have Booknumber and Chapter, user is reading the Bible.
+
+            if (id != null)
             {
-                return NotFound();
+                Step = await _context.PathNodes.FindAsync(id);
+                if (Step == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
+                _ = await Step.AddFwdBackStepAsync(_context);
+                _ = await Step.AddPahthNameAsync(_context);
+                Scenario = StepScenarios.Step;
+                hasValidStepId = true;
             }
 
-            PathNodes = await _context.PathNodes
-                .Include(p => p.Path).FirstOrDefaultAsync(m => m.Id == id);
-
-            if (PathNodes == null)
+            if (BookNumber.HasValue && Chapter.HasValue)
             {
-                return NotFound();
+                Step.BookNumber = (int)BookNumber;
+                Step.Chapter = (int)Chapter;
+                if (await Step.ValidateBookChapterAsync(_context, this.BibleId) == false) {
+                    return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" });
+                }
+                else
+                {
+                    if (hasValidStepId) { Scenario = StepScenarios.Context; }
+                    else { Scenario = StepScenarios.Study;  }
+                }
             }
+
+            _ = await Step.AddBookNameAsync(_context, BibleId);
+            Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, true);
+            _ = await Step.AddLegalNoteAsync(_context, BibleId);
+
+            if (Scenario == StepScenarios.Study) { PageTitle = Step.BookName + " " + Step.Chapter; } 
+            else { PageTitle = Step.PathName; }
+
+            BibleSelectList = await GetBibleSelectListAsync(BibleId);
+
             return Page();
+        }
+
+        private async Task<List<SelectListItem>> GetBibleSelectListAsync(string BibleId)
+        {
+            return await _context.Bibles.Select(b =>
+                              new SelectListItem
+                              {
+                                  Value = b.Id,
+                                  Text = b.Language + "-" + b.Version
+                              }).ToListAsync();
+        }
+        private async Task<bool> SetPrevNextChapters(string BibleId)
+        {
+            PrevChapter = Step.Chapter--;
+            NextChapter = Step.Chapter++;
+            NextChapter = (await _context.BibleChapters.Where(c => c.BibleId == BibleId && c.BookNumber == Step.BookNumber && c.ChapterNumber == NextChapter).AnyAsync()) ? NextChapter : 0;
+            return true;
         }
     }
 }

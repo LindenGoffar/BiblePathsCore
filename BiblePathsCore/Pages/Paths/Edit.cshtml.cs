@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BiblePathsCore.Models;
-using BiblePathsCore.Models.DB;
-using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BiblePathsCore
 {
@@ -44,14 +43,8 @@ namespace BiblePathsCore
             // confirm Path Owner
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to edit these Path settings..." }); }
-            
-            BibleSelectList = await _context.Bibles.Select(b =>
-                  new SelectListItem
-                  {
-                      Value = b.Id,
-                      Text = b.Language + "-" + b.Version
-                  }).ToListAsync();
 
+            BibleSelectList = await GetBibleSelectListAsync();
             return Page();
         }
 
@@ -64,6 +57,7 @@ namespace BiblePathsCore
                 return NotFound();
             }
 
+            BibleSelectList = await GetBibleSelectListAsync();
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -73,17 +67,39 @@ namespace BiblePathsCore
 
             pathToUpdate.Modified = DateTime.Now;
 
-            if (await TryUpdateModelAsync<Paths>(
-                pathToUpdate,
-                "Path",
-                p => p.Name, p => p.OwnerBibleId, p => p.Topics, p => p.IsPublicEditable))
+            if (pathToUpdate.IsPublished)
             {
-                await _context.SaveChangesAsync();
-                return RedirectToPage("./MyPaths");
+                if (await TryUpdateModelAsync<Paths>(
+                    pathToUpdate,
+                     "Path",
+                     p => p.OwnerBibleId, p => p.IsPublicEditable))
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToPage("./MyPaths");
+                }
             }
-
+            else
+            {
+                if (await TryUpdateModelAsync<Paths>(
+                        pathToUpdate,
+                        "Path",
+                        p => p.Name, p => p.OwnerBibleId, p => p.Topics, p => p.IsPublicEditable))
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToPage("./MyPaths");
+                }
+            }
             return Page();
+        }
 
+        private async Task<List<SelectListItem>> GetBibleSelectListAsync()
+        {
+            return await _context.Bibles.Select(b =>
+                              new SelectListItem
+                              {
+                                  Value = b.Id,
+                                  Text = b.Language + "-" + b.Version
+                              }).ToListAsync();
         }
 
         private bool PathsExists(int id)

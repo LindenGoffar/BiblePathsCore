@@ -56,7 +56,11 @@ namespace BiblePathsCore
                 facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
             });
 
-            services.AddRazorPages();
+            services.AddRazorPages()
+                .AddRazorPagesOptions(options =>
+                 {
+                     options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
+                 });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

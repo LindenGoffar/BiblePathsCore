@@ -6,73 +6,96 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
+<h4>@ViewData["Title"]</h4>
+<form method="get" class="float-right">
+    <input type="hidden" name="PathId" value="@Model.Path.Id" />
+    <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
+</form>
+
 <div class="container-fluid">
-
-    <h4>@ViewData["Title"]</h4>
-
     @if (Model.IsPathOwner || Model.IsPathEditor)
     {
         <p>
-            <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add a Step</a>
+            <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="AddStep">Add a Step</a>
         </p>
     }
 
     @foreach (var Node in Model.PathNodes)
     {
-        <div class="card">
-            <div class="card-body">
-                @{string VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
-                    if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
-                }
+        <div class="row">
+            <div class="col-10">
+                <div class="card">
+                    <div class="card-body">
+                        @{string VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
+                            if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
+                        }
 
-                @if (Model.IsPathOwner) // Only owners can delete a step... 
-                {
-                    <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal">
-                        Delete
-                    </button>
-                    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Step" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Step?</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>@VerseRef</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <form asp-page="/Steps/DeleteStep" method="post">
-                                        <input type="hidden" name="id" value="@Node.Id" />
-                                        <input type="hidden" name="pathId" value="@Model.Path.Id" />
-                                        <input type="submit" value="Confirm" class="btn btn-danger" />
-                                    </form>
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        @if (Model.IsPathOwner) // Only owners can delete a step...
+                        {
+                            <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal">
+                                Delete
+                            </button>
+                            <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Step" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLongTitle">Delete this Step?</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>@VerseRef</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form asp-page="/Steps/DeleteStep" method="post">
+                                                <input type="hidden" name="id" value="@Node.Id" />
+                                                <input type="hidden" name="pathId" value="@Model.Path.Id" />
+                                                <input type="submit" value="Confirm" class="btn btn-danger" />
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                }
+                        }
 
-                <p class="card-title">@VerseRef</p>
-                <p class="card-text">
-                    @foreach (var Verse in Node.Verses)
-                    {
-                        <sup>@Verse.Verse</sup>@Verse.Text<br />
-                    }
-                </p>
+                        <p class="card-title">
+                            <a asp-page="/Steps/EditStep" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a>
+                        </p>
+                        <p class="card-text">
+                            @foreach (var Verse in Node.Verses)
+                            {
+                                <sup>@Verse.Verse</sup>@Verse.Text<br />
+                            }
+                        </p>
+                    </div>
+                </div>
+                @if (Model.IsPathOwner || Model.IsPathEditor)
+                {
+                    <p>
+                        <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="AddStep">Add a Step</a>
+                    </p>
+                }
             </div>
+            @if (Model.IsPathOwner || Model.IsPathEditor)
+            {
+                <div class="col-2">
+                    <form asp-page="/Steps/Move" method="post">
+                        <input type="hidden" name="id" value="@Node.Id" />
+                        <input type="hidden" name="spaces" value="-1" />
+                        <input type="submit" value="Move Up" class="btn btn-sm btn-outline-primary" />
+                    </form>
+                    <br />
+                    <form asp-page="/Steps/Move" method="post">
+                        <input type="hidden" name="id" value="@Node.Id" />
+                        <input type="hidden" name="spaces" value="1" />
+                        <input type="submit" value="Move Down" class="btn btn-sm btn-outline-primary" />
+                    </form>
+                </div>
+            }
         </div>
-        @if (Model.IsPathOwner || Model.IsPathEditor)
-        {
-            <p>
-                <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add a Step</a>
-            </p>
-        }
     }
-</div>
-<div>
     @if (Model.IsPathOwner)
     {
         @if (Model.Path.IsPublished)
@@ -87,6 +110,8 @@
             <a asp-page="./publish" asp-route-id="@Model.Path.Id" class="btn btn-primary btn-sm">Publish this Path</a>
         }
     }
+</div>
+<div>
     <hr />
     @if (Model.IsPathOwner || Model.IsPathEditor)
     {

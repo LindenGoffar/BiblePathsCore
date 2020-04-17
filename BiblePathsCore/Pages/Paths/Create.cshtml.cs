@@ -41,6 +41,7 @@ namespace BiblePathsCore
         public async Task<IActionResult> OnPostAsync()
         {
             BibleSelectList = await GetBibleSelectListAsync();
+
             if (!ModelState.IsValid)
             {
                 return Page();

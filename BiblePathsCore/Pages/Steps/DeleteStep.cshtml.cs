@@ -23,24 +23,12 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public PathNodes PathNodes { get; set; }
+        public PathNodes Step { get; set; }
+        public Paths Path { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public void OnGet(int? id)
         {
-            return RedirectToPage("/error", new { errorMessage = "That's Odd! This page should never be hit... " });
-            //if (id == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //PathNodes = await _context.PathNodes
-            //    .Include(p => p.Path).FirstOrDefaultAsync(m => m.Id == id);
-
-            //if (PathNodes == null)
-            //{
-            //    return NotFound();
-            //}
-            //return Page();
+            RedirectToPage("/error", new { errorMessage = "That's Odd! The Delete page should never be hit... " });
         }
 
         public async Task<IActionResult> OnPostAsync(int? id, int pathId)
@@ -50,11 +38,18 @@ namespace BiblePathsCore
                 return NotFound();
             }
 
-            PathNodes = await _context.PathNodes.FindAsync(id);
+            Step = await _context.PathNodes.FindAsync(id);
+            Path = await _context.Paths.FindAsync(pathId);
 
-            if (PathNodes != null)
+            if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Path" }); }
+            if (Step.PathId != Path.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! Path/Step mismatch" }); }
+
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner may delete a Step" }); }
+
+            if (Step != null)
             {
-                _context.PathNodes.Remove(PathNodes);
+                _context.PathNodes.Remove(Step);
                 await _context.SaveChangesAsync();
             }
             return RedirectToPage("/Paths/Steps", new { PathId = pathId });

@@ -1,9 +1,9 @@
 ﻿
 # load for Prod
-$BaseURI = "https://biblepaths.net"
+# $BaseURI = "https://biblepaths.net"
 
 # load for Test
-$BaseURI = "https://biblepathstaging.azurewebsites.net"
+# $BaseURI = "https://biblepathstaging.azurewebsites.net"
 
 # load for Local Debug
 $BaseURI = "https://localhost:44387"
@@ -25,16 +25,17 @@ try {
     $Exception = $_.Exception
 }
 
-
 # Get all Paths.
-Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BiblePaths"
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths"
+
+# Get a specific Path by ID 
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths/1"
+
+
+# NOT YET IMPLIMENTED
 
 # Get the 2 newest Paths.
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BiblePaths/?SortOrder=Newest&Top=2"
-
-# Get a specific Path by ID 
-Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BiblePaths/8"
-
 
 # Get a Step by it's ID, specifying Bible Language and Version.
 $StepID = 2

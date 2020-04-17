@@ -17,6 +17,10 @@ namespace BiblePathsCore.Models.DB
         public List<BibleVerses> Verses { get; set; }
         [NotMapped]
         public string BookName { get; set; }
+        [NotMapped]
+        public string PathName { get; set; }
+        [NotMapped]
+        public string LegalNote { get; set;  }
 
         public async Task<bool> AddFwdBackStepAsync(BiblePathsCoreDbContext context)
         {
@@ -48,6 +52,45 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
+        public async Task<bool> AddPahthNameAsync(BiblePathsCoreDbContext context)
+        {
+            try
+            {
+                PathName = (await context.Paths.Where(p => p.Id == PathId).FirstAsync()).Name;
+            }
+            catch {
+                return false; 
+            }
+            return true;
+        }
+
+        public async Task<bool> ValidateBookChapterAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            if (await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).AnyAsync())
+            {
+                return true;
+            }
+            return false;
+        }
+        public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            string RetVal = Bibles.DefaultBibleId;
+            if (BibleId != null)
+            {
+                if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
+                {
+                    RetVal = BibleId;
+                }
+            }
+            return RetVal;
+        }
+        public async Task<bool> AddLegalNoteAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            Bibles Bible = await context.Bibles.FindAsync(BibleId);
+            Bible.HydrateBible();
+            LegalNote = Bible.LegalNote;
+            return true;
+        }
         public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly, bool includeProximity)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();

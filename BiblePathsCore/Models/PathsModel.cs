@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,9 +15,10 @@ namespace BiblePathsCore.Models
 
 namespace BiblePathsCore.Models.DB
 {
-
     public partial class Paths
     {
+        [NotMapped]
+        public int FirstStepId { get; set; }
         public void SetInitialProperties(string OwnerEmail)
         {
             // Set key properties that will not be supplied by the user on creation
@@ -31,7 +33,20 @@ namespace BiblePathsCore.Models.DB
             StepCount = 0;
             Reads = 0;
         }
-
+        public async Task<bool> AddFirstStepIdAsync(BiblePathsCoreDbContext context)
+        {
+            int TempID = 0;
+            try
+            {
+                TempID = (await context.PathNodes.Where(s => s.PathId == Id).OrderBy(s => s.Position).FirstAsync()).Id;
+            }
+            catch 
+            {
+                // If there is no FirstStep we acccept that and move on setting FirstStep ID = 0
+            }
+            FirstStepId = TempID;
+            return true;
+        }
         public bool IsValidPathEditor(string UserEmail)
         {
             if (string.IsNullOrEmpty(UserEmail))
@@ -56,6 +71,27 @@ namespace BiblePathsCore.Models.DB
                 return false;
             }
         }
+
+        public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            string RetVal = Bibles.DefaultBibleId;
+            if (BibleId != null)
+            {
+                if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
+                {
+                    RetVal = BibleId;
+                }
+                else
+                {
+                    // Let's try the Paths OwnerBibleId
+                    if (await context.Bibles.Where(B => B.Id == OwnerBibleId).AnyAsync())
+                    {
+                        RetVal = OwnerBibleId;
+                    }
+                }
+            }
+            return RetVal;             
+        }
         public async Task<int> GetPathVerseCountAsync(BiblePathsCoreDbContext context)
         {
             int retVal = 0;
@@ -67,14 +103,14 @@ namespace BiblePathsCore.Models.DB
             return retVal;
         }
 
-        public async Task<List<BibleVerses>> GetPathVersesAsync(BiblePathsCoreDbContext context)
+        public async Task<List<BibleVerses>> GetPathVersesAsync(BiblePathsCoreDbContext context, String BibleId)
         {
             List<BibleVerses> returnVerses = new List<BibleVerses>();
             List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(P => P.Position).ToListAsync();
             foreach (PathNodes node in pathNodes)
             {
                 returnVerses.AddRange(await context.BibleVerses
-                   .Where(v => v.BibleId == OwnerBibleId && v.BookNumber == node.BookNumber && v.Chapter == node.Chapter && v.Verse >= node.StartVerse && v.Verse <= node.EndVerse)
+                   .Where(v => v.BibleId == BibleId && v.BookNumber == node.BookNumber && v.Chapter == node.Chapter && v.Verse >= node.StartVerse && v.Verse <= node.EndVerse)
                    .ToListAsync());
             }
             return returnVerses;
@@ -88,7 +124,7 @@ namespace BiblePathsCore.Models.DB
             // Through this list and re-position the remaining nodes if necessary. 
             try
             {
-                List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id && N.Position > FromPosition).OrderBy(L => L.Position).ToListAsync();
+                List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id && N.Position >= FromPosition).OrderBy(L => L.Position).ToListAsync();
                 foreach (PathNodes node in pathNodes)
                 {
                     if (node.Position != NextPosition)

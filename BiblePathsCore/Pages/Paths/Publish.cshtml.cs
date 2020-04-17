@@ -24,9 +24,12 @@ namespace BiblePathsCore
 
         [BindProperty]
         public Paths Path { get; set; }
+
+        [BindProperty]
+        public string BibleId { get; set; }
         public List<BibleVerses> BibleVerses { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, string ReqBibleId)
         {
             if (id == null)
             {
@@ -44,7 +47,8 @@ namespace BiblePathsCore
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
 
-            BibleVerses = await Path.GetPathVersesAsync(_context);
+            BibleId = await Path.GetValidBibleIdAsync(_context, ReqBibleId);
+            BibleVerses = await Path.GetPathVersesAsync(_context, BibleId);
             return Page();
         }
 
@@ -66,7 +70,8 @@ namespace BiblePathsCore
             if (!pathToUpdate.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
 
             // Try to update our model with the bound Name, Topic Properties. 
-            BibleVerses = await pathToUpdate.GetPathVersesAsync(_context);
+            BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
+            BibleVerses = await Path.GetPathVersesAsync(_context, BibleId);
 
             if (await TryUpdateModelAsync<Paths>(
                 pathToUpdate,

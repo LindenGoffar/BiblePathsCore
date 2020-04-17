@@ -30,14 +30,22 @@ namespace BiblePathsCore
         [BindProperty]
         public PathNodes Step { get; set; }
 
-        public async Task<IActionResult> OnGet(string BibleId, int PathId, int BookNumber, int Chapter, int? VerseNum, int Position)
+        [BindProperty]
+        public string BibleId { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(string BibleId, int PathId, int BookNumber, int Chapter, int? VerseNum, int Position)
         {
+            //Note that StepId isn't used here, but is here to support consistency with the Edit signature. 
+
             //Does the path exist? if not we've got an error. 
             Path = await _context.Paths.FindAsync(PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Path" }); }
             // confirm our owner is a valid path editor i.e. owner or the path is publicly editable
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add to this Path" }); }
+
+            BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
+
             Step = new PathNodes();
             Step.PathId = Path.Id;
             Step.BookNumber = BookNumber;
@@ -45,14 +53,13 @@ namespace BiblePathsCore
             Step.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
             Step.Position = Position;
 
-            // Add Book Name
+            // Populate Step for display
             _ = await Step.AddBookNameAsync(_context, BibleId);
-
-            // Ok now we have enough of a step to grab our verses. 
             Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, false);
 
             // and now we need a Verse Select List
             ViewData["VerseSelectList"] = new SelectList(Step.Verses, "Verse", "Verse");
+            ViewData["TargetPage"] = "AddStep";
             return Page();
         }
 
@@ -62,6 +69,13 @@ namespace BiblePathsCore
         {
             if (!ModelState.IsValid)
             {
+                // Populate Step for display
+                _ = await Step.AddBookNameAsync(_context, BibleId);
+                Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, false);
+
+                // and now we need a Verse Select List
+                ViewData["VerseSelectList"] = new SelectList(Step.Verses, "Verse", "Verse");
+                ViewData["TargetPage"] = "AddStep";
                 return Page();
             }
             // Now let's validate a few things, first lets go grab the path.
@@ -71,6 +85,11 @@ namespace BiblePathsCore
             // confirm our owner is a valid path editor i.e. owner or the path is publicly editable
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add to this Path" }); }
+
+            if (!Path.IsPathOwner(user.Email))
+            {
+                _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
+            }
 
             // Now let's create an empty Step aka. PathNode object so we can put only our validated properties onto it. 
             var emptyStep = new PathNodes

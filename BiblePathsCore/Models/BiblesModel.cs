@@ -30,5 +30,7 @@ namespace BiblePathsCore.Models.DB
             }
             return LegalNote;
         }
+
+
     }
 }
