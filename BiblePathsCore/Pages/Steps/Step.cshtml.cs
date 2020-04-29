@@ -42,6 +42,8 @@ namespace BiblePathsCore
         {
             bool hasValidStepId = false;
             Step = new PathNodes();
+            int StepBookNumber = 0;
+            int StepChapter = 0; 
 
             // TODO: How does this work with Form Post and Get scenarios? 
             if (this.BibleId != null) { BibleId = this.BibleId; }
@@ -61,6 +63,8 @@ namespace BiblePathsCore
                 _ = await Step.AddPahthNameAsync(_context);
                 Scenario = StepScenarios.Step;
                 hasValidStepId = true;
+                StepBookNumber = Step.BookNumber;
+                StepChapter = Step.Chapter; 
             }
 
             if (BookNumber.HasValue && Chapter.HasValue)
@@ -71,8 +75,18 @@ namespace BiblePathsCore
                     return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" });
                 }
                 else
-                {
-                    if (hasValidStepId) { Scenario = StepScenarios.Context; }
+                { 
+                    if (hasValidStepId) 
+                    {
+                        if (Step.BookNumber == StepBookNumber && Step.Chapter == StepChapter)
+                        {
+                            Scenario = StepScenarios.Step; // we're back to our step. 
+                        }
+                        else
+                        {
+                            Scenario = StepScenarios.Context;
+                        }
+                    }
                     else { Scenario = StepScenarios.Study;  }
                 }
             }
@@ -80,9 +94,13 @@ namespace BiblePathsCore
             _ = await Step.AddBookNameAsync(_context, BibleId);
             Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, true);
             _ = await Step.AddLegalNoteAsync(_context, BibleId);
+            _ = await SetPrevNextChapters(BibleId);
 
             if (Scenario == StepScenarios.Study) { PageTitle = Step.BookName + " " + Step.Chapter; } 
             else { PageTitle = Step.PathName; }
+
+            // Let's see if we need to register any events for this step read. 
+            if (Scenario == StepScenarios.Step) { _ = await Step.RegisterReadEventsAsync(_context);  }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
 
@@ -98,10 +116,11 @@ namespace BiblePathsCore
                                   Text = b.Language + "-" + b.Version
                               }).ToListAsync();
         }
+
         private async Task<bool> SetPrevNextChapters(string BibleId)
         {
-            PrevChapter = Step.Chapter--;
-            NextChapter = Step.Chapter++;
+            PrevChapter = Step.Chapter - 1;
+            NextChapter = Step.Chapter + 1;
             NextChapter = (await _context.BibleChapters.Where(c => c.BibleId == BibleId && c.BookNumber == Step.BookNumber && c.ChapterNumber == NextChapter).AnyAsync()) ? NextChapter : 0;
             return true;
         }

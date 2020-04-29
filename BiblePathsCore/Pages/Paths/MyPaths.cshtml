@@ -35,11 +35,11 @@
                     <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
                     <div id="Details-@item.Id" class="collapse">
                         <small>Length: @item.Length min</small><br />
-                        <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                        <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
                         <small>Reads: @item.Reads</small><br />
                         <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
-                        <small>Created: @Html.DisplayFor(modelItem => item.Created)</small><br />
-                        <small>Modified: @Html.DisplayFor(modelItem => item.Modified)</small>
+                        <small>Created: @String.Format("{0:d/M/yyyy HH:mm:ss}", item.Created)</small><br />
+                        <small>Modified: @String.Format("{0:d/M/yyyy HH:mm:ss}", item.Modified)</small>
                     </div>
                 </div>
                 <div class="col">

@@ -3,97 +3,14 @@
 
 @{
     ViewData["Title"] = Model.PageTitle;
+    ViewBag.NoIndex = true; 
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-1">
-            @if (Model.Scenario != StepModel.StepScenarios.Study)
-            {
-                @if (Model.Step.BWStepId > 0)
-                {
-                    <div>
-                        <a asp-page="Step" asp-route-id="@Model.Step.BWStepId" asp-route-BibleId="@Model.BibleId">&lt;-</a>
-                    </div>
-                }
-            }
-        </div>
-        <div class="col-9">
-            @if (Model.Scenario == StepModel.StepScenarios.Step)
-            {
-                <span class="text-verse">
-                    @foreach (var item in Model.Step.Verses)
-                    {
-                        if (item.InPath)
-                        {
-                            <br /><sup>@item.Verse</sup>
-                            <mark>@item.Text</mark>
-                        }
-                        else
-                        {
-                            if (item.Proximity == 1)
-                            {
-                                <font class="text-proximity1">
-                                    <br /><sup>@item.Verse</sup>
-                                    @item.Text
-                                </font>
-                            }
-                            if (item.Proximity == 2)
-                            {
-                                <font class="text-proximity2">
-                                    <br /><sup>@item.Verse</sup>
-                                    @item.Text
-                                </font>
-                            }
-                            if (item.Proximity > 2)
-                            {
-                                <font class="text-proximity3" style="display: none">
-                                    <br /><sup>@item.Verse</sup>
-                                    @item.Text
-                                </font>
-                            }
-                        }
-                    }
-                </span>
-                <div class="text-muted">
-                    @Model.Step.LegalNote
-                </div>
-            }
-            else
-            {
-                <span class="text-verse">
-                    @foreach (var item in Model.Step.Verses)
-                    {
-                        <br /><sup>@item.Verse</sup>
-                        @item.Text
-                    }
-                </span>
-            }
-        </div>
-        <div class="col-2">
-            @if (Model.Scenario != StepModel.StepScenarios.Study)
-            {
-                @if (Model.Step.FWStepId > 0)
-                {
-                    <div>
-                        <a asp-page="Step" asp-route-id="@Model.Step.FWStepId" asp-route-BibleId="@Model.BibleId">-&gt;</a>
-                    </div>
-                }
-                else
-                { // implement end of path scenario
-                }
-            }
-        </div>
-    </div>
-</div>
-
-
-
-
     <div class="container-fluid">
-        @*<div class="row">
-            <div class="col-8">
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-5">
                 <h4>@ViewData["Title"]</h4>
             </div>
             <div class="col-4">
@@ -102,29 +19,125 @@
                     <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
                 </form>
             </div>
-        </div>*@
+            <div class="col-2"></div>
+        </div>
+        <br />
         <div class="row">
-            <div class="col-1">
-
-            </div>
-            <div class="col-9">
-                @*@if (Model.PrevChapter > 0)
+            <div class="col-1"></div>
+            <div class="row-9">
+                @if (Model.PrevChapter > 0)
                 {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.PrevChapter">Previous Chapter</a> }
                 else
-                { <a class="disabled">Previous Chapter</a>}*@
- 
-                @*@if (Model.NextChapter > 0)
+                { <a class="disabled">Previous Chapter</a>}
+            </div>
+            <div class="col-2"></div>
+        </div>
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-9">
+                <strong>@Model.Step.BookName&nbsp;@Model.Step.Chapter</strong>
+                <div class="float-right">
+                    <input type="checkbox" class="ShowChapter" onclick="ShowChapter_Change(this)" /><span> Show entire chapter</span>
+                </div>
+            </div>
+            <div class="col-2"></div>
+        </div>
+        <div class="row">
+            <div class="col-1 follow-scroll">
+                @if (Model.Scenario != StepModel.StepScenarios.Study)
+                {
+                    @if (Model.Step.BWStepId > 0)
+                    {
+                        <div class="font-weight-bolder text-nowrap">
+                            <a asp-page="Step" asp-route-id="@Model.Step.BWStepId" asp-route-BibleId="@Model.BibleId">&lt;-</a>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="col-9">
+                @if (Model.Scenario == StepModel.StepScenarios.Step)
+                {
+                    <span class="text-verse">
+                        @foreach (var item in Model.Step.Verses)
+                        {
+                            if (item.InPath)
+                            {
+                                <br /><sup>@item.Verse</sup>
+                                <mark>@item.Text</mark>
+                            }
+                            else
+                            {
+                                if (item.Proximity == 1)
+                                {
+                                    <font class="text-proximity1">
+                                        <br /><sup>@item.Verse</sup>
+                                        @item.Text
+                                    </font>
+                                }
+                                if (item.Proximity == 2)
+                                {
+                                    <font class="text-proximity2">
+                                        <br /><sup>@item.Verse</sup>
+                                        @item.Text
+                                    </font>
+                                }
+                                if (item.Proximity > 2)
+                                {
+                                    <font class="text-proximity3" style="display: none">
+                                        <br /><sup>@item.Verse</sup>
+                                        @item.Text
+                                    </font>
+                                }
+                            }
+                        }
+                    </span>
+                    <div class="text-muted">
+                        @Model.Step.LegalNote
+                    </div>
+                }
+                else
+                {
+                    <span class="text-verse">
+                        @foreach (var item in Model.Step.Verses)
+                        {
+                            <br /><sup>@item.Verse</sup>
+                            @item.Text
+                        }
+                    </span>
+                }
+            </div>
+            <div class="col-2 follow-scroll">
+                @if (Model.Scenario != StepModel.StepScenarios.Study)
+                {
+                    @if (Model.Step.FWStepId > 0)
+                    {
+                        <div class="h5">
+                            <a asp-page="Step" asp-route-id="@Model.Step.FWStepId" asp-route-BibleId="@Model.BibleId">-&gt;</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="font-weight-bolder text-nowrap">
+                            <a asp-page="/Paths/PathCompleted" asp-route-id="@Model.Step.PathId">-&gt;</a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-9">
+                @if (Model.NextChapter > 0)
                 {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.NextChapter">Next Chapter</a> }
                 else
-                { <a class="disabled">Next Chapter</a>}*@
+                { <a class="disabled">Next Chapter</a>}
             </div>
-            <div class="col-2">
-
-            </div>
+            <div class="col-2"></div>
         </div>
     </div>
 
-
-@*@section Scripts {
+@section Scripts {
     <partial name="_FollowScrollHelpers" />
-}*@
+    <partial name="_ShowChapterHelper" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

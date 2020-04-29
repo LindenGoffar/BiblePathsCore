@@ -1,0 +1,11 @@
+﻿@model List<BiblePathsCore.Models.DB.Paths>
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+<strong>Related Paths</strong>
+<br />
+@foreach (var item in Model)
+{
+    <a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a>
+    <br />
+}

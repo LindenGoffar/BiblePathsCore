@@ -1,0 +1,56 @@
+﻿@page
+@model BiblePathsCore.PathCompletedModel
+
+@{
+    ViewData["Title"] = "Bible Paths";
+    ViewBag.LoadIcons = true;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <p>You have completed the Bible Path <strong><a href="@Model.Path.PathLink">@Model.Path.Name</a></strong>. We hope that you have been blessed!</p>
+    @if (Model.RatingAccepted)
+    {
+        <div class="card">
+            <div class="card-body">
+                <strong>Would you like to rate the Bible Path you have just read?</strong>
+                <form method="post" id="rating-form">
+                    <input type="hidden" asp-for="Path.Id" />
+                    <span class="rating-star ml-5 small">
+                        <input type="radio" name="rating" value="5"><span class="star"></span>
+                        <input type="radio" name="rating" value="4"><span class="star"></span>
+                        <input type="radio" name="rating" value="3"><span class="star"></span>
+                        <input type="radio" name="rating" value="2"><span class="star"></span>
+                        <input type="radio" name="rating" value="1"><span class="star"></span>
+                    </span>
+                    <input type="submit" value="Submit Rating" />
+                </form>
+            </div>
+            <div class="card-footer">
+                <p>A note about <strong>Bible Path Ratings.</strong> User ratings like these are only a part of what goes into calculating a Bible Path rating. We also take into account how often a Bible Path is read to completion, the number of books referenced, and whether a Bible Path includes new and old Testament books among other things.</p>
+            </div>
+        </div>
+    }
+    @if (Model.RatingAcknowledged)
+    {
+        <div class="card">
+            <div class="card-body">
+                <strong>Thank you for providing feedback to Bible Paths!</strong>
+            </div>
+            <div class="card-footer">
+                <p>A note about <strong>Bible Path Ratings.</strong> User ratings like these are only a part of what goes into calculating a Bible Path rating. We also take into account how often a Bible Path is read to completion, the number of books referenced, and whether a Bible Path includes new and old Testament books among other things.</p>
+            </div>
+        </div>
+    }
+
+    <hr />
+    @await Component.InvokeAsync("RelatedPaths", new { PathId = Model.Path.Id })
+</div>
+
+<div>
+    <hr />
+    <a asp-page="./Index">Find another Path</a><br />
+    <a asp-page="./MyPaths">Build a Path of your own</a>
+</div>

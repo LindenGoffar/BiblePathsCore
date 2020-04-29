@@ -1,17 +1,23 @@
 ﻿
-<!-- This function sets Step_StartVerse whenever a verse is selected by touch or click. -->
+
 <script>
+    // Let's go ahead and scroll to the hightlighted text on page ready.
+    $(document).ready(function () {
+        var i = parseInt($("#Step_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    });
+
+    // !--This function sets Step_StartVerse whenever a verse is selected by touch or click. -- >
     function SelectVerse(VerseNum) {
         $("#Step_StartVerse").val(VerseNum);
         $("#Step_StartVerse").change();
         $("#Step_EndVerse").val(VerseNum);
         $("#Step_EndVerse").change();
     }
-</script>
 
-
-<script>
-    // Used in BuilderSteps both add and edit: Highlights Start -> End Verses
+     // Used in BuilderSteps both add and edit: Highlights Start -> End Verses
     for (i= 1; i <= @ViewData["VerseCount"]; i++){
         if (i >=  parseInt($("#Step_StartVerse").val()) && i <= parseInt($("#Step_EndVerse").val())){
             $('#text-' + i).addClass("mark");

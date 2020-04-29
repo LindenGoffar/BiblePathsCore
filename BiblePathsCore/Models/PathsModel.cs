@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using System.Collections;
 
 namespace BiblePathsCore.Models
 {
     // Enums generally used in the Paths class
-    public enum EventType { PathStarted, PathCompleted, NonOwnerEdit, DirectReference, PathDeleted }
+    public enum EventType { PathStarted, PathCompleted, NonOwnerEdit, DirectReference, PathDeleted, UserRating }
     public enum SortBy { HighestRated, Newest, Shortest, Reads }
 
 }
@@ -19,6 +22,10 @@ namespace BiblePathsCore.Models.DB
     {
         [NotMapped]
         public int FirstStepId { get; set; }
+        [NotMapped]
+        public string LengthInMinutes { get; set; }
+        [NotMapped]
+        public string PathLink { get; set; }
         public void SetInitialProperties(string OwnerEmail)
         {
             // Set key properties that will not be supplied by the user on creation
@@ -32,6 +39,14 @@ namespace BiblePathsCore.Models.DB
             IsDeleted = false;
             StepCount = 0;
             Reads = 0;
+        }
+
+        public async Task<bool> AddCalculatedPropertiesAsync(BiblePathsCoreDbContext context)
+        {
+            _ = await AddFirstStepIdAsync(context);
+            LengthInMinutes = GetLengthInMinutesString();
+            PathLink = "https://www.BiblePaths.Net/Paths/" + Name; 
+            return true;
         }
         public async Task<bool> AddFirstStepIdAsync(BiblePathsCoreDbContext context)
         {
@@ -103,6 +118,19 @@ namespace BiblePathsCore.Models.DB
             return retVal;
         }
 
+        private string GetLengthInMinutesString()
+        {
+            // Verses: 31,102 Words: 783,137 roughly 25 words per verse. 
+            // Length is a count of verses in the path. 
+            // an average adult reads ~200 Words per minute we'll decrement by 10% to account for switching between steps.
+            // so we have an average read time of 180 Words Per minute or 7.2 verses per minute. 
+            double AverageVersesPerMinute = 7.2;
+            double TimeToRead = Length / AverageVersesPerMinute;
+            int MinutesToRead = (int)Math.Ceiling(TimeToRead);
+            string LengthInMinutes = MinutesToRead.ToString() + " min";
+            return LengthInMinutes;
+        }
+
         public async Task<List<BibleVerses>> GetPathVersesAsync(BiblePathsCoreDbContext context, String BibleId)
         {
             List<BibleVerses> returnVerses = new List<BibleVerses>();
@@ -142,6 +170,53 @@ namespace BiblePathsCore.Models.DB
             }
             return true;
         }
+
+        // This method returns a list of Path objects related to the current path
+        // These can be referenced in the PathCompleted view or 
+        // elsewhere as determined helpful. 
+        public async Task<List<Paths>> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
+        {
+            Hashtable UniqueRelatedPaths = new Hashtable();
+
+            List<Paths> RelatedPaths = new List<Paths>();
+
+            // We need to load the collection of Steps assocaited with this Path. 
+            context.Entry(this)
+                .Collection(p => p.PathNodes)
+                .Load();
+
+            foreach (PathNodes Step in PathNodes)
+            {
+                // Let's go fetch any other PathNodes that match the Book/Chapter/Verse combo
+                // this means any steps that start between the curent Steps range of verses... 
+                // NOTE: The above described logic may not be intuitive, what if the step ends with in the curent steps range? 
+
+                // TODO Perf: this likely becomes expensive over time. 
+                List<PathNodes> dbNodes = await context.PathNodes.Include(N => N.Path).Where(N => N.BookNumber == Step.BookNumber && N.Chapter == Step.Chapter && N.StartVerse >= Step.StartVerse && N.StartVerse <= Step.EndVerse && N.PathId != Id).ToListAsync();
+
+                if (dbNodes.Count > 0)
+                {
+                    // Iterate through the related step nodes to see if it is part of a unique published path
+                    foreach (PathNodes entry in dbNodes)
+                    {
+                        // At this point we only know there is another Step associated with this Step, but is the Path published? 
+                        if (entry.Path != null)
+                        {
+                            if (entry.Path.IsPublished && !UniqueRelatedPaths.ContainsKey(entry.Path.Id))
+                            {
+                                UniqueRelatedPaths.Add(entry.Path.Id, entry.Path.Name); // used only to ensure uniqueness.
+                                // looks to be a published and unique path, 
+                                if (!RelatedPaths.Contains(entry.Path))
+                                {
+                                    RelatedPaths.Add(entry.Path);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return RelatedPaths;
+        }
         public async Task<bool> RegisterEventAsync(BiblePathsCoreDbContext context, EventType eventType, string EventData)
         {
             PathStats stat = new PathStats
@@ -160,6 +235,104 @@ namespace BiblePathsCore.Models.DB
             {
                 return false;
             }
+        }
+
+        public async Task<bool> ApplyPathRatingAsyc(BiblePathsCoreDbContext context)
+        {
+            // This Rating System is likely to change over time but for now we've got the following rules. 
+            // Rating is the average of the following Scores ranging from 0 - 5.
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5
+            // 4. Average of all UserRatings 
+
+            int firstNTBook = 40; // the first book in the New Testemant is book 40 in the protestant Bible.
+            int ScoreCount = 0; // this becomes the number of total Scores that we will average together. 
+            double TotalScore = 0;
+            // load all of the PathStats for this Path... we'll need these 
+            // We need to load the collection of Steps assocaited with this Path, as well as the Nodes. 
+            context.Entry(this)
+                .Collection(p => p.PathStats)
+                .Load();
+            context.Entry(this)
+                .Collection(p => p.PathNodes)
+                .Load();
+
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
+            if (ComputedRating.HasValue)
+            {
+                TotalScore += (double)ComputedRating;
+                ScoreCount++;
+            }
+
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5
+            int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
+            if (NumStarts > 0)
+            { 
+                int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
+                double ReadPercent = NumCompletes / NumStarts;
+                TotalScore += ReadPercent * 5;
+                ScoreCount++;
+            }
+
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5
+            if (PathNodes.Count > 0)
+            {
+                int BookDiversityScore = 0;
+                var BookHash = new HashSet<int>();
+                foreach (PathNodes node in PathNodes)
+                {
+                    BookHash.Add(node.BookNumber);
+                }
+                BookDiversityScore += BookHash.Count();
+                // Does the path span testaments? 
+                if ((BookHash.Max() >= firstNTBook) && (BookHash.Min() < firstNTBook))
+                {
+                    BookDiversityScore += 1; // Add a free point for spanning testaments.  
+                }
+
+                TotalScore += BookDiversityScore > 5 ? 5 : BookDiversityScore;
+                ScoreCount++;                
+            }
+
+            // 4. Average of all UserRatings
+            List<PathStats> UserRatings = PathStats.Where(s => s.EventType == (int)EventType.UserRating).ToList();
+            int SumRatings = 0;
+            int NumRatings = 0; 
+            foreach (PathStats UserRating in UserRatings)
+            {
+                int Rating = 0;
+                try
+                {
+                    Rating = int.Parse(UserRating.EventData);
+                }
+                catch
+                {
+                    continue;
+                }
+                if (Rating > 0 && Rating <= 5)
+                {
+                    SumRatings += Rating;
+                    NumRatings++; 
+                }
+            }
+            double AvgUserRating = SumRatings / NumRatings; 
+            if (AvgUserRating > 0 && AvgUserRating <= 5)
+            {
+                TotalScore += AvgUserRating;
+                ScoreCount++;
+            }
+
+            // Ok now it's time to calculate a our new rating. 
+            double TempRating = TotalScore / ScoreCount; 
+            if (TempRating > 0 && TempRating <= 5)
+            {
+                context.Attach(this).State = EntityState.Modified;
+                ComputedRating = (decimal)TempRating;
+                await context.SaveChangesAsync();
+            }
+
+            return true; 
         }
     }
 }

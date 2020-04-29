@@ -1,0 +1,19 @@
+﻿<!-- This function allows various elements to follow as the user scrolls -->
+<script>
+    function ShowChapter_Change(checkbox){
+        if (checkbox.checked) {
+            $('font.text-proximity3').fadeIn('fast');
+            $('font.text-proximity1').css({ "color": "#444444" });
+            $('font.text-proximity2').css({ "color": "#444444" });
+            $('font.text-proximity3').css({ "color": "#444444" });
+        }
+        else {
+            $('font.text-proximity3').fadeOut('fast');
+            // Ideally these shoud match the original values in .\Shared\_Layout.cshtml
+            $('font.text-proximity1').css({ "color": "#999999" });
+            $('font.text-proximity2').css({ "color": "#CCCCCC" });
+            $('font.text-proximity3').css({ "color": "#E5E5E5" });
+        }
+    }
+</script>
+

@@ -8,7 +8,15 @@
     <h1 class="display-4">Welcome to @ViewData["Title"]</h1>
     <p><strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study.</p>
 </div>
+<div class="card m-2">
+    <div class="card-body">
+        @await Component.InvokeAsync("NewPaths", new { TopN = 3 })
+    </div>
+</div>
+<br />
 <div class="list-group list-group-flush">
     <a asp-page="Paths/Index" class="list-group-item">Find and Follow a Bible Path</a>
     <a asp-page="Paths/MyPaths" class="list-group-item">Build a Bible Path of your own</a>
 </div>
+
+

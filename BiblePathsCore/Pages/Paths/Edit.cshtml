@@ -72,14 +72,14 @@
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        @Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)<br/>
-                        @Html.DisplayNameFor(model => model.Path.ComputedRating): @Html.DisplayFor(model => model.Path.ComputedRating)<br/>
-                        @Html.DisplayNameFor(model => model.Path.Created): @Html.DisplayFor(model => model.Path.Created)<br/>
-                        @Html.DisplayNameFor(model => model.Path.Modified): @Html.DisplayFor(model => model.Path.Modified)<br/>
-                        @Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)<br/>
-                        @Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)<br/>
-                        @Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)<br/>
-                        @Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)<br/>
+                        @Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)<br />
+                        @Html.DisplayNameFor(model => model.Path.ComputedRating): @String.Format("{0:0.00}", Model.Path.ComputedRating)<br />
+                        @Html.DisplayNameFor(model => model.Path.Created): @String.Format("{0:d/M/yyyy HH:mm:ss}", Model.Path.Created)<br />
+                        @Html.DisplayNameFor(model => model.Path.Modified): @String.Format("{0:d/M/yyyy HH:mm:ss}", Model.Path.Modified)<br />
+                        @Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)<br />
+                        @Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)<br />
+                        @Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)<br />
+                        @Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)<br />
                         @Html.DisplayNameFor(model => model.Path.Reads): @Html.DisplayFor(model => model.Path.Reads)
                     </div>
                 </div>

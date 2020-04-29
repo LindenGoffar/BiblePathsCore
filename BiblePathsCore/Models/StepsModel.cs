@@ -124,5 +124,29 @@ namespace BiblePathsCore.Models.DB
             }
             return bibleVerses;
         }
+
+        public async Task<bool> RegisterReadEventsAsync(BiblePathsCoreDbContext context, bool FullPathRead = false)
+        {
+            // there are two scenarios we should register events for 
+            // 1. If this is the second step in a path we register a Read, this avoids false reads for accidental clicks.
+            // 2. If this is the final step in the path we register a Finished
+            if ((Position > 14 && Position < 21) || FullPathRead) // by some fluke second step may be between 15 and 20...
+            {
+                if (Path == null ) { context.Entry(this).Reference(s => s.Path).Load(); }
+                _ = await Path.RegisterEventAsync(context, EventType.PathStarted, null);
+            }
+            if (this.FWStepId == 0 || FullPathRead) // this is the last step
+            {
+                if (Path == null) { context.Entry(this).Reference(s => s.Path).Load(); }
+                _ = await Path.RegisterEventAsync(context, EventType.PathCompleted, null);
+
+                // Now we need to increment Read Count... 
+                context.Attach(Path).State = EntityState.Modified;
+                Path.Reads++;
+                await context.SaveChangesAsync();
+            }
+
+            return true;
+        }
     }
 }
