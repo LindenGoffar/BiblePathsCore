@@ -144,15 +144,15 @@ namespace BiblePathsCore.Models.DB
             return returnVerses;
         }
 
-        public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context,  int FromPosition)
+        public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context)
         {
             int DefaultInterval = 10;
-            int NextPosition = FromPosition + DefaultInterval;
+            int NextPosition = 10;
             // Build a list of all steps in the path after "FromPosition", then iterate 
             // Through this list and re-position the remaining nodes if necessary. 
             try
             {
-                List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id && N.Position >= FromPosition).OrderBy(L => L.Position).ToListAsync();
+                List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(L => L.Position).ToListAsync();
                 foreach (PathNodes node in pathNodes)
                 {
                     if (node.Position != NextPosition)
@@ -240,11 +240,11 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> ApplyPathRatingAsyc(BiblePathsCoreDbContext context)
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
-            // Rating is the average of the following Scores ranging from 0 - 5.
+            // Rating is the average of the following Scores ranging from 0 - 5 (there is a little arbitrary uplift)
             // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
             // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5
-            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5
-            // 4. Average of all UserRatings 
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book and a point for spanning testaments up to 5
+            // 4. Average of all UserRatings (uplift creates a 1.1 - 5.5 range)
 
             int firstNTBook = 40; // the first book in the New Testemant is book 40 in the protestant Bible.
             int ScoreCount = 0; // this becomes the number of total Scores that we will average together. 
@@ -319,18 +319,19 @@ namespace BiblePathsCore.Models.DB
             double AvgUserRating = SumRatings / NumRatings; 
             if (AvgUserRating > 0 && AvgUserRating <= 5)
             {
-                TotalScore += AvgUserRating;
+                TotalScore += (AvgUserRating * 1.1); // Make this count by applying a small uplift. 
                 ScoreCount++;
             }
 
             // Ok now it's time to calculate a our new rating. 
-            double TempRating = TotalScore / ScoreCount; 
-            if (TempRating > 0 && TempRating <= 5)
-            {
-                context.Attach(this).State = EntityState.Modified;
-                ComputedRating = (decimal)TempRating;
-                await context.SaveChangesAsync();
-            }
+            double TempRating = TotalScore / ScoreCount;
+            TempRating = TempRating > 5 ? 5 : TempRating;
+            TempRating = TempRating < 0 ? 0.5 : TempRating;
+
+            // Save our Rating Now. 
+            context.Attach(this).State = EntityState.Modified;
+            ComputedRating = (decimal)TempRating;
+            await context.SaveChangesAsync();
 
             return true; 
         }

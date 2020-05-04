@@ -18,9 +18,23 @@ namespace BiblePathsCore.Pages
         }
 
         public string CatchPhrase { get; set; }
+
         public void OnGet()
         {
-            CatchPhrase = "Lost? Find your path here...";
+            Random rnd = new Random();
+            string[] Phrases = new string[]
+            {
+                "Bible only, Bible studies, for you by you...",
+                "Even fishers of men need a .net...",
+                "Best served with prayer...",
+                "Caution: Approach with prayer...",
+                "If it's not in the Bible, it's not here...",
+                "Lost? Find your Path here...",
+                "Welcome to the family! Now that you're here..."
+            };
+            int r = rnd.Next(Phrases.Count());
+
+            CatchPhrase = Phrases[r];
         }
     }
 }

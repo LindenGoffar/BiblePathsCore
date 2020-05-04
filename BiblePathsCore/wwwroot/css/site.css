@@ -36,7 +36,7 @@ a.navbar-brand {
 
 .follow-scroll {
     position: relative;
-    height: 400px;
+    display: inline-block;
 }
 
 .fixed-third-right {

@@ -50,11 +50,25 @@ namespace BiblePathsCore
             services.AddTransient<IEmailSender, EmailSender>();
             services.Configure<AuthMessageSenderOptions>(Configuration);
 
-            services.AddAuthentication().AddFacebook(facebookOptions =>
-            {
-                facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
-                facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
-            });
+            services.AddAuthentication()
+                    .AddFacebook(facebookOptions =>
+                        {
+                            facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+                            facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+                        })
+                    .AddGoogle(googleOptions =>
+                     {
+                         IConfigurationSection googleAuthNSection =
+                             Configuration.GetSection("Authentication:Google");
+
+                         googleOptions.ClientId = googleAuthNSection["ClientId"];
+                         googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+                     })
+                    .AddMicrosoftAccount(microsoftOptions =>
+                    {
+                        microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
+                        microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+                    });
 
             services.AddRazorPages()
                 .AddRazorPagesOptions(options =>

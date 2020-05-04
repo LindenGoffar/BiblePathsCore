@@ -16,9 +16,10 @@
 <div class="container-fluid">
     @if (Model.IsPathOwner || Model.IsPathEditor)
     {
-        <p>
-            <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="AddStep">Add a Step</a>
-        </p>
+    <p>
+        <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="AddStep">Add a Step</a>
+        <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Search for Verses</a>
+    </p>
     }
 
     @foreach (var Node in Model.PathNodes)
@@ -74,9 +75,10 @@
                 </div>
                 @if (Model.IsPathOwner || Model.IsPathEditor)
                 {
-                    <p>
-                        <a asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="AddStep">Add a Step</a>
-                    </p>
+            <p>
+                <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="AddStep">Add a Step</a>
+                <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Search for Verses</a>
+            </p>
                 }
             </div>
             @if (Model.IsPathOwner || Model.IsPathEditor)

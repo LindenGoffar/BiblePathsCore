@@ -1,6 +1,10 @@
 ﻿<# 
 Description: Create individual or all BiblePaths Core tables.
 
+ALTER TABLE QuizGroupStats
+		ADD PredefinedQuiz int NOT NULL DEFAULT 0;
+
+Then run CreatePreDefinedQuizTables
 #>
 
 Param(  #[switch] $SetupSecurity,
@@ -14,6 +18,7 @@ Param(  #[switch] $SetupSecurity,
         [switch] $CreatePathStatsTable,
         [switch] $CreateQuizTables,
 		[switch] $CreateCommentaryTable,
+		[switch] $CreatePreDefinedQuizTables,
 		[switch] $LocalDB
         #[switch] $ProductionDB,
         #[switch] $StagingDB
@@ -274,6 +279,7 @@ If ($CreateQuizTables){
 			QuestionsAsked int NOT NULL,
 			PointsPossible int NOT NULL,
 			PointsAwarded int NOT NULL,
+			PredefinedQuiz int NOT NULL DEFAULT 0, 
 			Created datetimeoffset,
 			Modified datetimeoffset,
 			isDeleted BIT NOT NULL DEFAULT 0
@@ -329,4 +335,34 @@ If ($CreateCommentaryTable){
 		) 
 "@
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateCommentaryBooksTableQuery -Username $User -Password $Password
+}
+If ($CreatePreDefinedQuizTables){
+	$CreatePredefinedQuizTableQuery = @"
+		CREATE TABLE PredefinedQuizzes
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			QuizUserID int FOREIGN KEY References QuizUsers(ID),
+			QuizName nvarchar (2048), 
+			BookNumber int NOT NULL,
+			NumQuestions int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset,
+			isDeleted BIT NOT NULL DEFAULT 0
+		) 
+"@
+	$CreatePredefinedQuizQuestionsTableQuery = @"
+		CREATE TABLE PredefinedQuizQuestions
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			PredefinedQuizID int FOREIGN KEY References PredefinedQuizzes(ID),
+			QuestionNumber int NOT NULL,
+			BookNumber int NOT NULL,
+			Chapter int NOT NULL
+		) 
+"@
+	Write-Host "Creating Predefined Quiz Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizTableQuery -Username $User -Password $Password
+	Write-Host "Creating Predefined Quiz Question Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizQuestionsTableQuery -Username $User -Password $Password
+
 }

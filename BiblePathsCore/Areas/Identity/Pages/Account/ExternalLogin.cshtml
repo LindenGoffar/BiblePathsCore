@@ -9,9 +9,8 @@
 <hr />
 
 <p class="text-info">
-    You've successfully authenticated with <strong>@Model.LoginProvider</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
+    You've successfully authenticated with <strong>@Model.LoginProvider</strong>.<br />
+    Please register an Email address with Bible Paths, we will use this to track any items that you create.
 </p>
 
 <div class="row">
@@ -27,6 +26,10 @@
         </form>
     </div>
 </div>
+<br />
+<p class="text-info">
+    Your Email Address is the only thing we store at Bible Paths, please see <a asp-page="./Privacy">Privacy</a> for more details. 
+</p>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

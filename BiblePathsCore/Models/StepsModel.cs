@@ -14,13 +14,42 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int BWStepId { get; set; }
         [NotMapped]
+        public int StepNumber { get; set; }
+        [NotMapped]
         public List<BibleVerses> Verses { get; set; }
         [NotMapped]
         public string BookName { get; set; }
         [NotMapped]
         public string PathName { get; set; }
         [NotMapped]
+        public int PathStepCount { get; set; }
+        [NotMapped]
         public string LegalNote { get; set;  }
+        [NotMapped]
+        public int PrevChapter { get; set; }
+        [NotMapped]
+        public int NextChapter { get; set; }
+
+
+        public async Task<bool> AddPathStepPropertiesAsync(BiblePathsCoreDbContext context)
+        {
+            // Calculate Step Number
+            StepNumber = (int)Position / 10;
+            // Add Fwd and Back Steps
+            _ = await AddFwdBackStepAsync(context);
+            // Add PathName and StepCount
+            _ = await AddPathPropertiesAsync(context);
+
+            return true;
+        }
+
+        public async Task<bool> AddGenericStepPropertiesAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            _ = await AddBookNameAsync(context, BibleId);
+            _ = await AddLegalNoteAsync(context, BibleId);
+            _ = await AddPrevNextChapters(context, BibleId);
+            return true;
+        }
 
         public async Task<bool> AddFwdBackStepAsync(BiblePathsCoreDbContext context)
         {
@@ -52,11 +81,13 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
-        public async Task<bool> AddPahthNameAsync(BiblePathsCoreDbContext context)
+        public async Task<bool> AddPathPropertiesAsync(BiblePathsCoreDbContext context)
         {
             try
             {
-                PathName = (await context.Paths.Where(p => p.Id == PathId).FirstAsync()).Name;
+                Paths path = await context.Paths.Where(p => p.Id == PathId).FirstAsync();
+                PathName = path.Name;
+                PathStepCount = Path.StepCount;
             }
             catch {
                 return false; 
@@ -72,6 +103,7 @@ namespace BiblePathsCore.Models.DB
             }
             return false;
         }
+
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bibles.DefaultBibleId;
@@ -91,6 +123,14 @@ namespace BiblePathsCore.Models.DB
             LegalNote = Bible.LegalNote;
             return true;
         }
+        private async Task<bool> AddPrevNextChapters(BiblePathsCoreDbContext context, string BibleId)
+        {
+            PrevChapter = Chapter - 1;
+            NextChapter = Chapter + 1;
+            NextChapter = (await context.BibleChapters.Where(c => c.BibleId == BibleId && c.BookNumber == BookNumber && c.ChapterNumber == NextChapter).AnyAsync()) ? NextChapter : 0;
+            return true;
+        }
+
         public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly, bool includeProximity)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();

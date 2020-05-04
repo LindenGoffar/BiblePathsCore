@@ -7,6 +7,7 @@ namespace BiblePathsCore.Models.DB
     {
         public QuizUsers()
         {
+            PredefinedQuizzes = new HashSet<PredefinedQuizzes>();
             QuizGroupStats = new HashSet<QuizGroupStats>();
             QuizQuestionStats = new HashSet<QuizQuestionStats>();
         }
@@ -19,6 +20,7 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Added { get; set; }
         public DateTimeOffset? Modified { get; set; }
 
+        public virtual ICollection<PredefinedQuizzes> PredefinedQuizzes { get; set; }
         public virtual ICollection<QuizGroupStats> QuizGroupStats { get; set; }
         public virtual ICollection<QuizQuestionStats> QuizQuestionStats { get; set; }
     }

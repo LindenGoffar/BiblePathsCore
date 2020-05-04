@@ -51,6 +51,7 @@ namespace BiblePathsCore
             Step.BookNumber = BookNumber;
             Step.Chapter = Chapter;
             Step.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
+            Step.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
             Step.Position = Position;
 
             // Populate Step for display
@@ -122,8 +123,8 @@ namespace BiblePathsCore
                 // Save our now updated Path Object. 
                 await _context.SaveChangesAsync();
 
-                // Finally we need to re-position each node in the path to ensure safe ordering, as a slight optimization we start at PreviousNodePosition
-                _ = await Path.RedistributeStepsAsync(_context, PreviousNodePosition);
+                // Finally we need to re-position each node in the path to ensure safe ordering
+                _ = await Path.RedistributeStepsAsync(_context);
                 
                 return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
             }

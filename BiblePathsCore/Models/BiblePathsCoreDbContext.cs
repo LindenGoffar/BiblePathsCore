@@ -25,6 +25,8 @@ namespace BiblePathsCore.Models
         public virtual DbSet<PathNodes> PathNodes { get; set; }
         public virtual DbSet<PathStats> PathStats { get; set; }
         public virtual DbSet<Paths> Paths { get; set; }
+        public virtual DbSet<PredefinedQuizQuestions> PredefinedQuizQuestions { get; set; }
+        public virtual DbSet<PredefinedQuizzes> PredefinedQuizzes { get; set; }
         public virtual DbSet<QuizAnswers> QuizAnswers { get; set; }
         public virtual DbSet<QuizBookListBookMap> QuizBookListBookMap { get; set; }
         public virtual DbSet<QuizBookLists> QuizBookLists { get; set; }
@@ -37,8 +39,7 @@ namespace BiblePathsCore.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // this has been moved to Startup.cs
-                //optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                optionsBuilder.UseSqlServer("Name=DefaultConnection");
             }
         }
 
@@ -206,6 +207,34 @@ namespace BiblePathsCore.Models
                     .HasMaxLength(64);
 
                 entity.Property(e => e.Topics).HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<PredefinedQuizQuestions>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.PredefinedQuizId).HasColumnName("PredefinedQuizID");
+
+                entity.HasOne(d => d.PredefinedQuiz)
+                    .WithMany(p => p.PredefinedQuizQuestions)
+                    .HasForeignKey(d => d.PredefinedQuizId)
+                    .HasConstraintName("FK__Predefine__Prede__07C12930");
+            });
+
+            modelBuilder.Entity<PredefinedQuizzes>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+
+                entity.Property(e => e.QuizName).HasMaxLength(2048);
+
+                entity.Property(e => e.QuizUserId).HasColumnName("QuizUserID");
+
+                entity.HasOne(d => d.QuizUser)
+                    .WithMany(p => p.PredefinedQuizzes)
+                    .HasForeignKey(d => d.QuizUserId)
+                    .HasConstraintName("FK__Predefine__QuizU__03F0984C");
             });
 
             modelBuilder.Entity<QuizAnswers>(entity =>

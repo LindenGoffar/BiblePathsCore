@@ -32,7 +32,7 @@ namespace BiblePathsCore
                          select p;
             if (!string.IsNullOrEmpty(SearchString))
             {
-                paths = paths.Where(s => s.Name.Contains(SearchString) || s.Topics.Contains(SearchString) && s.IsPublished == true && s.IsDeleted == false);
+                paths = paths.Where(s => (s.Name.Contains(SearchString) || s.Topics.Contains(SearchString)) && s.IsPublished == true && s.IsDeleted == false);
             }
             else 
             {

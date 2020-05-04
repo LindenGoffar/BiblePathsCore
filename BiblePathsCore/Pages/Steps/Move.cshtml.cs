@@ -72,8 +72,8 @@ namespace BiblePathsCore
             Path.Modified = DateTime.Now;
             await _context.SaveChangesAsync();
 
-            // Finally we need to re-position each node in the path to ensure safe ordering, as a slight optimization we start at the step before TempPosition
-            _ = await Path.RedistributeStepsAsync(_context, TempPosition);
+            // Finally we need to re-position each node in the path to ensure safe ordering
+            _ = await Path.RedistributeStepsAsync(_context);
 
             return RedirectToPage("/Paths/Steps", new { PathId = Step.PathId });
         }

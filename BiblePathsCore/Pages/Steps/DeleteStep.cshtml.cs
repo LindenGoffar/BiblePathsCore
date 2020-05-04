@@ -51,6 +51,9 @@ namespace BiblePathsCore
             {
                 _context.PathNodes.Remove(Step);
                 await _context.SaveChangesAsync();
+
+                // Finally we need to re-position each node in the path to ensure safe ordering
+                _ = await Path.RedistributeStepsAsync(_context);
             }
             return RedirectToPage("/Paths/Steps", new { PathId = pathId });
         }

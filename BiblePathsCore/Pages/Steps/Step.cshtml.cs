@@ -34,9 +34,6 @@ namespace BiblePathsCore
         public StepScenarios Scenario { get; set; }
         public string PageTitle { get; set;  }
         public List<SelectListItem> BibleSelectList { get; set; }
-        public int PrevChapter { get; set; }
-        public int NextChapter { get; set;  }
-
 
         public async Task<IActionResult> OnGetAsync(int? id, string BibleId, int? BookNumber, int? Chapter)
         {
@@ -59,8 +56,7 @@ namespace BiblePathsCore
             {
                 Step = await _context.PathNodes.FindAsync(id);
                 if (Step == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
-                _ = await Step.AddFwdBackStepAsync(_context);
-                _ = await Step.AddPahthNameAsync(_context);
+                _ = await Step.AddPathStepPropertiesAsync(_context);
                 Scenario = StepScenarios.Step;
                 hasValidStepId = true;
                 StepBookNumber = Step.BookNumber;
@@ -91,10 +87,8 @@ namespace BiblePathsCore
                 }
             }
 
-            _ = await Step.AddBookNameAsync(_context, BibleId);
+            _ = await Step.AddGenericStepPropertiesAsync(_context, BibleId);
             Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, true);
-            _ = await Step.AddLegalNoteAsync(_context, BibleId);
-            _ = await SetPrevNextChapters(BibleId);
 
             if (Scenario == StepScenarios.Study) { PageTitle = Step.BookName + " " + Step.Chapter; } 
             else { PageTitle = Step.PathName; }
@@ -115,14 +109,6 @@ namespace BiblePathsCore
                                   Value = b.Id,
                                   Text = b.Language + "-" + b.Version
                               }).ToListAsync();
-        }
-
-        private async Task<bool> SetPrevNextChapters(string BibleId)
-        {
-            PrevChapter = Step.Chapter - 1;
-            NextChapter = Step.Chapter + 1;
-            NextChapter = (await _context.BibleChapters.Where(c => c.BibleId == BibleId && c.BookNumber == Step.BookNumber && c.ChapterNumber == NextChapter).AnyAsync()) ? NextChapter : 0;
-            return true;
         }
     }
 }

@@ -1,0 +1,50 @@
+﻿@page
+@model VerseSearchModel
+
+@{
+    ViewData["Title"] = "Verse Search";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <form>
+                <p>
+                    <input type="hidden" name="PathId" value="@Model.Path.Id" />
+                    <input type="hidden" asp-for="@Model.BibleId" />
+                    <input type="hidden" name="Position" value="@Model.StepPosition" />
+                    <input type="text" asp-for="SearchString" />
+                    <input type="submit" value="Search the Bible" />
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+<hr />
+@if (Model.NoResults == true)
+{
+    <strong>Sorry! This search returned no results... </strong>
+}
+@if (Model.BibleVerses != null)
+{
+    @foreach (var item in Model.BibleVerses)
+    {
+        <div class="row border border-top-0 border-right-0 mb-2">
+            <div class="col-9">
+                <span class="text-verse">
+                    <strong>@item.BookName @item.Chapter: @item.Verse </strong>
+                    @item.Text
+                </span>
+            </div>
+            <div class="col-3">
+                <a class="btn btn-outline-primary btn-sm" asp-page="./AddStep" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-BookNumber="@item.BookNumber" asp-route-Chapter="@item.Chapter" asp-route-VerseNum="@item.Verse" asp-route-Position="@Model.StepPosition">Add as Step</a>
+            </div>
+        </div>
+    }
+}
+<div>
+    <hr />
+    <a asp-page="/Paths/Steps">Back to Path</a>
+</div>
