@@ -36,11 +36,28 @@ namespace BiblePathsCore
         [BindProperty]
         public Paths Path { get; set; }
 
+        [PageRemote(
+            ErrorMessage = "Sorry, this Name is not valid, ",
+            AdditionalFields = "__RequestVerificationToken",
+            HttpMethod = "post",
+            PageHandler = "CheckName"
+        )]
+        [BindProperty]
+        public string Name { get; set; }
+
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             BibleSelectList = await GetBibleSelectListAsync();
+
+
+            Path.Name = Name;
+
+            if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+            {
+                ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -63,6 +80,15 @@ namespace BiblePathsCore
             }
 
             return Page();
+        }
+
+        public async Task<JsonResult> OnPostCheckNameAsync()
+        {
+            if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+            {
+                return new JsonResult("Sorry, this Name is already in use.");
+            }
+            return new JsonResult(true);
         }
 
         private async Task<List<SelectListItem>> GetBibleSelectListAsync()

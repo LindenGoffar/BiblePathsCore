@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using System.Collections;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BiblePathsCore.Models
 {
@@ -86,7 +87,6 @@ namespace BiblePathsCore.Models.DB
                 return false;
             }
         }
-
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bibles.DefaultBibleId;
@@ -143,6 +143,33 @@ namespace BiblePathsCore.Models.DB
             }
             return returnVerses;
         }
+        // Note this is a static class it is not called with an instance of a path object. 
+        public static async Task<bool> PathNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
+        {
+            var knownTerms = new[] { "Create", "Delete", "Edit", "Index", "MyPaths", "Path", "PathComplete", "Publish", "Steps" };
+            if (knownTerms.Contains(CheckName))
+            {
+                return true;
+            }
+            if (await context.Paths.Where(p => p.Name.ToLower() == CheckName.ToLower()).AnyAsync())
+            {
+                return true; 
+            }
+            return false;
+        }
+        //public async Task<bool> StringsInPathAsync(BiblePathsCoreDbContext context, string CheckString)
+        //{
+        //    var knownTerms = new[] { "Create", "Delete", "Edit", "Index", "MyPaths", "Path", "PathComplete", "Publish", "Steps" };
+        //    if (knownTerms.Contains(Name))
+        //    {
+        //        return true;
+        //    }
+        //    if (await context.Paths.Where(p => p.Name.ToLower() == CheckName.ToLower()).AnyAsync())
+        //    {
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context)
         {

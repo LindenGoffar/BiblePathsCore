@@ -26,6 +26,15 @@ namespace BiblePathsCore
         [BindProperty]
         public List<SelectListItem> BibleSelectList { get; set; }
 
+        [PageRemote(
+            ErrorMessage = "Sorry, this Name is not valid, ",
+            AdditionalFields = "__RequestVerificationToken, Path.Name",
+            HttpMethod = "post",
+            PageHandler = "CheckName"
+        )]
+        [BindProperty]
+        public string Name { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
@@ -45,6 +54,7 @@ namespace BiblePathsCore
             if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to edit these Path settings..." }); }
 
             BibleSelectList = await GetBibleSelectListAsync();
+            Name = Path.Name;
             return Page();
         }
 
@@ -58,13 +68,22 @@ namespace BiblePathsCore
             }
 
             BibleSelectList = await GetBibleSelectListAsync();
+
+            var pathToUpdate = await _context.Paths.FindAsync(id);
+
+            // Is this an attempt to change the name? If so check the name. 
+            if (pathToUpdate.Name.ToLower() != Name.ToLower())
+            {
+                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                {
+                    ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 return Page();
             }
-
-            var pathToUpdate = await _context.Paths.FindAsync(id);
-
             pathToUpdate.Modified = DateTime.Now;
 
             if (pathToUpdate.IsPublished)
@@ -85,11 +104,25 @@ namespace BiblePathsCore
                         "Path",
                         p => p.Name, p => p.OwnerBibleId, p => p.Topics, p => p.IsPublicEditable))
                 {
+                    pathToUpdate.Name = Name; // This is handled independant of Path.Name. 
                     await _context.SaveChangesAsync();
                     return RedirectToPage("./MyPaths");
                 }
             }
             return Page();
+        }
+
+        public async Task<JsonResult> OnPostCheckNameAsync()
+        {
+            // Is this an attempted name change... for reals? 
+            if (Name.ToLower() != Path.Name.ToLower())
+            {
+                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                {
+                    return new JsonResult("Sorry, this Name is already in use.");
+                }
+            }
+            return new JsonResult(true);
         }
 
         private async Task<List<SelectListItem>> GetBibleSelectListAsync()

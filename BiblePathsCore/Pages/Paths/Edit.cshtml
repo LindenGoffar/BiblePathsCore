@@ -32,10 +32,12 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">Name</span>
                         </div>
-                        <input asp-for="Path.Name" class="form-control" />
+                        <input type="hidden" asp-for="Path.Name" /> @*passed back so we can check for changes.*@
+                        <input asp-for="Name" class="form-control" />
                     </div>
-                    <span asp-validation-for="Path.Name" class="text-danger"></span>
+                    <span asp-validation-for="Name" class="text-danger"></span>
                 }
+                <br />
                 @if (Model.Path.IsPublished)
                 {
                     <small class="text-muted">Note: Topics can not be modified on a published Path.</small>
@@ -58,13 +60,14 @@
                     </div>
                     <span asp-validation-for="Path.Topics" class="text-danger"></span>
                 }
+                <br />
                 <div class="form-group input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Bible</span>
                     </div>
                     <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
                 </div>
-                <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
+                <p asp-validation-for="Path.OwnerBibleId" class="text-danger"></p>
                 <div class="form-group form-check">
                     <label class="form-check-label">
                         <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <span>allow others to edit this Path?</span>
