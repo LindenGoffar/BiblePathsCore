@@ -1,10 +1,12 @@
 ﻿<# 
 Description: Create individual or all BiblePaths Core tables.
 
-ALTER TABLE QuizGroupStats
-		ADD PredefinedQuiz int NOT NULL DEFAULT 0;
 
-Then run CreatePreDefinedQuizTables
+CRITICAL UPDATES for pre-existing DBs
+
+ALTER TABLE QuizQuestions
+		ADD BibleID nvarchar(64) FOREIGN KEY References Bibles(ID)
+
 #>
 
 Param(  #[switch] $SetupSecurity,
@@ -46,7 +48,7 @@ if ($StagingDB){
 if ($LocalDB) {
     # Local DB Connection Section... 
     $Server = "(LocalDb)\MSSQLLocalDB"
-    $Database = "aspnet-BiblePathsCore-53bc9b9d-9d6a-45d4-8429-2a2761773502"
+    $Database = "BiblePathsApp"
     #>
 }
 
@@ -227,6 +229,7 @@ If ($CreateQuizTables){
 		CREATE TABLE QuizQuestions
 		(
 			ID int IDENTITY(1,1) PRIMARY KEY,
+			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID),
             Question nvarchar(2048),
             Owner nvarchar(256),
             Challenged BIT NOT NULL DEFAULT 0,

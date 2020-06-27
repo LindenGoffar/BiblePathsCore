@@ -34,7 +34,7 @@ if ($StagingDB){
 if ($LocalDB){
     # Local DB Connection Section... 
     $Server = "(LocalDb)\MSSQLLocalDB"
-    $Database = "C:\Users\linde\Source\Workspaces\Paths\BiblePaths\BiblePathBuilder\App_Data\Local.mdf"
+    $Database = "BiblePathsApp"
     #>
 }
 

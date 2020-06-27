@@ -28,7 +28,9 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Modified { get; set; }
         public string Source { get; set; }
         public DateTimeOffset LastAsked { get; set; }
+        public string BibleId { get; set; }
 
+        public virtual Bibles Bible { get; set; }
         public virtual ICollection<QuizAnswers> QuizAnswers { get; set; }
         public virtual ICollection<QuizQuestionStats> QuizQuestionStats { get; set; }
     }

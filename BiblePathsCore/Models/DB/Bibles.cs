@@ -11,6 +11,7 @@ namespace BiblePathsCore.Models.DB
             BibleNoiseWords = new HashSet<BibleNoiseWords>();
             BibleVerses = new HashSet<BibleVerses>();
             CommentaryBooks = new HashSet<CommentaryBooks>();
+            QuizQuestions = new HashSet<QuizQuestions>();
         }
 
         public string Id { get; set; }
@@ -21,5 +22,6 @@ namespace BiblePathsCore.Models.DB
         public virtual ICollection<BibleNoiseWords> BibleNoiseWords { get; set; }
         public virtual ICollection<BibleVerses> BibleVerses { get; set; }
         public virtual ICollection<CommentaryBooks> CommentaryBooks { get; set; }
+        public virtual ICollection<QuizQuestions> QuizQuestions { get; set; }
     }
 }

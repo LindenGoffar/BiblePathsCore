@@ -44,7 +44,7 @@ if ($StagingDB){
 if ($LocalDB){
     # Local DB Connection Section... 
     $Server = "(LocalDb)\MSSQLLocalDB"
-    $Database = "aspnet-BiblePathsCore-53bc9b9d-9d6a-45d4-8429-2a2761773502"
+    $Database = "BiblePathsApp"
     #>
 }
 

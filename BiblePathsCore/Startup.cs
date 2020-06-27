@@ -32,11 +32,11 @@ namespace BiblePathsCore
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("AuthConnection")));
 
             services.AddDbContext<BiblePathsCoreDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("AppConnection")));
 
             services.AddDefaultIdentity<IdentityUser>(options => {
                     options.SignIn.RequireConfirmedAccount = false;

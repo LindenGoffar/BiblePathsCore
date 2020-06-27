@@ -71,8 +71,9 @@ namespace BiblePathsCore
             if (await TryUpdateModelAsync<Paths>(
                 emptyPath,
                 "Path",   // Prefix for form value.
-                p => p.Name, p => p.IsPublicEditable, p => p.OwnerBibleId))
+                p => p.IsPublicEditable, p => p.OwnerBibleId))
             {
+                emptyPath.Name = Name;
                 _context.Paths.Add(emptyPath);
                 await _context.SaveChangesAsync();
 

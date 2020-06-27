@@ -12,10 +12,10 @@ namespace BiblePathsCore.Models.DB
         public int QuestionsAsked { get; set; }
         public int PointsPossible { get; set; }
         public int PointsAwarded { get; set; }
+        public int PredefinedQuiz { get; set; }
         public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Modified { get; set; }
         public bool IsDeleted { get; set; }
-        public int PredefinedQuiz { get; set; }
 
         public virtual QuizUsers QuizUser { get; set; }
     }
