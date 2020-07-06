@@ -103,13 +103,33 @@
                 }
                 else
                 {
-                    <span class="text-verse">
-                        @foreach (var item in Model.Step.Verses)
+            <span class="text-verse">
+                @foreach (var item in Model.Step.Verses)
+                {
+                    if (Model.Scenario == StepModel.StepScenarios.Study)
+                    {
+                        if (item.InRelatedPaths)
+                        {
+                            <br /><sup>@item.Verse</sup>
+                            <mark>@item.Text</mark>
+                            foreach (var relatedPath in item.RelatedPaths)
+                            {
+                                <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                            }
+                        }
+                        else
                         {
                             <br /><sup>@item.Verse</sup>
                             @item.Text
                         }
-                    </span>
+                    }
+                    else
+                    {
+                        <br /><sup>@item.Verse</sup>
+                        @item.Text
+                    }
+                }
+            </span>
                 }
             </div>
             <div class="col-2">

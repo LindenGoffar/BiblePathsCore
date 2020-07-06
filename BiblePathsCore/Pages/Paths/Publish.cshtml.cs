@@ -64,7 +64,7 @@ namespace BiblePathsCore
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostPublishAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id)
         {
             if (id == null)
             {
@@ -143,33 +143,33 @@ namespace BiblePathsCore
             return Page();
         }
 
-        public async Task<IActionResult> OnPostUnPublishAsync(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        //public async Task<IActionResult> OnPostUnPublishAsync(int? id)
+        //{
+        //    if (id == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            if (!ModelState.IsValid)
-            {
-                return RedirectToPage("/error", new { errorMessage = "That's Odd! Model State is not valid, I can't explain it either... " });
-            }
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return RedirectToPage("/error", new { errorMessage = "That's Odd! Model State is not valid, I can't explain it either... " });
+        //    }
 
-            var pathToUpdate = await _context.Paths.FindAsync(id);
+        //    var pathToUpdate = await _context.Paths.FindAsync(id);
 
-            if (pathToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find this Path." }); }
+        //    if (pathToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find this Path." }); }
 
-            // confirm our owner is a valid path owner.
-            IdentityUser user = await _userManager.GetUserAsync(User);
-            if (!pathToUpdate.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
+        //    // confirm our owner is a valid path owner.
+        //    IdentityUser user = await _userManager.GetUserAsync(User);
+        //    if (!pathToUpdate.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
 
-            _context.Attach(pathToUpdate).State = EntityState.Modified;
-            pathToUpdate.Modified = DateTime.Now;
-            pathToUpdate.IsPublished = false;
-            await _context.SaveChangesAsync();
+        //    _context.Attach(pathToUpdate).State = EntityState.Modified;
+        //    pathToUpdate.Modified = DateTime.Now;
+        //    pathToUpdate.IsPublished = false;
+        //    await _context.SaveChangesAsync();
 
-            return RedirectToPage("./MyPaths");
-        }
+        //    return RedirectToPage("./MyPaths");
+        //}
 
         public async Task<JsonResult> OnPostCheckNameAsync()
         {

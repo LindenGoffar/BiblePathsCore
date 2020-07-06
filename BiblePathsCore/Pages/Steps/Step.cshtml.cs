@@ -90,7 +90,15 @@ namespace BiblePathsCore
             _ = await Step.AddGenericStepPropertiesAsync(_context, BibleId);
             Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, true);
 
-            if (Scenario == StepScenarios.Study) { PageTitle = Step.BookName + " " + Step.Chapter; } 
+            if (Scenario == StepScenarios.Study) 
+            { 
+                PageTitle = Step.BookName + " " + Step.Chapter; 
+                // Add related path info
+                foreach(BibleVerses verse in Step.Verses)
+                {
+                    _ = await verse.GetRelatedPathsAsync(_context);
+                }
+            } 
             else { PageTitle = Step.PathName; }
 
             // Let's see if we need to register any events for this step read. 

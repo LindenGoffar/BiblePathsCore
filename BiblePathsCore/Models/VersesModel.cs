@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -12,5 +14,50 @@ namespace BiblePathsCore.Models.DB
         public bool InPath { get; set; }
         [NotMapped]
         public int Proximity { get; set; }
+        [NotMapped]
+        public int QuestionCount { get; set; }
+        [NotMapped]
+        public bool InRelatedPaths { get; set; }
+        [NotMapped]
+        public List<Paths> RelatedPaths { get; set;  }
+
+        public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
+        {
+            return await context.QuizQuestions
+                        .Where(Q => Q.BookNumber == BookNumber && Q.Chapter == Chapter 
+                                && Q.EndVerse == Verse 
+                                && Q.BibleId == BibleId && Q.IsDeleted == false)
+                        .CountAsync();
+        }
+
+        public async Task<bool> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
+        {
+            InRelatedPaths = false;
+            List<Paths> relatedPaths = new List<Paths>();
+            // Return all PathNodes or Steps that contain this verse.
+            // EF CORE 5 Will contain Filtered Includes we can simplify when it releases. 
+            List<PathNodes> RelatedSteps = await context.PathNodes
+                                                        .Include(N => N.Path)
+                                                        .Where(N => N.BookNumber == BookNumber
+                                                                && N.Chapter == Chapter
+                                                                && N.StartVerse <= Verse
+                                                                && N.EndVerse >= Verse)
+                                                        .ToListAsync();
+            foreach (PathNodes relatedStep in RelatedSteps)
+            {
+                if (relatedStep.Path.IsDeleted == false && relatedStep.Path.IsPublished == true)
+                {
+                    InRelatedPaths = true;
+                    // We only add a path object on the EndVerse, and only if it hasn'be already been added. 
+                    if (relatedStep.EndVerse == Verse && relatedPaths.Contains(relatedStep.Path) == false)
+                    {
+                        _ = await relatedStep.Path.AddCalculatedPropertiesAsync(context);
+                        relatedPaths.Add(relatedStep.Path);
+                    }
+                }
+            }
+            RelatedPaths = relatedPaths;
+            return true;                                                                    
+        }
     }
 }

@@ -17,7 +17,7 @@
     @if (Model.IsPathOwner || Model.IsPathEditor)
     {
     <p>
-        <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="AddStep">Add a Step</a>
+        <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
         <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Search for Verses</a>
     </p>
     }
@@ -76,7 +76,7 @@
                 @if (Model.IsPathOwner || Model.IsPathEditor)
                 {
             <p>
-                <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="AddStep">Add a Step</a>
+                <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
                 <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Search for Verses</a>
             </p>
                 }
@@ -103,7 +103,7 @@
     {
         @if (Model.Path.IsPublished)
         {
-            <form asp-page="./publish" asp-page-handler="UnPublish" method="post">
+            <form asp-page="./UnPublish" method="post">
                 <input type="hidden" name="id" value="@Model.Path.Id" />
                 <input type="submit" value="UnPublish this Path" class="btn btn-primary btn-sm" />
             </form>

@@ -1,0 +1,10 @@
+﻿@page
+@model BiblePathsCore.Pages.Shared.SelectChapterModel
+@{
+    ViewData["Title"] = "Select a Book then Chapter";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <partial name="_BookChapterSelectList" model="@Model" />
+</div>

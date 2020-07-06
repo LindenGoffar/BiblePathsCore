@@ -14,7 +14,7 @@
         <div class="col-8">
             <span>
                 <strong>@Model.Step.BookName @Model.Step.Chapter</strong>
-                <a class="small" asp-page="/Steps/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-StepId="@Model.Step.Id" asp-route-Position="@Model.Step.Position" asp-route-TargetPage="AddStep"> Change </a>
+                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-StepId="@Model.Step.Id" asp-route-Position="@Model.Step.Position" asp-route-TargetPage="/Steps/AddStep"> Change </a>
                 <br />
             </span>
             @foreach (var Verse in Model.Step.Verses)

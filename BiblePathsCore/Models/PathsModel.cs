@@ -146,8 +146,8 @@ namespace BiblePathsCore.Models.DB
         // Note this is a static class it is not called with an instance of a path object. 
         public static async Task<bool> PathNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
         {
-            var knownTerms = new[] { "Create", "Delete", "Edit", "Index", "MyPaths", "Path", "PathComplete", "Publish", "Steps" };
-            if (knownTerms.Contains(CheckName))
+            var knownTerms = new[] { "create", "delete", "edit", "index", "mypaths", "path", "pathcomplete", "publish", "steps", "unpublish" };
+            if (knownTerms.Contains(CheckName.ToLower()))
             {
                 return true;
             }
