@@ -14,10 +14,21 @@
                 <h4>@ViewData["Title"]</h4>
             </div>
             <div class="col-6">
-                <form method="get" class="float-right">
-                    <input type="hidden" name="id" value="@Model.Step.Id" />
-                    <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
-                </form>
+                @if (Model.Scenario != StepModel.StepScenarios.Study)
+                {
+                    <form method="get" class="float-right">
+                        <input type="hidden" name="id" value="@Model.Step.Id" />
+                        <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
+                    </form>
+                }
+                else
+                {
+                    <form method="get" class="float-right">
+                        <input type="hidden" name="BookNumber" value="@Model.Step.BookNumber" />
+                        <input type="hidden" name="Chapter" value="@Model.Step.Chapter" />
+                        <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
+                    </form>
+                }
             </div>
         </div>
         <br />
@@ -27,25 +38,25 @@
             else
             { <a class="disabled">Previous Chapter</a>}
         </div>
-        <div class="row">
-            <div class="col-1"></div>
-            <div class="col-9">
-                <span>
-                    <strong>@Model.Step.BookName&nbsp;@Model.Step.Chapter</strong>
-                    @if (Model.Scenario == StepModel.StepScenarios.Step || Model.Scenario == StepModel.StepScenarios.Context)
-                    {
+        @if (Model.Scenario == StepModel.StepScenarios.Step || Model.Scenario == StepModel.StepScenarios.Context)
+        {
+            <div class="row">
+                <div class="col-1"></div>
+                <div class="col-9">
+                    <span>
+                        <strong>@Model.Step.BookName&nbsp;@Model.Step.Chapter</strong>
                         <small> (step @Model.Step.StepNumber of @Model.Step.PathStepCount)</small>
+                    </span>
+                    @if (Model.Scenario == StepModel.StepScenarios.Step)
+                    {
+                        <div class="float-right">
+                            <input type="checkbox" class="ShowChapter" onclick="ShowChapter_Change(this)" /><span> Show entire chapter</span>
+                        </div>
                     }
-                </span>
-                @if (Model.Scenario == StepModel.StepScenarios.Step)
-                {
-                    <div class="float-right">
-                        <input type="checkbox" class="ShowChapter" onclick="ShowChapter_Change(this)" /><span> Show entire chapter</span>
-                    </div>
-                }
+                </div>
+                <div class="col-2"></div>
             </div>
-            <div class="col-2"></div>
-        </div>
+        }
         <div class="row">
             <div class="col-1">
                 <div class="follow-scroll">
@@ -97,39 +108,36 @@
                             }
                         }
                     </span>
-                    <div class="text-muted">
-                        @Model.Step.LegalNote
-                    </div>
                 }
                 else
                 {
-            <span class="text-verse">
-                @foreach (var item in Model.Step.Verses)
-                {
-                    if (Model.Scenario == StepModel.StepScenarios.Study)
-                    {
-                        if (item.InRelatedPaths)
+                    <span class="text-verse">
+                        @foreach (var item in Model.Step.Verses)
                         {
-                            <br /><sup>@item.Verse</sup>
-                            <mark>@item.Text</mark>
-                            foreach (var relatedPath in item.RelatedPaths)
+                            if (Model.Scenario == StepModel.StepScenarios.Study)
                             {
-                                <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                                if (item.InRelatedPaths)
+                                {
+                                    <br /><sup>@item.Verse</sup>
+                                    <mark>@item.Text</mark>
+                                    foreach (var relatedPath in item.RelatedPaths)
+                                    {
+                                        <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                                    }
+                                }
+                                else
+                                {
+                                    <br /><sup>@item.Verse</sup>
+                                    @item.Text
+                                }
+                            }
+                            else
+                            {
+                                <br /><sup>@item.Verse</sup>
+                                @item.Text
                             }
                         }
-                        else
-                        {
-                            <br /><sup>@item.Verse</sup>
-                            @item.Text
-                        }
-                    }
-                    else
-                    {
-                        <br /><sup>@item.Verse</sup>
-                        @item.Text
-                    }
-                }
-            </span>
+                    </span>
                 }
             </div>
             <div class="col-2">
@@ -152,12 +160,31 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            @if (Model.Step.NextChapter > 0)
-            {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.NextChapter">Next Chapter</a> }
-            else
-            { <a class="disabled">Next Chapter</a>}
+        <div class="row text-muted">
+            @Model.Step.LegalNote
         </div>
+        <div class="row">
+            <div class="col-6">
+                @if (Model.Step.NextChapter > 0)
+                {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.NextChapter">Next Chapter</a> }
+                else
+                { <a class="disabled">Next Chapter</a>}
+            </div>
+            <div class="col-6">
+                @if (Model.Scenario != StepModel.StepScenarios.Study)
+                {
+                    <div class="float-right">
+                        <a asp-page="/Paths/Steps" asp-route-PathId="@Model.Step.PathId" asp-route-BibleId="@Model.BibleId" asp-route-Scenario="ReadPath">Full Bible Path</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div>
+        <hr />
+        <a asp-page="/Paths/Index">Back to Path List</a>
+        <br />
+        <a asp-page="/Index">Back to Home</a>
     </div>
 
 @section Scripts {

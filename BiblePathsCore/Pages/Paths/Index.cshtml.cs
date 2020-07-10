@@ -42,7 +42,7 @@ namespace BiblePathsCore
             switch (SortOrder)
             {
                 case SortBy.HighestRated:
-                    paths = paths.OrderBy(p => p.ComputedRating);
+                    paths = paths.OrderByDescending(p => p.ComputedRating);
                     break;
 
                 case SortBy.Newest: 
@@ -58,7 +58,7 @@ namespace BiblePathsCore
                     break;
 
                 default:
-                    paths = paths.OrderBy(p => p.ComputedRating);
+                    paths = paths.OrderByDescending(p => p.ComputedRating);
                     break;
             }
 

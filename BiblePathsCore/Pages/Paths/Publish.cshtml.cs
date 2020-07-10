@@ -108,7 +108,7 @@ namespace BiblePathsCore
                 {
                     //Invalidate the Model State by adding a Model Error
                     ModelState.AddModelError(string.Empty, "Please check Name and Topics");
-                    ModelState.AddModelError("Name", "Sorry! The supplied name was not found in the text shown below. Please select a Path Name from the Bible Path text below.");
+                    ModelState.AddModelError("Name", "Sorry! The supplied name was not found in the text shown below. Please select a Path Name from Bible passages in this Path.");
                 }
                 if (pathToUpdate.Topics != null)
                 {
@@ -119,7 +119,7 @@ namespace BiblePathsCore
                         {
                             //Invalidate the Model State by adding a Model Error
                             ModelState.AddModelError(string.Empty, "Please check Name and Topics");
-                            string ErrorMessage = "Sorry! The following Topic was not found in the text shown below: " + ProposedTopic;
+                            string ErrorMessage = "Sorry! The following Topic was not found in the Bible passages in this Path: " + ProposedTopic;
                             ModelState.AddModelError("Path.Topics", ErrorMessage);
                         }
                     }

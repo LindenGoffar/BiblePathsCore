@@ -60,7 +60,11 @@ namespace BiblePathsCore
                     RatingAccepted = true;
                 }
             }
-
+            // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
+            if (Path.Reads % 10 == 0)
+            {
+                _ = await Path.ApplyPathRatingAsyc(_context);
+            }
             RatingAcknowledged = false;
             return Page();
         }

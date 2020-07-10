@@ -157,19 +157,6 @@ namespace BiblePathsCore.Models.DB
             }
             return false;
         }
-        //public async Task<bool> StringsInPathAsync(BiblePathsCoreDbContext context, string CheckString)
-        //{
-        //    var knownTerms = new[] { "Create", "Delete", "Edit", "Index", "MyPaths", "Path", "PathComplete", "Publish", "Steps" };
-        //    if (knownTerms.Contains(Name))
-        //    {
-        //        return true;
-        //    }
-        //    if (await context.Paths.Where(p => p.Name.ToLower() == CheckName.ToLower()).AnyAsync())
-        //    {
-        //        return true;
-        //    }
-        //    return false;
-        //}
 
         public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context)
         {

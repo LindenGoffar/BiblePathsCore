@@ -47,6 +47,7 @@ namespace BiblePathsCore.API
             {
                 return NotFound();
             }
+            _ = bible.HydrateBible();
             return bible;
         }
 

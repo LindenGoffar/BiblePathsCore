@@ -9,6 +9,15 @@
 
 <div class="container-fluid">
     <div class="row">
+        <span class="text-muted">
+            Publishing a Bible Path makes it visible to others who visit this site. In keeping with our promise to feature only the biblical text we require that;
+            <b>Path Name may contain only words or phrases taken from the passages below, </b> and that
+            <b>Topics may contain only comma seperated words or phrases taken from the passages below.</b>
+            This ensures content in Bible Paths is taken only from the Scripture.
+        </span>
+        <hr />
+    </div>
+    <div class="row">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Path.Id" />
@@ -18,7 +27,6 @@
                     <span class="input-group-text">Name</span>
                 </div>
                 <input asp-for="Name" class="form-control" />
-                <p class="text-muted small">Note: A Path Name may contain only words or phrases taken from the passages below, this ensures content in Bible Paths is taken only from the Scripture.</p>
                 <input type="hidden" asp-for="Path.Name" /> @*passed back so we can check for changes.*@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
@@ -27,21 +35,22 @@
                     <span class="input-group-text">Topics</span>
                 </div>
                 <input asp-for="Path.Topics" class="form-control" />
-                <p class="text-muted small"><b>Note:</b> Topics may contain only comma seperated words or phrases taken from the passages below, this ensures content in Bible Paths is taken only from the Scripture.</span>
                 <span asp-validation-for="Path.Topics" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" asp-route-id="@Model.Path.Id" value="Publish" class="btn btn-primary"/>
             </div>
         </form>
+        <hr />
     </div>
     <div class="row">
+        <h6>Bible passages in this Path</h6>
         <div class="text-muted">
             @if (Model.BibleVerses != null)
             {
                 @foreach (var Verse in Model.BibleVerses)
                 {
-                    @Verse.Text
+                    <span>@Verse.Text </span>
                 }
             }
         </div>

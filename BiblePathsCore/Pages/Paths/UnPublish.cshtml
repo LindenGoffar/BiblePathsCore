@@ -5,4 +5,31 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-    <h1>@ViewData["Title"]: THIS PAGE SHOULD NEVER BE HIT!</h1>
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <p>Are you sure you want to UnPublish this Path</p>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h5>@Model.Path.Name</h5>
+        </div>
+        <div class="col">
+            <small>Length: @Model.Path.Length min</small><br />
+            <small><strong>Rating: </strong>@String.Format("{0:0.00}", Model.Path.ComputedRating)</small><br />
+            <small>Reads: @Model.Path.Reads</small><br />
+        </div>
+    </div>
+    <div class="row">
+        <form asp-page="./UnPublish" method="post">
+            <input type="hidden" name="id" value="@Model.Path.Id" />
+            <input type="submit" value="Confirm" class="btn btn-primary btn-sm" />
+        </form>
+    </div>
+</div>
+<div>
+    <hr />  
+    <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+    <a asp-page="./MyPaths">Back to My Paths</a><br />
+</div>

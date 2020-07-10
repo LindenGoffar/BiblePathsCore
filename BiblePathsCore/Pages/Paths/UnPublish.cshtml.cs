@@ -25,9 +25,21 @@ namespace BiblePathsCore
         [BindProperty]
         public Paths Path { get; set; }
 
-        public void OnGet()
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            RedirectToPage("/error", new { errorMessage = "That's Odd! This UnPublish page should never be hit... " });
+            if (id == null)
+            {
+                RedirectToPage("/error", new { errorMessage = "That's Odd! The Unpublish action requires a valid Path ID..." });
+            }
+
+            Path = await _context.Paths.FindAsync(id);
+            if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find this Path." }); }
+
+            // confirm our owner is a valid path owner.
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to UnPublish a Path" }); }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
@@ -48,7 +60,7 @@ namespace BiblePathsCore
 
             // confirm our owner is a valid path owner.
             IdentityUser user = await _userManager.GetUserAsync(User);
-            if (!pathToUpdate.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
+            if (!pathToUpdate.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to UnPublish a Path" }); }
 
             _context.Attach(pathToUpdate).State = EntityState.Modified;
             pathToUpdate.Modified = DateTime.Now;
