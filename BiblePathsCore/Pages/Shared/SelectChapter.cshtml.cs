@@ -25,6 +25,7 @@ namespace BiblePathsCore.Pages.Shared
         public int StepId { get; set; }
         public int StepPosition { get; set; }
         public string TargetPage { get; set; }
+        public bool IsPBE { get; set;  }
 
         public async Task OnGetAsync(string BibleId, int? PathId, int? StepId, int? Position, string TargetPage)
         {
@@ -36,6 +37,13 @@ namespace BiblePathsCore.Pages.Shared
                 .Include(B => B.BibleChapters).Where(B => B.BibleId == Bible.Id).ToListAsync();
             this.PathId = PathId.HasValue ? PathId.Value : 0;
             this.TargetPage = TargetPage;
+
+            // Let's see if the scnario is PBE?
+            if (TargetPage.Contains("PBE"))
+            {
+                IsPBE = true; 
+            }
+            else { IsPBE = false; }
         }
 
 

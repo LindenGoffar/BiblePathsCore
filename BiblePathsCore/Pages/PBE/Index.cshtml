@@ -1,0 +1,24 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.IndexModel
+@{
+    ViewData["Title"] = "PBE Quiz App";
+}
+
+<div class="text-left">
+    <h1 class="display-4">Welcome to the @ViewData["Title"] <small> powered by BiblePaths.Net</small></h1>
+    <p>The Pathfinder Bible Experience (PBE) quiz app is designed for use by teams preparing for Pathfinder Bible Experience, for more information on this youth program see: <a href="https://www.clubministries.org/pathfinders/pathfinder-bible-experience/">https://www.clubministries.org/pathfinders/pathfinder-bible-experience/</a>.</p>
+</div>
+<br />
+<div class="list-group list-group-flush">
+    <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="list-group-item">Add PBE Questions</a>
+</div>
+<div class="card m-2">
+    <div class="card-body">
+        @await Component.InvokeAsync("NewPaths", new { TopN = 3 })
+    </div>
+</div>
+<div class="text-left">
+    <br />
+    <p>Learn more <a asp-page="./about">about Bible Paths</a>.</p>
+</div>
+
