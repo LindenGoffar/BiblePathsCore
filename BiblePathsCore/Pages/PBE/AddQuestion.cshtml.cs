@@ -30,28 +30,35 @@ namespace BiblePathsCore.Pages.PBE
         [BindProperty]
         public string BibleId { get; set; }
 
-        //public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
-        //{
+        public QuizUsers PBEUser { get; set; }
+        public Bibles PBEBible { get; set; }
 
+        public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
+        {
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            PBEUser = await PBEUser.GetOrAddPBEUserAsync(_context, user.Email);
 
-        //    Question = new QuizQuestions();
+            Question = new QuizQuestions();
+            Question.BookNumber = BookNumber;
+            Question.Chapter = Chapter;
+            Question.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
+            Question.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
+            Question.Points = 0;
 
-        //    Step.PathId = Path.Id;
-        //    Step.BookNumber = BookNumber;
-        //    Step.Chapter = Chapter;
-        //    Step.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
-        //    Step.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
-        //    Step.Position = Position;
+            // Setup our PBEBible Object
+            this.BibleId = await Question.GetValidBibleIdAsync(_context, BibleId);
+            PBEBible = await _context.Bibles.FindAsync(BibleId);
+            if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
+            _ = await PBEBible.AddPBEBibleInfoAsync(_context);
 
-        //    // Populate Step for display
-        //    _ = await Step.AddBookNameAsync(_context, BibleId);
-        //    Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, false);
-
-        //    // and now we need a Verse Select List
-        //    ViewData["VerseSelectList"] = new SelectList(Step.Verses, "Verse", "Verse");
-        //    ViewData["TargetPage"] = "AddStep";
-        //    return Page();
-        //}
+            Question.PopulatePBEQuestionInfo(PBEBible);
+            Question.Verses = await Question.GetBibleVersesAsync(_context, this.BibleId, false);
+            
+            // and now we need a Verse Select List
+            ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+            ViewData["TargetPage"] = "AddStep";
+            return Page();
+        }
 
         //// To protect from overposting attacks, please enable the specific properties you want to bind to, for
         //// more details see https://aka.ms/RazorPagesCRUD.
@@ -100,10 +107,10 @@ namespace BiblePathsCore.Pages.PBE
 
         //        _context.PathNodes.Add(emptyStep);
         //        await _context.SaveChangesAsync();
-                
+
         //        // Now we need to update the Path Object with some calculated properties 
         //        if (!Path.IsPathOwner(user.Email)) { _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email); }
-                
+
         //        // Prepare to update some properties on Path
         //        _context.Attach(Path);
         //        Path.Length = await Path.GetPathVerseCountAsync(_context);
@@ -114,7 +121,7 @@ namespace BiblePathsCore.Pages.PBE
 
         //        // Finally we need to re-position each node in the path to ensure safe ordering
         //        _ = await Path.RedistributeStepsAsync(_context);
-                
+
         //        return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
         //    }
 

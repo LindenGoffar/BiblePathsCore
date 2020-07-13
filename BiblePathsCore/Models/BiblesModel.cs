@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
@@ -17,6 +18,24 @@ namespace BiblePathsCore.Models.DB
 
         [NotMapped]
         public string LegalNote { get; set; }
+
+        public async Task<bool> AddPBEBibleInfoAsync(BiblePathsCoreDbContext context)
+        {
+            this.HydrateBible();
+            // A PBE Bible has all of the Books and chapters loaded and marked up with PBE info. 
+
+            await context.Entry(this).Collection(B => B.BibleBooks).LoadAsync();
+            foreach (BibleBooks Book in this.BibleBooks)
+            {
+                await Book.AddPBEBookPropertiesAsync(context);
+                await context.Entry(Book).Collection(B => B.BibleChapters).LoadAsync();
+                foreach (BibleChapters Chapter in Book.BibleChapters)
+                {
+                    await Chapter.AddPBEChapterPropertiesAsync(context);
+                }
+            }
+            return true; 
+        }
 
         public bool HydrateBible()
         {
@@ -33,7 +52,6 @@ namespace BiblePathsCore.Models.DB
             }
             return LegalNote;
         }
-
 
     }
 }
