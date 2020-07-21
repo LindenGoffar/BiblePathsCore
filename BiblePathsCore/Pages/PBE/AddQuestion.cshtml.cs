@@ -26,17 +26,19 @@ namespace BiblePathsCore.Pages.PBE
         }
         [BindProperty]
         public QuizQuestions Question { get; set; }
+        [BindProperty]
+        public string AnswerText { get; set; }
 
         [BindProperty]
         public string BibleId { get; set; }
 
         public QuizUsers PBEUser { get; set; }
-        public Bibles PBEBible { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await PBEUser.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
             Question = new QuizQuestions();
             Question.BookNumber = BookNumber;
@@ -46,8 +48,8 @@ namespace BiblePathsCore.Pages.PBE
             Question.Points = 0;
 
             // Setup our PBEBible Object
-            this.BibleId = await Question.GetValidBibleIdAsync(_context, BibleId);
-            PBEBible = await _context.Bibles.FindAsync(BibleId);
+            this.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
+            Bibles PBEBible = await _context.Bibles.FindAsync(BibleId);
             if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
             _ = await PBEBible.AddPBEBibleInfoAsync(_context);
 
@@ -56,79 +58,72 @@ namespace BiblePathsCore.Pages.PBE
             
             // and now we need a Verse Select List
             ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
-            ViewData["TargetPage"] = "AddStep";
+            ViewData["PointsSelectList"] = Question.GetPointsSelectList();
             return Page();
         }
 
-        //// To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        //// more details see https://aka.ms/RazorPagesCRUD.
-        //public async Task<IActionResult> OnPostAsync()
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        // Populate Step for display
-        //        _ = await Step.AddBookNameAsync(_context, BibleId);
-        //        Step.Verses = await Step.GetBibleVersesAsync(_context, BibleId, false, false);
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
+        // more details see https://aka.ms/RazorPagesCRUD.
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+            {
+                // Setup our PBEBible Object
+                this.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
+                Bibles PBEBible = await _context.Bibles.FindAsync(BibleId);
+                if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
+                _ = await PBEBible.AddPBEBibleInfoAsync(_context);
 
-        //        // and now we need a Verse Select List
-        //        ViewData["VerseSelectList"] = new SelectList(Step.Verses, "Verse", "Verse");
-        //        ViewData["TargetPage"] = "AddStep";
-        //        return Page();
-        //    }
-        //    // Now let's validate a few things, first lets go grab the path.
-        //    Path = await _context.Paths.FindAsync(Step.PathId);
-        //    if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Path" }); }
+                // Populate Qustion for Display in case we fail.
+                Question.PopulatePBEQuestionInfo(PBEBible);
+                Question.Verses = await Question.GetBibleVersesAsync(_context, this.BibleId, false);
 
-        //    // confirm our owner is a valid path editor i.e. owner or the path is publicly editable
-        //    IdentityUser user = await _userManager.GetUserAsync(User);
-        //    if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add to this Path" }); }
+                // and now we need a Verse and Points Select List
+                ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+                ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+                return Page();
+            }
 
-        //    if (!Path.IsPathOwner(user.Email))
-        //    {
-        //        _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
-        //    }
+            // confirm our user is a valid PBE User. 
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
-        //    // Now let's create an empty Step aka. PathNode object so we can put only our validated properties onto it. 
-        //    var emptyStep = new PathNodes
-        //    {
-        //        Created = DateTime.Now,
-        //        Modified = DateTime.Now
-        //    };
+            // Now let's create an empty question and put only our validated properties onto it. 
+            var emptyQuestion = new QuizQuestions
+            {
+                Created = DateTime.Now,
+                Modified = DateTime.Now
+            };
 
-        //    if (await TryUpdateModelAsync<PathNodes>(
-        //        emptyStep,
-        //        "Step",   // Prefix for form value.
-        //        S => S.StartVerse, S => S.EndVerse, S => S.PathId, S => S.BookNumber, S => S.Chapter, S => S.Position))
-        //    {
-        //        // What we get for Position is actually that of the previous node in the path.
-        //        // We want to replace that with a temporary position that we'll update later. 
-        //        int PreviousNodePosition = emptyStep.Position;
-        //        emptyStep.Position = PreviousNodePosition + 5;
+            if (await TryUpdateModelAsync<QuizQuestions>(
+                emptyQuestion,
+                "Question",   // Prefix for form value.
+                Q => Q.BibleId, Q => Q.Points, Q => Q.BookNumber, Q => Q.Chapter, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question))
+            {
+                emptyQuestion.Owner = PBEUser.Email;
+                emptyQuestion.Source = "BiblePaths.Net";
+                _context.QuizQuestions.Add(emptyQuestion);
 
-        //        _context.PathNodes.Add(emptyStep);
-        //        await _context.SaveChangesAsync();
+                // now we need to add the Answer if there is one. 
+                if (AnswerText.Length > 0) 
+                {
+                    QuizAnswers Answer = new QuizAnswers
+                    {
+                        Created = DateTime.Now,
+                        Modified = DateTime.Now,
+                        Question = emptyQuestion,
+                        Answer = AnswerText,
+                        IsPrimary = true
+                    };
+                    _context.QuizAnswers.Add(Answer);
+                }
+                await _context.SaveChangesAsync();
 
-        //        // Now we need to update the Path Object with some calculated properties 
-        //        if (!Path.IsPathOwner(user.Email)) { _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email); }
+                return RedirectToPage("AddQuestion", new { BibleId = emptyQuestion.BibleId, BookNumber = emptyQuestion.BookNumber, Chapter = emptyQuestion.Chapter, VerseNum = emptyQuestion.EndVerse });
+            }
 
-        //        // Prepare to update some properties on Path
-        //        _context.Attach(Path);
-        //        Path.Length = await Path.GetPathVerseCountAsync(_context);
-        //        Path.StepCount = Path.PathNodes.Count;
-        //        Path.Modified = DateTime.Now;
-        //        // Save our now updated Path Object. 
-        //        await _context.SaveChangesAsync();
-
-        //        // Finally we need to re-position each node in the path to ensure safe ordering
-        //        _ = await Path.RedistributeStepsAsync(_context);
-
-        //        return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
-        //    }
-
-        //        //_context.PathNodes.Add(PathNodes);
-        //        //await _context.SaveChangesAsync();
-
-        //        return RedirectToPage("./Index");
-        //}
+            return RedirectToPage("Index");
+        }
     }
 }

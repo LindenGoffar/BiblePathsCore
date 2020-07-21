@@ -8,7 +8,7 @@ namespace BiblePathsCore.Models.DB
 {
     public partial class QuizUsers
     {
-        public async Task<QuizUsers> GetOrAddPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
+        public static async Task<QuizUsers> GetOrAddPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
         {
             // First we'll try to find the user in the DB.
             QuizUsers ReturnUser = new QuizUsers();
@@ -26,6 +26,11 @@ namespace BiblePathsCore.Models.DB
                 await context.SaveChangesAsync();
             }
             return ReturnUser;
+        }
+
+        public bool IsValidPBEQuestionBuilder()
+        {
+            return !IsQuestionBuilderLocked;
         }
     }
 }

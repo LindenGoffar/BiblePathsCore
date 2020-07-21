@@ -40,6 +40,10 @@
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
                                     break;
 
+                                case "/PBE/Questions":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    break;
+
                                 default:
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
                                     break;
@@ -85,6 +89,14 @@
                                     break;
 
                                 case "/Steps/Step": // This is the study scnenario.
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    break;
+
+                                case "/PBE/AddQuestion":
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    break;
+
+                                case "/PBE/Questions":
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
                                     break;
 

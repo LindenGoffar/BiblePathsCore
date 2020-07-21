@@ -1,0 +1,54 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.QuestionsModel
+
+@{
+    ViewData["Title"] = "PBE Questions";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Verse > 0)
+            {
+                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter" asp-route-Verse="@Model.Verse">Add Question</a>
+            }
+            else
+            {
+                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter">Add Question</a>
+            }
+        </div>
+    </div>
+    <hr />
+    @foreach (var question in Model.Questions)
+    { 
+        <div class="row">
+            <div class="col-8">
+                @{string VerseRef = question.BookName + " " + question.Chapter + ": " + question.StartVerse;
+                    if (question.EndVerse > question.StartVerse) { VerseRef += " - " + question.EndVerse; }
+                }
+                <p><strong>Question: </strong> @question.PBEQuestion</p>
+                <p><strong>Answers: </strong></p>
+                @foreach (var answer in question.QuizAnswers)
+                {
+                    <p><em>@answer.Answer</em></p>
+                }
+                <p><small>Owner: @question.Owner</small></p>
+                <p><small>Last Asked: @String.Format("{0:d/M/yyyy HH:mm:ss}", question.LastAsked)</small></p>
+                <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link">@VerseRef</button>
+                <div id="Verses-@question.Id" class="collapse">
+                    <P><small>Loading...</small></P>
+                </div>
+            </div>
+        </div>
+    }
+<div>
+    <hr />
+    <a asp-page="/Index">Back to Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_HideUnHide" />
+}

@@ -1,68 +1,101 @@
 ﻿@page
-@model BiblePathsCore.AddStepModel
+@model BiblePathsCore.Pages.PBE.AddQuestionModel
 
 @{
-    ViewData["Title"] = "Add a Step";
+    ViewData["Title"] = "Add a Question";
     Layout = "~/Pages/Shared/_Layout.cshtml";
-    ViewData["VerseCount"] = Model.Step.Verses.Count;
+    ViewData["VerseCount"] = Model.Question.Verses.Count;
 }
-
-<h4>@ViewData["Title"]: @Model.Path.Name</h4>
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-8">
             <span>
-                <strong>@Model.Step.BookName @Model.Step.Chapter</strong>
-                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-StepId="@Model.Step.Id" asp-route-Position="@Model.Step.Position" asp-route-TargetPage="/Steps/AddStep"> Change </a>
+                <strong>@Model.Question.BookName @Model.Question.Chapter</strong>
+                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion"> Change </a>
                 <br />
             </span>
-            @foreach (var Verse in Model.Step.Verses)
+            @foreach (var Verse in Model.Question.Verses)
             {
-                <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
-                    <sup>@Verse.Verse </sup>@Verse.Text
-                </div>
+        <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
+            <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+            @if (Verse.QuestionCount > 0)
+            {
+                <span class="badge badge-secondary">@Verse.QuestionCount</span>
+            }
+        </div>
             }
         </div>
         <div class="col-4">
-            @*@await Html.PartialAsync("_StepBuilderView", Model.Step)*@
-            <div class="card follow-scroll">
-            <div class="card-body">
-                <p class="card-title">@Model.Step.BookName @Model.Step.Chapter</p>
-                <form method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="form-group">
-                        Verse
-                        <select asp-for="Step.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
-                        <span asp-validation-for="Step.StartVerse" class="text-danger"></span>
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="container-fluid follow-scroll">
+                    <div class="row">
+                        <h6>According to @Model.Question.BookName @Model.Question.Chapter</h6>
                     </div>
-                    <div class="form-group">
-                        to
-                        <select asp-for="Step.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
-                        <span asp-validation-for="Step.EndVerse" class="text-danger"></span>
+                    <div class="row">
+                        <div class="input-group input-group-sm form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Points</span>
+                            </div>
+                            <select asp-for="Question.Points" asp-items="ViewBag.PointsSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                        </div>
+                        <span asp-validation-for="Question.StartVerse" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" asp-for="Step.PathId" />
-                        <input type="hidden" asp-for="Step.BookNumber" />
-                        <input type="hidden" asp-for="Step.Chapter" />
-                        <input type="hidden" asp-for="Step.Position" />
-                        <input type="hidden" asp-for="BibleId" />
-                        <input type="submit" value="Add Step" class="btn btn-primary" />
+                    <div class="row">
+                        <div class="input-group input-group-sm form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Verses</span>
+                            </div>
+                            <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                        </div>
+                        <div class="input-group input-group-sm form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">-</span>
+                            </div>
+                            <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <textarea asp-for="Question.Question" cols="35" rows="5" onkeyup="UpdateQuestionPreview()" placeholder="Question"> </textarea>
+                            <span asp-validation-for="Question.Question" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="row text-muted">
+                        <span>PBE Question Preiew:</span>
+                        <div id="QuestionPreview" class="text-success"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <textarea asp-for="AnswerText" cols="35" rows="3" placeholder="Answer"> </textarea>
+                            <span asp-validation-for="AnswerText" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div classs="row">
+                        <div class="form-group">
+                            <input type="hidden" asp-for="Question.BookNumber" />
+                            <input type="hidden" asp-for="Question.Chapter" />
+                            <input type="hidden" asp-for="BibleId" />
+                            <input type="submit" value="Add Question" class="btn btn-primary" />
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <div>
     <hr />
-    <a asp-page="/Paths/Steps">Back to Path</a>
+    <a asp-page="Questions">Back to Questions</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
 </div>
 
 @section Scripts {
     <partial name="_FollowScrollHelpers" />
-    <partial name="_VerseSelectionHelpers" />
+    <partial name="_PBEVerseSelectionHelpers" />
+    <partial name="_PBEQuestionHelper" model="Model.Question" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

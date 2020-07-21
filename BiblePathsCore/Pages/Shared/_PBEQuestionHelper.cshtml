@@ -1,0 +1,13 @@
+﻿@model BiblePathsCore.Models.DB.QuizQuestions;
+
+    <script>
+    function UpdateQuestionPreview() {
+        var div = document.getElementById('QuestionPreview');
+        if ($("#Question_StartVerse").val() == $("#Question_EndVerse").val()) {
+            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter: ' + $("#Question_StartVerse").val() + ', ' + $("#Question_Question").val() + '';
+        }
+        else {
+            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter: ' + $("#Question_StartVerse").val() + '-' + $("#Question_EndVerse").val() + ', ' + $("#Question_Question").val() + '';
+        }
+    }
+    </script>

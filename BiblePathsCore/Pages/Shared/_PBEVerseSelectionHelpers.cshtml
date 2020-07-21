@@ -1,0 +1,68 @@
+﻿
+
+<script>
+    // Let's go ahead and scroll to the hightlighted text on page ready.
+    $(document).ready(function () {
+        var i = parseInt($("#Question_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    });
+
+    // !--This function sets Question_StartVerse whenever a verse is selected by touch or click. -- >
+    function SelectVerse(VerseNum) {
+        $("#Question_StartVerse").val(VerseNum);
+        $("#Question_StartVerse").change();
+        $("#Question_EndVerse").val(VerseNum);
+        $("#Question_EndVerse").change();
+    }
+
+     // Highlights Start -> End Verses
+    for (i= 1; i <= @ViewData["VerseCount"]; i++){
+        if (i >=  parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
+            $('#text-' + i).addClass("mark");
+        }
+        else {
+            $('#text-' + i).removeClass("mark");
+        }
+    }
+    // Now we want to ensure highlighting changes happen when Start or End Verse changes.
+    $("#Question_StartVerse").change(function () {
+        if (parseInt($("#Question_EndVerse").val()) < parseInt($("#Question_StartVerse").val()))
+        {
+            $("#Question_EndVerse").val($("#Question_StartVerse").val());
+        }
+        for (i = 1; i <= @ViewData["VerseCount"]; i++){
+            if (i >= parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
+                $('#text-' + i).addClass("mark");
+            }
+            else {
+                $('#text-' + i).removeClass("mark");
+            }
+        }
+        // Here we ensure we're scrolled to the highlighted section.
+        var i = parseInt($("#Question_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    });
+    $("#Question_EndVerse").change(function () {
+        if (parseInt($("#Question_StartVerse").val()) > parseInt($("#Question_EndVerse").val()))
+        {
+            $("#Question_StartVerse").val($("#Question_EndVerse").val());
+        }
+        for (i= 1; i <= @ViewData["VerseCount"]; i++){
+            if (i >= parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
+                $('#text-' + i).addClass("mark");
+            }
+            else {
+                $('#text-' + i).removeClass("mark");
+            }
+        }
+        // Here we ensure we're scrolled to the highlighted section.
+        var i = parseInt($("#Question_StartVerse").val())
+        $('html, body').animate({
+            scrollTop: $('#text-' + i).offset().top - 300
+        }, 300);
+    })
+</script>

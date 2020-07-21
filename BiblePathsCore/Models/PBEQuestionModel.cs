@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,12 +10,17 @@ namespace BiblePathsCore.Models.DB
 {
     public partial class QuizQuestions
     {
+        public const int MaxPoints = 15;
+
         [NotMapped]
         public string BookName { get; set; }
         [NotMapped]
         public string PBEQuestion { get; set; }
         [NotMapped]
         public bool IsCommentaryQuestion { get; set; }
+        [NotMapped]
+        public bool UserCanEdit { get; set; }
+
         [NotMapped]
         public List<BibleVerses> Verses { get; set; }
 
@@ -33,6 +39,10 @@ namespace BiblePathsCore.Models.DB
             PBEQuestion = GetPBEQuestionText();
         }
 
+        public void CheckUserCanEdit(QuizUsers PBEUser)
+        {
+            UserCanEdit =  (Owner == PBEUser.Email || PBEUser.IsModerator);
+        }
         private string GetPBEQuestionText()
         {
             string tempstring;
@@ -72,7 +82,22 @@ namespace BiblePathsCore.Models.DB
             return bibleVerses;
         }
 
-        public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
+        public List<SelectListItem> GetPointsSelectList()
+        {
+            List<SelectListItem> PointsSelectList = new List<SelectListItem>();
+            for (int i = 1; i <= MaxPoints; i++)
+            {
+                PointsSelectList.Add(new SelectListItem
+                {
+                    Text = i.ToString(),
+                    Value = i.ToString(),
+                });
+
+            }
+            return PointsSelectList;
+        }
+
+        public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bibles.DefaultPBEBibleId;
             if (BibleId != null)
