@@ -4,7 +4,7 @@
         var element = $('.follow-scroll'),
             originalY = element.offset().top;
         // Space between element and top of screen (when scrolling)
-        var topMargin = 300;
+        var topMargin = 60;
 
         $(window).on('scroll', function (event) {
             var scrollTop = $(window).scrollTop();
@@ -12,7 +12,7 @@
                 top: scrollTop < originalY
                     ? 20
                     : scrollTop - originalY + topMargin
-            }, 300);
+            }, 60);
         });
     })(jQuery);
 

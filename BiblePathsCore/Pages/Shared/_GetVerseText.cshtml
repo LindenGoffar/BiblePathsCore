@@ -1,0 +1,17 @@
+﻿<!-- This function causes one or More Divs to appear when an Checkbox on the page is ticked-->
+<script>
+    // This function will retrieve the bible verses for display. 
+    function GetBibleVerses(elem, BookNumber, Chapter, StartVerse, EndVerse) {
+        var APIURI = "../API/BibleVerses/?BibleID=NKJV-EN&BookNumber=" + BookNumber + "&Chapter=" + Chapter + "&StartVerse=" + StartVerse + "&EndVerse=" + EndVerse;
+        $.getJSON(APIURI, function (result) {
+            // First clear out our loading message.
+            var VersesEntity = "#Verses-" + elem
+            $(VersesEntity).html("<br>");
+            $.each(result, function (i, Verse) {
+                $(VersesEntity).append('<sup>' + Verse.verse + '</sup>' + Verse.text);
+            });
+        });
+    };
+
+</script>
+

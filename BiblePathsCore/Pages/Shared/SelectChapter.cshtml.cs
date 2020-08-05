@@ -31,19 +31,25 @@ namespace BiblePathsCore.Pages.Shared
         {
             BibleId = await GetValidBibleIdAsync(BibleId);
             Bible = await _context.Bibles.FindAsync(BibleId);
+
+            // Bible Path/Step specific properties. 
             this.StepId = StepId.HasValue ? StepId.Value : 0;
             StepPosition = Position.HasValue ? Position.Value : 0;
-            BibleBooks = await _context.BibleBooks
-                .Include(B => B.BibleChapters).Where(B => B.BibleId == Bible.Id).ToListAsync();
             this.PathId = PathId.HasValue ? PathId.Value : 0;
-            this.TargetPage = TargetPage;
 
+            this.TargetPage = TargetPage;
             // Let's see if the scnario is PBE?
             if (TargetPage.Contains("PBE"))
             {
-                IsPBE = true; 
+                IsPBE = true;
+                BibleBooks = await Models.DB.BibleBooks.GetPBEBooksAsync(_context, BibleId);
             }
-            else { IsPBE = false; }
+            else { 
+                IsPBE = false;
+                BibleBooks = await _context.BibleBooks
+                    .Include(B => B.BibleChapters).Where(B => B.BibleId == Bible.Id).ToListAsync();
+            }
+
         }
 
 

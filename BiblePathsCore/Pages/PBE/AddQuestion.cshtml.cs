@@ -28,10 +28,6 @@ namespace BiblePathsCore.Pages.PBE
         public QuizQuestions Question { get; set; }
         [BindProperty]
         public string AnswerText { get; set; }
-
-        [BindProperty]
-        public string BibleId { get; set; }
-
         public QuizUsers PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
@@ -47,14 +43,14 @@ namespace BiblePathsCore.Pages.PBE
             Question.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
             Question.Points = 0;
 
-            // Setup our PBEBible Object
-            this.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
-            Bibles PBEBible = await _context.Bibles.FindAsync(BibleId);
-            if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
-            _ = await PBEBible.AddPBEBibleInfoAsync(_context);
+            // Setup our PBEBook Object
+            Question.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
 
-            Question.PopulatePBEQuestionInfo(PBEBible);
-            Question.Verses = await Question.GetBibleVersesAsync(_context, this.BibleId, false);
+            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
+            if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
+
+            Question.PopulatePBEQuestionInfo(PBEBook);
+            Question.Verses = await Question.GetBibleVersesAsync(_context, false);
             
             // and now we need a Verse Select List
             ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
@@ -69,14 +65,12 @@ namespace BiblePathsCore.Pages.PBE
             if (!ModelState.IsValid)
             {
                 // Setup our PBEBible Object
-                this.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
-                Bibles PBEBible = await _context.Bibles.FindAsync(BibleId);
-                if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
-                _ = await PBEBible.AddPBEBibleInfoAsync(_context);
+                Question.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, Question.BibleId);
+                BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
+                if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-                // Populate Qustion for Display in case we fail.
-                Question.PopulatePBEQuestionInfo(PBEBible);
-                Question.Verses = await Question.GetBibleVersesAsync(_context, this.BibleId, false);
+                Question.PopulatePBEQuestionInfo(PBEBook);
+                Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
                 // and now we need a Verse and Points Select List
                 ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");

@@ -40,27 +40,27 @@ namespace BiblePathsCore.Pages.PBE
             this.Chapter = Chapter;
             this.Verse = Verse ?? 0; // set to 0 if Verse is null
             this.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
-            Bibles PBEBible = await _context.Bibles.FindAsync(this.BibleId);
-            if (PBEBible == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Bible." }); }
-            _ = await PBEBible.AddPBEBibleInfoAsync(_context);
 
-            // Handle the possibility that we want only one one verse. 
+            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, this.BibleId, this.BookNumber, this.Chapter);
+            if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
+
+            // Handle the possibility that we want only one verse. 
             var questions = from q in _context.QuizQuestions select q;
 
             if (!Verse.HasValue)
             {
-                questions = questions.Where(Q => Q.BibleId == this.BibleId && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.IsDeleted == false);
+                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.IsDeleted == false);
             }
             else
             {
-                questions = questions.Where(Q => Q.BibleId == this.BibleId && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false);
+                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false);
             }
 
             Questions = await questions.Include(Q => Q.QuizAnswers).ToListAsync();
 
             foreach (QuizQuestions Question in Questions)
             {
-                Question.PopulatePBEQuestionInfo(PBEBible);
+                Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.CheckUserCanEdit(PBEUser);
             }
 

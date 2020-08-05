@@ -3,9 +3,14 @@ Description: Create individual or all BiblePaths Core tables.
 
 
 CRITICAL UPDATES for pre-existing DBs
-
+---------------------------------------
 ALTER TABLE QuizQuestions
 		ADD BibleID nvarchar(64) FOREIGN KEY References Bibles(ID)
+
+UPDATE dbo.QuizQuestions
+SET BibleID = 'NKJV-EN'
+WHERE BibleID is null
+---------------------------------------
 
 #>
 

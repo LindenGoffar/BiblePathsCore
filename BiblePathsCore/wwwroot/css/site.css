@@ -51,6 +51,10 @@ a.navbar-brand {
     left: 0.5%;
 }
 
+.scroll-box {
+    width: 90%
+}
+
 /* Star Rating Styles */
 .rating-star {
     direction: rtl;

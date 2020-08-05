@@ -25,30 +25,38 @@
     @foreach (var question in Model.Questions)
     { 
         <div class="row">
-            <div class="col-8">
-                @{string VerseRef = question.BookName + " " + question.Chapter + ": " + question.StartVerse;
-                    if (question.EndVerse > question.StartVerse) { VerseRef += " - " + question.EndVerse; }
-                }
-                <p><strong>Question: </strong> @question.PBEQuestion</p>
-                <p><strong>Answers: </strong></p>
-                @foreach (var answer in question.QuizAnswers)
-                {
-                    <p><em>@answer.Answer</em></p>
-                }
-                <p><small>Owner: @question.Owner</small></p>
-                <p><small>Last Asked: @String.Format("{0:d/M/yyyy HH:mm:ss}", question.LastAsked)</small></p>
-                <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link">@VerseRef</button>
-                <div id="Verses-@question.Id" class="collapse">
-                    <P><small>Loading...</small></P>
+            <div class="col-10">
+                <div class="card">
+                    <div class="card-body">
+                        @{string VerseRef = question.BookName + " " + question.Chapter + ": " + question.StartVerse;
+                            if (question.EndVerse > question.StartVerse) { VerseRef += " - " + question.EndVerse; }
+                        }
+                        <span><strong>Question: </strong> @question.PBEQuestion</span> <br />
+                        <span><strong>Answers: </strong></span>
+                        @foreach (var answer in question.QuizAnswers)
+                        {
+                            <span><em>@answer.Answer</em></span> <br />
+                        }
+                        <span><small>Owner: @question.Owner</small></span> <br />
+                        <span><small>Last Asked: @String.Format("{0:d/M/yyyy HH:mm:ss}", question.LastAsked)</small></span> <br />
+                        <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link"
+                                onclick="GetBibleVerses(@question.Id, @question.BookNumber, @question.Chapter, @question.StartVerse, @question.EndVerse)">
+                            @VerseRef
+                        </button>
+                        <div id="Verses-@question.Id" class="collapse">
+                            <P><small>Loading...</small></P>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     }
+</div>
 <div>
     <hr />
-    <a asp-page="/Index">Back to Home</a>
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
 </div>
 
 @section Scripts {
-    <partial name="_HideUnHide" />
+    <partial name="_GetVerseText" />
 }

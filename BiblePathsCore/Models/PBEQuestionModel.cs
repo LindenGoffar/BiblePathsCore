@@ -24,19 +24,22 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public List<BibleVerses> Verses { get; set; }
 
-        public void PopulatePBEQuestionInfo(Bibles PBEBible)
+        public void PopulatePBEQuestionInfo(BibleBooks PBEBook)
         {
             if (Chapter == Bibles.CommentaryChapter)
             {
                 IsCommentaryQuestion = true;
-                BookName = PBEBible.BibleBooks.Where(B => B.BookNumber == BookNumber).Single().CommentaryTitle;
+                BookName = PBEBook.CommentaryTitle;
             }
             else
             {
                 IsCommentaryQuestion = false;
-                BookName = PBEBible.BibleBooks.Where(B => B.BookNumber == BookNumber).Single().Name;
+                BookName = PBEBook.Name;
             }
             PBEQuestion = GetPBEQuestionText();
+
+            // BibleId may not be set on every question, particularly old ones, so default it.
+            if (BibleId == null) { BibleId = Bibles.DefaultPBEBibleId; }
         }
 
         public void CheckUserCanEdit(QuizUsers PBEUser)
@@ -63,17 +66,17 @@ namespace BiblePathsCore.Models.DB
             return tempstring;
         }
 
-        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inQuestionOnly)
+        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();
             // First retrieve all of the verses, 
             if (inQuestionOnly)
             {
-                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == bibleId && v.BookNumber == BookNumber && v.Chapter == Chapter && v.Verse >= StartVerse && v.Verse <= EndVerse).OrderBy(v => v.Verse).ToListAsync();
+                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter && v.Verse >= StartVerse && v.Verse <= EndVerse).OrderBy(v => v.Verse).ToListAsync();
             }
             else
             {
-                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == bibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
+                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
             }
             foreach (BibleVerses verse in bibleVerses)
             {

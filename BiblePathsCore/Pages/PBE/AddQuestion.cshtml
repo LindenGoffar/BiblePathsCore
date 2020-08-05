@@ -9,66 +9,69 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-8">
+        <div class="col-7">
             <span>
                 <strong>@Model.Question.BookName @Model.Question.Chapter</strong>
-                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion"> Change </a>
+                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.Question.BibleId" asp-route-TargetPage="/PBE/AddQuestion"> Change </a>
                 <br />
             </span>
             @foreach (var Verse in Model.Question.Verses)
             {
-        <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
-            <span><sup>@Verse.Verse </sup>@Verse.Text </span>
-            @if (Verse.QuestionCount > 0)
-            {
-                <span class="badge badge-secondary">@Verse.QuestionCount</span>
+                <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
+                    <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+                    @if (Verse.QuestionCount > 0)
+                    {
+                        <span class="badge badge-secondary">@Verse.QuestionCount</span>
+                    }
+                </div>
             }
         </div>
-            }
-        </div>
-        <div class="col-4">
+        <div class="col-5">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="container-fluid follow-scroll">
                     <div class="row">
-                        <h6>According to @Model.Question.BookName @Model.Question.Chapter</h6>
-                    </div>
-                    <div class="row">
-                        <div class="input-group input-group-sm form-group">
+                        <div class="input-group input-group-sm mb-0">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Points</span>
                             </div>
-                            <select asp-for="Question.Points" asp-items="ViewBag.PointsSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                            <select asp-for="Question.Points" asp-items="ViewBag.PointsSelectList" class="form-control scroll-box" onchange="UpdateQuestionPreview()"></select>
                         </div>
-                        <span asp-validation-for="Question.StartVerse" class="text-danger"></span>
+                        <span asp-validation-for="Question.Points" class="text-danger"></span>
                     </div>
                     <div class="row">
-                        <div class="input-group input-group-sm form-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Verses</span>
-                            </div>
+                        <span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>
+                    </div>
+                    <div class="row">
+                        <div class="mb-0 input-group input-group-sm form-inline form-group">
+                            @*<div class="input-group-prepend">
+                            <span class="input-group-text">Verses</span>
+                            </div>*@
                             <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                            <span> - </span>
+                            <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
                         </div>
-                        <div class="input-group input-group-sm form-group">
+                        @*<div class="input-group input-group-sm form-inline form-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">-</span>
                             </div>
-                            <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
-                        </div>
+                        </div>*@
                     </div>
                     <div class="row">
-                        <div class="form-group">
-                            <textarea asp-for="Question.Question" cols="35" rows="5" onkeyup="UpdateQuestionPreview()" placeholder="Question"> </textarea>
+                        <div class="mb-0 input-group input-group-sm form-group">
+                            <textarea asp-for="Question.Question" rows="4" onkeyup="UpdateQuestionPreview()" placeholder="Question" class="scroll-box"> </textarea>
                             <span asp-validation-for="Question.Question" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="row text-muted">
-                        <span>PBE Question Preiew:</span>
-                        <div id="QuestionPreview" class="text-success"></div>
+                    <div class="row">
+                        <div class="text-muted">
+                            <span>PBE Question Preiew:</span>
+                            <div id="QuestionPreview" class="text-success"></div>
+                        </div>
                     </div>
                     <div class="row">
-                        <div class="form-group">
-                            <textarea asp-for="AnswerText" cols="35" rows="3" placeholder="Answer"> </textarea>
+                        <div class="mb-0 input-group input-group-sm form-group">
+                            <textarea asp-for="AnswerText" rows="2" placeholder="Answer" class="scroll-box"> </textarea>
                             <span asp-validation-for="AnswerText" class="text-danger"></span>
                         </div>
                     </div>
@@ -76,7 +79,7 @@
                         <div class="form-group">
                             <input type="hidden" asp-for="Question.BookNumber" />
                             <input type="hidden" asp-for="Question.Chapter" />
-                            <input type="hidden" asp-for="BibleId" />
+                            <input type="hidden" asp-for="Question.BibleId" />
                             <input type="submit" value="Add Question" class="btn btn-primary" />
                         </div>
                     </div>

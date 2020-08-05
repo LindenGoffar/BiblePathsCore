@@ -19,22 +19,28 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public string LegalNote { get; set; }
 
-        public async Task<bool> AddPBEBibleInfoAsync(BiblePathsCoreDbContext context)
+        public static async Task<Bibles> GetPBEBibleAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            this.HydrateBible();
-            // A PBE Bible has all of the Books and chapters loaded and marked up with PBE info. 
+            // TODO PERF: This is a way expensive method we need to reduce calls to this. 
 
-            await context.Entry(this).Collection(B => B.BibleBooks).LoadAsync();
-            foreach (BibleBooks Book in this.BibleBooks)
+            Bibles PBEBible = await context.Bibles.Include(B => B.BibleBooks)
+                                                  .ThenInclude(Book => Book.BibleChapters)
+                                                  .Where(B => B.Id == BibleId).SingleAsync();
+            if (PBEBible == null) { return null; }
+
+            PBEBible.HydrateBible();
+            // A PBE Bible has all of the Books and chapters loaded and marked up with PBE info. 
+            foreach (BibleBooks Book in PBEBible.BibleBooks)
             {
-                await Book.AddPBEBookPropertiesAsync(context);
-                await context.Entry(Book).Collection(B => B.BibleChapters).LoadAsync();
-                foreach (BibleChapters Chapter in Book.BibleChapters)
-                {
-                    await Chapter.AddPBEChapterPropertiesAsync(context);
-                }
+                await Book.AddPBEBookPropertiesAsync(context, null);
+
+                // This should already be done for us in AddPBEBookPropertiesAsync
+                //foreach (BibleChapters Chapter in Book.BibleChapters)
+                //{
+                //    await Chapter.AddPBEChapterPropertiesAsync(context);
+                //}
             }
-            return true; 
+            return PBEBible; 
         }
 
         public bool HydrateBible()

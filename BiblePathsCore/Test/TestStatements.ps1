@@ -31,6 +31,15 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths"
 # Get a specific Path by ID 
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths/1"
 
+# BibleVerses
+$BibleID = "KJV-EN"
+$BookNumber = 43 #John
+$Chapter = 3
+$Verse = 16
+$Verse2 = 17
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BibleVerses/?BibleID=$BibleID&BookNumber=$BookNumber&Chapter=$Chapter&Start_Verse=$Verse&End_Verse=$Verse2"
+
+
 
 # NOT YET IMPLIMENTED
 

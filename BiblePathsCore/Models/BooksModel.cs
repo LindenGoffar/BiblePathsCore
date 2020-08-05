@@ -18,8 +18,31 @@ namespace BiblePathsCore.Models.DB
         public bool HasCommentary { get; set; }
         [NotMapped]
         public string CommentaryTitle { get; set; }
+        [NotMapped]
+        public int CommentaryQuestionCount { get; set; }
 
-        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context)
+        public static async Task<BibleBooks> GetPBEBookAndChapterAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int ChapterNum)
+        {
+            BibleBooks PBEBook = await context.BibleBooks
+                                                  .Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber)
+                                                  .SingleAsync();
+            if (PBEBook == null) { return null; }
+            await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum);
+            return PBEBook;
+        }
+        public static async Task<IList<BibleBooks>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            IList<BibleBooks> PBEBooks = await context.BibleBooks
+                                                  .Include(B => B.BibleChapters)
+                                                  .Where(B => B.BibleId == BibleId)
+                                                  .ToListAsync();
+            foreach (BibleBooks Book in PBEBooks)
+            {
+                await Book.AddPBEBookPropertiesAsync(context, null);
+            }
+            return PBEBooks;
+        }
+        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum)
         {
             InBookList = await IsInBooklistAsync(context);
             QuestionCount = await GetQuestionCountAsync(context);
@@ -27,7 +50,24 @@ namespace BiblePathsCore.Models.DB
             if (HasCommentary)
             {
                 CommentaryTitle = await GetCommentaryTitleAsync(context);
-            }   
+                CommentaryQuestionCount = await GetCommentaryQuestionCountAsync(context);
+            }
+            if (ChapterNum.HasValue)
+            {
+                BibleChapters Chapter = await context.BibleChapters
+                                                        .Where(C => C.BibleId == BibleId && C.BookNumber == BookNumber && C.ChapterNumber == ChapterNum)
+                                                        .SingleAsync();
+                await Chapter.AddPBEChapterPropertiesAsync(context);
+                this.BibleChapters.Add(Chapter);
+            }
+            else
+            {
+                // Caller must have loaded Chapters
+                foreach (BibleChapters Chapter in BibleChapters)
+                {
+                    await Chapter.AddPBEChapterPropertiesAsync(context);
+                }
+            }
             return true;
         }
 
@@ -65,6 +105,12 @@ namespace BiblePathsCore.Models.DB
         {
             return await context.QuizQuestions
                         .Where(Q => Q.BookNumber == BookNumber && Q.BibleId == BibleId && Q.IsDeleted == false)
+                        .CountAsync();
+        }
+        public async Task<int> GetCommentaryQuestionCountAsync(BiblePathsCoreDbContext context)
+        {
+            return await context.QuizQuestions
+                        .Where(Q => Q.BookNumber == BookNumber && Q.BibleId == BibleId && Q.Chapter == Bibles.CommentaryChapter && Q.IsDeleted == false)
                         .CountAsync();
         }
 

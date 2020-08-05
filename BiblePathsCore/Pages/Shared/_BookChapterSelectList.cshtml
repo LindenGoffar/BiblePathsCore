@@ -8,9 +8,11 @@
 {
     if (book.TestamentNumber == 1)
     {
-        <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
-            @book.Name
-        </button>
+<button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+    @book.Name
+    @if (Model.IsPBE && book.QuestionCount > 0)
+    {<span class="badge badge-pill badge-primary">@book.QuestionCount</span>}
+</button>
         <!-- The Chapter list as a Modal -->
         <div class="modal" id="Book-@book.BookNumber">
             <div class="modal-dialog">
@@ -25,29 +27,52 @@
                             switch (Model.TargetPage)
                             {
                                 case "/Steps/AddStep":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/Steps/EditStep":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/Steps/Step": // This is the study scnenario.
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/PBE/AddQuestion":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                    </a>
                                     break;
 
                                 case "/PBE/Questions":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                    </a>
                                     break;
 
                                 default:
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="AddStep" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
                                     break;
                             }
+                        }
+                        @if (Model.IsPBE && book.HasCommentary == true)
+                        {
+                            // No switch should be necessary as long as TargetPage has identical signature. 
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
+                                SDA Bible Commentary
+                                @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                {<span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>}
+                            </a>
                         }
                     </div>
                     <div class="modal-footer">
@@ -64,9 +89,11 @@
 {
     if (book.TestamentNumber == 2)
     {
-        <button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
-            @book.Name
-        </button>
+<button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+    @book.Name
+    @if (Model.IsPBE && book.QuestionCount > 0)
+    {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+</button>
         <!-- The Chapter list as a Modal -->
         <div class="modal" id="Book-@book.BookNumber">
             <div class="modal-dialog">
@@ -81,29 +108,52 @@
                             switch (Model.TargetPage)
                             {
                                 case "/Steps/AddStep":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/Steps/EditStep":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-Id="@Model.StepId" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/Steps/Step": // This is the study scnenario.
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                    </a>
                                     break;
 
                                 case "/PBE/AddQuestion":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                    </a>
                                     break;
 
                                 case "/PBE/Questions":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">@chapter.ChapterNumber</a>
+                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                    </a>
                                     break;
 
                                 default:
                                     <a class="btn btn-light btn-sm mb-2" asp-page="AddStep" asp-route-BibleId="@Model.Bible.Id" asp-route-PathId="@Model.PathId" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber" asp-route-Position="@Model.StepPosition">@chapter.ChapterNumber</a>
                                     break;
                             }
+                        }
+                        @if (Model.IsPBE && book.HasCommentary == true)
+                        {
+                            // No switch should be necessary as long as TargetPage has identical signature.
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
+                                SDA Bible Commentary
+                                @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                {<span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>}
+                            </a>
                         }
                     </div>
                     <div class="modal-footer">
