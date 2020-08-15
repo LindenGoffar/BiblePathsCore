@@ -19,30 +19,6 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public string LegalNote { get; set; }
 
-        public static async Task<Bibles> GetPBEBibleAsync(BiblePathsCoreDbContext context, string BibleId)
-        {
-            // TODO PERF: This is a way expensive method we need to reduce calls to this. 
-
-            Bibles PBEBible = await context.Bibles.Include(B => B.BibleBooks)
-                                                  .ThenInclude(Book => Book.BibleChapters)
-                                                  .Where(B => B.Id == BibleId).SingleAsync();
-            if (PBEBible == null) { return null; }
-
-            PBEBible.HydrateBible();
-            // A PBE Bible has all of the Books and chapters loaded and marked up with PBE info. 
-            foreach (BibleBooks Book in PBEBible.BibleBooks)
-            {
-                await Book.AddPBEBookPropertiesAsync(context, null);
-
-                // This should already be done for us in AddPBEBookPropertiesAsync
-                //foreach (BibleChapters Chapter in Book.BibleChapters)
-                //{
-                //    await Chapter.AddPBEChapterPropertiesAsync(context);
-                //}
-            }
-            return PBEBible; 
-        }
-
         public bool HydrateBible()
         {
             LegalNote = GetBibleLegalNote();
@@ -59,5 +35,33 @@ namespace BiblePathsCore.Models.DB
             return LegalNote;
         }
 
+    }
+
+    public class MinBible
+    {
+        public string LegalNote { get; set; }
+        public string Id { get; set; }
+        public string Language { get; set; }
+        public string Version { get; set; }
+        public List<MinBook> BibleBooks { get; set; }
+
+        public MinBible()
+        {
+
+        }
+
+        public MinBible(Bibles Bible)
+        {
+            LegalNote = Bible.LegalNote;
+            Id = Bible.Id;
+            Language = Bible.Language;
+            Version = Bible.Version;
+            BibleBooks = new List<MinBook>();
+            foreach(BibleBooks Book in Bible.BibleBooks)
+            {
+                MinBook minBook = new MinBook(Book);
+                BibleBooks.Add(minBook);
+            }
+        }
     }
 }

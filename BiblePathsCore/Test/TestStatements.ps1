@@ -12,7 +12,7 @@ $BaseURI = "https://localhost:44387"
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles"
 
 # Get a specific bible
-Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles/KJV-EN"
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles/NKJV-EN"
 
 
 try {
@@ -39,6 +39,36 @@ $Verse = 16
 $Verse2 = 17
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BibleVerses/?BibleID=$BibleID&BookNumber=$BookNumber&Chapter=$Chapter&Start_Verse=$Verse&End_Verse=$Verse2"
 
+
+# QuizQuestions
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleId=NKJV-EN&BookName=Genesis&Chapter=1"
+
+
+#QuizQuestions Commentary
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&BookName=Ezra&Chapter=1000"
+
+
+# Add QuizQuestion
+        $QuestionObj = New-Object -TypeName psobject
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name BibleId -value "NKJV-EN"
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name question -value "The earth was described as Formless and What?"
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name points -value 1
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name booknumber -value 1
+        $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value 1
+        $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value 2
+        $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value 2
+        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value "linden@Goffar.com"
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "API Test"
+
+        $AcceptedAnswers = @() # each question can have multiple answers we'll add one.
+            $AcceptedAnswers += "empty"
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name answers -value $AcceptedAnswers 
+
+        # Finally add our question object
+        $JsonString = ConvertTo-Json -InputObject $QuestionObj
+        Invoke-RestMethod -Method Post -Uri "$BaseURI/API/QuizQuestions" -Body $JsonString -ContentType "application/json"
+
+        
 
 
 # NOT YET IMPLIMENTED

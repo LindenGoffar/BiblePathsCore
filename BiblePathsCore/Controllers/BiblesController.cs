@@ -23,16 +23,19 @@ namespace BiblePathsCore.API
 
         // GET: api/Bibles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Bibles>>> GetBibles()
+        public async Task<ActionResult<IEnumerable<MinBible>>> GetBibles()
         {
             try
             {
-                List<Bibles> BibleList = await _context.Bibles.ToListAsync();
+                List<Bibles> BibleList = await _context.Bibles.Include(b => b.BibleBooks).ToListAsync();
+                List<MinBible> minBibles = new List<MinBible>();
                 foreach (Bibles bible in BibleList)
                 {
-                    if (bible.HydrateBible()) { };
+                    _ = bible.HydrateBible();
+                    MinBible minBible = new MinBible(bible);
+                    minBibles.Add(minBible);
                 }
-                return BibleList;
+                return minBibles;
             }
             catch { }
             return null;
@@ -40,15 +43,17 @@ namespace BiblePathsCore.API
 
         // GET: api/Bibles/KJV-EN
         [HttpGet("{id}")]
-        public async Task<ActionResult<Bibles>> GetBibles(string id)
+        public async Task<ActionResult<MinBible>> GetBibles(string id)
         {
             var bible = await _context.Bibles.FindAsync(id);
             if (bible == null)
             {
                 return NotFound();
             }
+            await _context.Entry(bible).Collection(b => b.BibleBooks).LoadAsync();
             _ = bible.HydrateBible();
-            return bible;
+            MinBible minBible = new MinBible(bible);
+            return minBible;
         }
 
         //// PUT: api/Bibles/5

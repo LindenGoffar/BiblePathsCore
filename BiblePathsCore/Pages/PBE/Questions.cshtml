@@ -10,6 +10,20 @@
 
 <div class="container-fluid">
     <div class="row">
+        <span>
+            @if (Model.IsCommentary)
+            {
+                <strong>SDA Bible Commentary for @Model.BookName</strong>
+            }
+            else
+            {
+                <strong>@Model.BookName @Model.Chapter</strong>
+            }
+        <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions">  Change Book/Chapter  </a>
+            <br />
+        </span>
+    </div>
+    <div class="row">
         <div class="col-12">
             @if (Model.Verse > 0)
             {
@@ -39,15 +53,23 @@
                         }
                         <span><small>Owner: @question.Owner</small></span> <br />
                         <span><small>Last Asked: @String.Format("{0:d/M/yyyy HH:mm:ss}", question.LastAsked)</small></span> <br />
-                        <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link"
-                                onclick="GetBibleVerses(@question.Id, @question.BookNumber, @question.Chapter, @question.StartVerse, @question.EndVerse)">
-                            @VerseRef
-                        </button>
-                        <div id="Verses-@question.Id" class="collapse">
-                            <P><small>Loading...</small></P>
-                        </div>
+
+                        @if (Model.IsCommentary == false)
+                        {
+                            <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link"
+                                    onclick="GetBibleVerses(@question.Id, @question.BookNumber, @question.Chapter, @question.StartVerse, @question.EndVerse)">
+                                @VerseRef
+                            </button>
+                            <div id="Verses-@question.Id" class="collapse">
+                                <P><small>Loading...</small></P>
+                            </div>
+                        }
+
                     </div>
                 </div>
+            </div>
+            <div class="col-2">
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" >Edit</a>
             </div>
         </div>
     }

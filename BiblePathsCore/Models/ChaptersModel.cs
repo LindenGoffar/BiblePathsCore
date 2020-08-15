@@ -16,20 +16,20 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public bool IsCommentary { get; set; }
 
-        public async Task<bool> AddPBEChapterPropertiesAsync(BiblePathsCoreDbContext context)
+        public bool AddPBEChapterProperties(List<QuizQuestions> Questions)
         {
-            QuestionCount = await GetQuestionCountAsync(context);
+            QuestionCount = GetQuestionCount(Questions);
             IsCommentary = (ChapterNumber == Bibles.CommentaryChapter);
             return true;
         }
 
-        public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
+        public int GetQuestionCount(List<QuizQuestions> Questions)
         {
-            return await context.QuizQuestions
-                        .Where(Q => Q.BookNumber == BookNumber 
+            return Questions.Where(Q => Q.BookNumber == BookNumber 
                                 && Q.Chapter == ChapterNumber 
-                                && Q.BibleId == BibleId && Q.IsDeleted == false)
-                        .CountAsync();
+                                && Q.BibleId == BibleId 
+                                && Q.IsDeleted == false)
+                        .Count();
         }
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)

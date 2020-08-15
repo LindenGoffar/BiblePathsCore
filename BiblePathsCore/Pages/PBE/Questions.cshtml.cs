@@ -27,10 +27,11 @@ namespace BiblePathsCore.Pages.PBE
         public IList<QuizQuestions> Questions { get;set; }
         public QuizUsers PBEUser { get; set; }
         public int BookNumber { get; set; }
+        public string BookName { get; set; }
         public int Chapter { get; set; }
         public int Verse { get; set;  }
-
         public string BibleId { get; set; }
+        public bool IsCommentary { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? Verse)
         {
@@ -63,6 +64,9 @@ namespace BiblePathsCore.Pages.PBE
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.CheckUserCanEdit(PBEUser);
             }
+            IsCommentary = (this.Chapter == Bibles.CommentaryChapter);
+            if (IsCommentary) { this.BookName = PBEBook.CommentaryTitle;  }
+            else { this.BookName = PBEBook.Name;  }            
 
             return Page();
         }

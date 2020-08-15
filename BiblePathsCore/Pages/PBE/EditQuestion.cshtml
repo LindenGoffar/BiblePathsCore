@@ -1,5 +1,5 @@
 ﻿@page
-@model BiblePathsCore.Pages.PBE.AddQuestionModel
+@model BiblePathsCore.Pages.PBE.EditQuestionModel
 
 @{
     ViewData["Title"] = "Add a Question";
@@ -31,7 +31,7 @@
                         </a>
                     }
                 }
-                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.Question.BibleId" asp-route-TargetPage="/PBE/AddQuestion">  Change Book/Chapter  </a>
+            <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.Question.BibleId" asp-route-TargetPage="/PBE/AddQuestion">  Change Book/Chapter  </a>
                 <br />
             </span>
             <br />
@@ -74,26 +74,26 @@
                         <span asp-validation-for="Question.Points" class="text-danger"></span>
                     </div>
                     <div class="row">
-                    @if (Model.IsCommentary)
+                        @if (Model.IsCommentary)
                         {<span>According to the SDA Bible Commentary for <strong>@Model.Question.BookName</strong></span> }
-                    else
-                    {<span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>}
-                    </div>
-                    @if (Model.IsCommentary)
-                    {
-                        <input type="hidden" asp-for="Question.StartVerse" />
-                        <input type="hidden" asp-for="Question.EndVerse" />
-                    }
-                    else
-                    {
-                        <div class="row">
-                            <div class="mb-0 input-group input-group-sm form-inline form-group">
-                                <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
-                                <span> - </span>
-                                <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
-                            </div>
+                        else
+                        {<span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>}
                         </div>
-                    }
+                        @if (Model.IsCommentary)
+                        {
+                            <input type="hidden" asp-for="Question.StartVerse" />
+                            <input type="hidden" asp-for="Question.EndVerse" />
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <div class="mb-0 input-group input-group-sm form-inline form-group">
+                                    <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                                    <span> - </span>
+                                    <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                                </div>
+                            </div>
+                        }
                     <div class="row">
                         <div class="mb-0 input-group input-group-sm form-group">
                             <textarea asp-for="Question.Question" rows="4" onkeyup="UpdateQuestionPreview()" placeholder="Question" class="scroll-box"> </textarea>
@@ -114,10 +114,11 @@
                     </div>
                     <div classs="row">
                         <div class="form-group">
+                            <input type="hidden" asp-for="Question.Id" />
                             <input type="hidden" asp-for="Question.BookNumber" />
                             <input type="hidden" asp-for="Question.Chapter" />
                             <input type="hidden" asp-for="Question.BibleId" />
-                            <input type="submit" value="Add Question" class="btn btn-primary" />
+                            <input type="submit" value="Update Question" class="btn btn-primary" />
                         </div>
                     </div>
                 </div>

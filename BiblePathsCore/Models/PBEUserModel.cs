@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,11 @@ namespace BiblePathsCore.Models.DB
                 await context.SaveChangesAsync();
             }
             return ReturnUser;
+        }
+
+        public static async Task<bool> IsValidPBEUserAsync(BiblePathsCoreDbContext context, string UserName)
+        {
+            return await context.QuizUsers.Where(U => U.Email.ToLower() == UserName.ToLower() && U.IsQuestionBuilderLocked == false).AnyAsync();
         }
 
         public bool IsValidPBEQuestionBuilder()

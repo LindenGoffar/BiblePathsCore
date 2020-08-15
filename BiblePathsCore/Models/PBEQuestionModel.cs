@@ -69,18 +69,37 @@ namespace BiblePathsCore.Models.DB
         public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();
-            // First retrieve all of the verses, 
-            if (inQuestionOnly)
+            if (Chapter != Bibles.CommentaryChapter)
             {
-                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter && v.Verse >= StartVerse && v.Verse <= EndVerse).OrderBy(v => v.Verse).ToListAsync();
+                // First retrieve all of the verses, 
+                if (inQuestionOnly)
+                {
+                    bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter && v.Verse >= StartVerse && v.Verse <= EndVerse).OrderBy(v => v.Verse).ToListAsync();
+                }
+                else
+                {
+                    bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
+                }
+                foreach (BibleVerses verse in bibleVerses)
+                {
+                    verse.QuestionCount = await verse.GetQuestionCountAsync(context);
+                }
             }
-            else
+            else // COMMENTARY SCENARIO:
             {
-                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
-            }
-            foreach (BibleVerses verse in bibleVerses)
-            {
-                verse.QuestionCount = await verse.GetQuestionCountAsync(context);
+                CommentaryBooks commentary = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                            && c.BookNumber == BookNumber)
+                                                                          .FirstAsync();
+                BibleVerses CommentaryVerse = new BibleVerses
+                {
+                    BibleId = BibleId,
+                    BookName = BookName,
+                    BookNumber = BookNumber,
+                    Chapter = Chapter,
+                    Verse = 1,
+                    Text = commentary.Text
+                };
+                bibleVerses.Add(CommentaryVerse);
             }
             return bibleVerses;
         }
@@ -113,4 +132,58 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
     }
+
+    // The MinQuestion Class is used to overcome some JSON ReferenceLoop issues that occur
+    // when a QuizQuestion is passed back through an API call. 
+    public class MinQuestion
+    {
+        public int Id { get; set; }
+        public string Question { get; set; }
+        public string PBEQuestion { get; set; }
+        public bool IsAnswered { get; set; }
+        public int Points { get; set; }
+        public int BookNumber { get; set; }
+        public string BookName { get; set; }
+        public int Chapter { get; set; }
+        public int StartVerse { get; set; }
+        public int EndVerse { get; set; }
+        public DateTimeOffset? Created { get; set; }
+        public DateTimeOffset? Modified { get; set; }
+        public string Source { get; set; }
+        public DateTimeOffset LastAsked { get; set; }
+        public string BibleId { get; set; }
+        public List<string> Answers { get; set; }
+        public bool IsCommentaryQuestion { get; set; }
+        public string Owner { get; set; }
+        public MinQuestion()
+        {
+            // Parameterless constructor required for Post Action. 
+        }
+        public MinQuestion(QuizQuestions quizQuestion)
+        {
+            Id = quizQuestion.Id;
+            Question = quizQuestion.Question;
+            PBEQuestion = quizQuestion.PBEQuestion;
+            IsAnswered = quizQuestion.IsAnswered;
+            Points = quizQuestion.Points;
+            BookNumber = quizQuestion.BookNumber;
+            BookName = quizQuestion.BookName;
+            Chapter = quizQuestion.Chapter;
+            StartVerse = quizQuestion.StartVerse;
+            EndVerse = quizQuestion.EndVerse;
+            Created = quizQuestion.Created;
+            Modified = quizQuestion.Modified;
+            Source = quizQuestion.Source;
+            LastAsked = quizQuestion.LastAsked;
+            BibleId = quizQuestion.BibleId;
+            IsCommentaryQuestion = quizQuestion.IsCommentaryQuestion;
+
+            Answers = new List<string>();
+            foreach(QuizAnswers Answer in quizQuestion.QuizAnswers)
+            {
+                Answers.Add(Answer.Answer);
+            }
+        }
+    }
+
 }

@@ -3,11 +3,16 @@
     <script>
     function UpdateQuestionPreview() {
         var div = document.getElementById('QuestionPreview');
-        if ($("#Question_StartVerse").val() == $("#Question_EndVerse").val()) {
-            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter: ' + $("#Question_StartVerse").val() + ', ' + $("#Question_Question").val() + '';
+        if (@Model.Chapter == @BiblePathsCore.Models.DB.Bibles.CommentaryChapter) {
+            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to the SDABC for @Model.BookName, ' + $("#Question_Question").val() + '';
         }
         else {
-            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter: ' + $("#Question_StartVerse").val() + '-' + $("#Question_EndVerse").val() + ', ' + $("#Question_Question").val() + '';
+            if ($("#Question_StartVerse").val() == $("#Question_EndVerse").val()) {
+                div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter:' + $("#Question_StartVerse").val() + ', ' + $("#Question_Question").val() + '';
+            }
+            else {
+                div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to @Model.BookName @Model.Chapter:' + $("#Question_StartVerse").val() + '-' + $("#Question_EndVerse").val() + ', ' + $("#Question_Question").val() + '';
+            }
         }
     }
     </script>
