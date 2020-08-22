@@ -55,6 +55,22 @@ a.navbar-brand {
     width: 90%
 }
 
+.hide-on-start {
+    display: none
+}
+
+.btn-book {
+    color: #212529;
+    background-color: #DCE7F3;
+    border-color: #DCE7F3;
+}
+
+.btn-book-inlist {
+    color: #212529;
+    background-color: #E7F3DC;
+    border-color: #E7F3DC;
+}
+
 /* Star Rating Styles */
 .rating-star {
     direction: rtl;

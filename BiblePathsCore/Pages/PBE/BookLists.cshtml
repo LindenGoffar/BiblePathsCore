@@ -1,0 +1,46 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.BookListsModel
+
+@{
+    ViewData["Title"] = "PBE Book Lists";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="AddBookList" asp-route-BibleId="@Model.BibleId" >Add Book List</a>
+        </div>
+    </div>
+    <hr />
+    @foreach (var BookList in Model.BookLists)
+    { 
+        <div class="row">
+            <div class="col-10">
+                <div class="card">
+                    <div class="card-body">
+                        <span><strong>@BookList.BookListName</strong></span>
+                        @foreach (var BookMap in BookList.QuizBookListBookMap)
+                        {
+                            <br />
+                            <span><em>@BookMap.BookName</em></span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-2">
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id" >Edit</a>
+            </div>
+        </div>
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>

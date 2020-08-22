@@ -8,11 +8,24 @@
 {
     if (book.TestamentNumber == 1)
     {
-<button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
-    @book.Name
-    @if (Model.IsPBE && book.QuestionCount > 0)
-    {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
-</button>
+
+        if (book.InBookList == true)
+        {
+            <button type="button" class="btn btn-book-inlist btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+                @book.Name
+                @if (Model.IsPBE && book.QuestionCount > 0)
+                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+            </button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-book btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+                @book.Name
+                @if (Model.IsPBE && book.QuestionCount > 0)
+                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+            </button>
+        }
+
         <!-- The Chapter list as a Modal -->
         <div class="modal" id="Book-@book.BookNumber">
             <div class="modal-dialog">
@@ -67,7 +80,7 @@
                         }
                         @if (Model.IsPBE && book.HasCommentary == true)
                         {
-                            // No switch should be necessary as long as TargetPage has identical signature. 
+                            // No switch should be necessary as long as TargetPage has identical signature.
                             <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
                                 SDA Bible Commentary
                                 @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
@@ -89,11 +102,23 @@
 {
     if (book.TestamentNumber == 2)
     {
-<button type="button" class="btn btn-light btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
-    @book.Name
-    @if (Model.IsPBE && book.QuestionCount > 0)
-    {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
-</button>
+        if (book.InBookList == true)
+        {
+            <button type="button" class="btn btn-book-inlist btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+                @book.Name
+                @if (Model.IsPBE && book.QuestionCount > 0)
+                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+            </button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-book btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
+                @book.Name
+                @if (Model.IsPBE && book.QuestionCount > 0)
+                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+            </button>
+        }
+
         <!-- The Chapter list as a Modal -->
         <div class="modal" id="Book-@book.BookNumber">
             <div class="modal-dialog">

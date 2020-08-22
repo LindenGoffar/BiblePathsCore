@@ -1,0 +1,31 @@
+﻿<script>
+    // Let's expand any select elements with Value > 0
+    $(document).ready(function () {
+        // Iterate through Items 1 = 9 checking whether a BookSelect value exists.
+        for (i = 1; i <= 9; i++) {
+            var BookNum = parseInt($("#BookSelect-" + i).val())
+            if (BookNum > 0) {
+                document.getElementById("AddBook-" + i).style.display = 'block';
+                if (i == 9) {
+                    document.getElementById("AddAnotherButton").style.display = 'none';
+                }
+            }
+            else { document.getElementById("AddBook-" + i).style.display = 'none';}
+        }
+    });
+
+    function AddAnother() {
+        var AnotherAdded = false;
+        for (i = 1; i <= 9; i++) {
+            var BookNum = parseInt($("#BookSelect-" + i).val())
+            if (BookNum == 0 && AnotherAdded == false) {
+                document.getElementById("AddBook-" + i).style.display = 'block';
+                if (i == 9) {
+                    document.getElementById("AddAnotherButton").style.display = 'none';
+                }
+                AnotherAdded = true;
+                break;
+            }
+        }
+    }
+</script>

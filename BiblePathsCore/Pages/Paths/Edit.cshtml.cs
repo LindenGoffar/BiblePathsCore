@@ -23,6 +23,7 @@ namespace BiblePathsCore
         }
         [BindProperty]
         public Paths Path { get; set; }
+
         [BindProperty]
         public List<SelectListItem> BibleSelectList { get; set; }
 
