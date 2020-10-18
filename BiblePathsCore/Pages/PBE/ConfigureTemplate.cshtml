@@ -1,0 +1,56 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.ConfigureTemplateModel
+
+@{
+    ViewData["Title"] = "Configure Quiz Template";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <span><strong>@Model.Template.QuizName</strong></span>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @for (var i = 0; i < Model.Questions.Count; i++)
+                {
+                    <div id="AddQuestion-@i">
+                        <div class="form-group form-inline input-group">
+                            <span><strong>@Model.Questions[i].QuestionNumber </strong>- </span>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Book</span>
+                            </div>
+                            <input type="hidden" asp-for="@Model.Questions[i].QuestionNumber" />
+                            <select asp-for="@Model.Questions[i].BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-@i" onchange="UpdateOptions(@i)"></select>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Chapter</span>
+                            </div>
+                            <select asp-for="@Model.Questions[i].Chapter" asp-items="@Model.Questions[i].ChapterSelectList" class="form-control" id="ChapterSelect-@i"></select>
+                        </div>
+                    </div>
+                }
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="BibleId" />
+                    <input type="submit" value="Save Quiz Template" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Templates" asp-route-BibleId="@Model.BibleId">Back to Quiz Templates</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_DynamicChapterSelect" model="@Model"/>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

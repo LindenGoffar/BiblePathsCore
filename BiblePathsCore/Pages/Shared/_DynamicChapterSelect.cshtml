@@ -1,0 +1,81 @@
+﻿@model BiblePathsCore.Pages.PBE.ConfigureTemplateModel
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+<script>
+
+    @* const JSONBooks = [{"BibleId":"NKJV-EN","Testament":"Old","TestamentNumber":1,"BookNumber":2,"Name":"Exodus","Chapters":40,"HasCommentary":false},
+        {"BibleId":"NKJV-EN","Testament":"Old","TestamentNumber":1,"BookNumber":3,"Name":"Leviticus","Chapters":27,"HasCommentary":false}];*@
+
+    function UpdateOptions(index) {
+        // Get our JSON Book list. 
+        const JSONBooks = @Html.Raw(Model.JSONBooks);
+
+        // Get our book Select List
+        var bookSelect = document.getElementById("BookSelect-" + index);
+        var SelectedBookNumber = bookSelect.options[bookSelect.selectedIndex].value;
+        var SelectedBookName = bookSelect.options[bookSelect.selectedIndex].text;
+        var SelectedBookLength = 150;
+        var SelectedBookHasCommentary = false;
+        // Find our Selected Books chapter count. 
+        for (var i = 0; i < JSONBooks.length; i++) {
+            if (JSONBooks[i].BookNumber == SelectedBookNumber) {
+                SelectedBookLength = JSONBooks[i].Chapters;
+                SelectedBookHasCommentary = JSONBooks[i].HasCommentary;
+            }
+        }
+        // Now let's setup up the chapter select list. 
+        var chapterSelect = document.getElementById("ChapterSelect-" + index);
+        // First clear the current options. 
+        chapterSelect.options.length = 0;
+        // Setup the Random Chapter option. 
+        option = document.createElement('option');
+        option.value = 0;
+        option.text = "Random Chapter";
+        chapterSelect.add(option);
+        // Setup an option for each chapter
+        for (var i = 1; i <= SelectedBookLength; i++) {
+            option = document.createElement('option');
+            option.value = option.text = i;
+            chapterSelect.add(option);
+        }
+        if (SelectedBookHasCommentary == true) {
+            // Setup the SDABC option
+            option = document.createElement('option');
+            option.value = 1000;
+            option.text = "SDA Bible Commentary";
+            chapterSelect.add(option);
+        }
+    }
+
+    //// Let's expand any select elements with Value > 0
+    //$(document).ready(function () {
+    //    // Iterate through Items 1 - 9 checking whether a BookSelect value exists.
+    //    for (i = 1; i <= 9; i++) {
+    //        var BookNum = parseInt($("#BookSelect-" + i).val())
+    //        if (BookNum > 0) {
+    //            document.getElementById("AddBook-" + i).style.display = 'block';
+    //            if (i == 9) {
+    //                document.getElementById("AddAnotherButton").style.display = 'none';
+    //            }
+    //        }
+    //        else { document.getElementById("AddBook-" + i).style.display = 'none';}
+    //    }
+    //});
+
+    //function AddAnother() {
+    //    var AnotherAdded = false;
+    //    for (i = 1; i <= 9; i++) {
+    //        var BookNum = parseInt($("#BookSelect-" + i).val())
+    //        if (BookNum == 0 && AnotherAdded == false) {
+    //            document.getElementById("AddBook-" + i).style.display = 'block';
+    //            if (i == 9) {
+    //                document.getElementById("AddAnotherButton").style.display = 'none';
+    //            }
+    //            AnotherAdded = true;
+    //            break;
+    //        }
+    //    }
+    //}
+</script>

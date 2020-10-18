@@ -116,6 +116,39 @@ namespace BiblePathsCore.Models.DB
             return BookSelectList;
         }
 
+        public static async Task<List<SelectListItem>> GetBookAndBookListSelectListAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+
+            List<SelectListItem> BookSelectList = new List<SelectListItem>();
+
+            List<QuizBookLists> BookLists = await context.QuizBookLists
+                                                .Where(L => L.IsDeleted == false)
+                                                .ToListAsync();
+
+            List<BibleBooks> Books = await context.BibleBooks
+                                      .Where(B => B.BibleId == BibleId)
+                                      .ToListAsync();
+
+            // Add our BookLists first
+            foreach (QuizBookLists BookList in BookLists)
+            {
+                BookSelectList.Add(new SelectListItem
+                {
+                    Text = BookList.BookListName,
+                    Value = BookList.Id.ToString()
+                });
+            }
+
+            foreach (BibleBooks Book in Books)
+            {
+                BookSelectList.Add(new SelectListItem
+                {
+                    Text = Book.Name,
+                    Value = Book.BookNumber.ToString()
+                });
+            }
+            return BookSelectList;
+        }
         public static async Task<List<BibleBooks>> GetPBEBooksWithQuestionsAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             List<BibleBooks> ReturnBooks = new List<BibleBooks>();
@@ -247,12 +280,12 @@ namespace BiblePathsCore.Models.DB
         public int BookNumber { get; set; }
         public string Name { get; set; }
         public int? Chapters { get; set; }
+        public bool HasCommentary { get; set; }
 
         public MinBook()
         {
 
         }
-
         public MinBook(BibleBooks Book)
         {
             BibleId = Book.BibleId;
@@ -260,7 +293,29 @@ namespace BiblePathsCore.Models.DB
             TestamentNumber = Book.TestamentNumber;
             BookNumber = Book.BookNumber;
             Name = Book.Name;
-            Chapters = Book.Chapters ?? 0; 
+            Chapters = Book.Chapters ?? 0;
+            HasCommentary = Book.HasCommentary;
+        }
+
+        public static List<SelectListItem> GetMinBookSelectListFromList(List<MinBook> MinBooks)
+        {
+            List<SelectListItem> BookSelectList = new List<SelectListItem>();
+            // Add a Default entry for Template Book Selection
+            BookSelectList.Add(new SelectListItem
+            {
+                Text = "Random Book",
+                Value = "0"
+            });
+
+            foreach (MinBook Book in MinBooks)
+            {
+                BookSelectList.Add(new SelectListItem
+                {
+                    Text = Book.Name,
+                    Value = Book.BookNumber.ToString()
+                });
+            }
+            return BookSelectList;
         }
     }
 }

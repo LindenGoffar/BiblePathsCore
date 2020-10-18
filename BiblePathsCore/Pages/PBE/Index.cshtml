@@ -16,6 +16,7 @@
     <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="list-group-item">PBE Question List</a>
     @if (User.Identity.IsAuthenticated)
     {
+        <a asp-page="Templates" asp-route-BibleId="@Model.BibleId" class="list-group-item">My Quiz Templates</a>
         <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId" class="list-group-item">Manage PBE Book Lists</a>
     }
 </div>

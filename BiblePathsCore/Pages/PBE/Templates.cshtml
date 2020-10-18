@@ -1,0 +1,52 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.TemplatesModel
+
+@{
+    ViewData["Title"] = "My Quiz Templates";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+        </div>
+    </div>
+    <hr />
+    @foreach (var Template in Model.Templates)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <span><strong>@Template.QuizName</strong></span>
+                    </div>
+                    <div class="col">
+                        <div class="col">
+                            <button data-toggle="collapse" data-target="#Details-@Template.Id" class="btn btn-link">Details</button>
+                            <div id="Details-@Template.Id" class="collapse">
+                                @foreach (var Question in Template.PredefinedQuizQuestions)
+                                {
+                                    <small>@Question.QuestionNumber - @Question.BookNumber @Question.Chapter</small><br />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <a class="btn btn-outline-primary btn-sm" asp-page="ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>
