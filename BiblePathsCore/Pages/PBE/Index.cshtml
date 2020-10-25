@@ -12,6 +12,7 @@
 </div>
 <br />
 <div class="list-group list-group-flush">
+    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="list-group-item">Start a Quiz</a>
     <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="list-group-item">Add PBE Questions</a>
     <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="list-group-item">PBE Question List</a>
     @if (User.Identity.IsAuthenticated)

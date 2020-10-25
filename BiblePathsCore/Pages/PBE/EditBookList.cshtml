@@ -52,8 +52,36 @@
             </form>
         </div>
     </div>
+    <div class="row">
+        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
+            Delete this BookList
+        </button>
+        <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Book List?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="font-weight-bold">@Model.BookList.BookListName</p>
+                        <br />
+                        <p class="font-italic">By deleting this BookList any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form asp-page="/PBE/DeleteBookList" method="post">
+                            <input type="hidden" name="id" value="@Model.BookList.Id" />
+                            <input type="submit" value="Confirm" class="btn btn-danger" />
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
 <div>
     <hr />
     <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Back to Book Lists</a>

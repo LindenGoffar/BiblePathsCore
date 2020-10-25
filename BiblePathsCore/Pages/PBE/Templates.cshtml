@@ -27,19 +27,36 @@
                     <div class="col-6">
                         <span><strong>@Template.QuizName</strong></span>
                     </div>
-                    <div class="col">
-                        <div class="col">
-                            <button data-toggle="collapse" data-target="#Details-@Template.Id" class="btn btn-link">Details</button>
-                            <div id="Details-@Template.Id" class="collapse">
-                                @foreach (var Question in Template.PredefinedQuizQuestions)
-                                {
-                                    <small>@Question.QuestionNumber - @Question.BookNumber @Question.Chapter</small><br />
-                                }
+                    <div class="col-4">
+                        <a class="btn btn-outline-primary btn-sm" asp-page="ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
+                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
+                            Delete Template
+                        </button>
+                        <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Template?</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="font-weight-bold">@Template.QuizName</p>
+                                        <br />
+                                        <p class="font-italic">By deleting this template any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form asp-page="/PBE/DeleteTemplate" method="post">
+                                            <input type="hidden" name="id" value="@Template.Id" />
+                                            <input type="submit" value="Confirm" class="btn btn-danger" />
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-2">
-                        <a class="btn btn-outline-primary btn-sm" asp-page="ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
+
                     </div>
                 </div>
             </div>

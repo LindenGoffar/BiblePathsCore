@@ -13,18 +13,20 @@ using Microsoft.AspNetCore.Authorization;
 namespace BiblePathsCore.Pages.PBE
 {
     [Authorize]
-    public class TemplatesModel : PageModel
+    public class QuizzesModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public TemplatesModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public QuizzesModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _userManager = userManager;
             _context = context;
         }
 
         public List<PredefinedQuizzes> Templates { get;set; }
+        public List<QuizBookLists> BookLists { get; set; }
+        public List<QuizGroupStats> Quizzes { get; set; }
         public QuizUsers PBEUser { get; set; }
         public string BibleId { get; set; }
         public string UserMessage { get; set;  }
@@ -35,9 +37,21 @@ namespace BiblePathsCore.Pages.PBE
             PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            Templates = await _context.PredefinedQuizzes.Include(T => T.PredefinedQuizQuestions)
-                                                    .Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
+            Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
                                                     .ToListAsync();
+
+            BookLists = await _context.QuizBookLists.Where(L => L.IsDeleted == false)
+                                                    .ToListAsync();
+
+            Quizzes = await _context.QuizGroupStats.Where(G => G.QuizUser == PBEUser
+                                                           && G.IsDeleted == false)
+                                                   .ToListAsync();
+
+            // Populate Quiz Info 
+            foreach (QuizGroupStats quiz in Quizzes)
+            {
+                _ = await quiz.AddQuizPropertiesAsync(_context, BibleId);
+            }
 
             UserMessage = GetUserMessage(Message);
             return Page();

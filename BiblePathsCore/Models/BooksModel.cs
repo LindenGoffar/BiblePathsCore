@@ -28,6 +28,20 @@ namespace BiblePathsCore.Models.DB
             // Get BookName 
             return (await context.BibleBooks.Where(B => B.BibleId == bibleId && B.BookNumber == BookNumber).Select(B => new { B.Name }).FirstAsync()).Name;
         }
+
+        public static async Task<string> GetBookorBookListNameAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
+        {
+            // BookList scenario
+            if(BookNumber >= Bibles.MinBookListID)
+            {
+                return (await context.QuizBookLists.Where(L => L.Id == BookNumber).Select(L => new { L.BookListName }).FirstAsync()).BookListName;
+            }
+            else
+            {
+                // Get BookName 
+                return await BibleBooks.GetBookNameAsync(context, bibleId, BookNumber);
+            }
+        }
         public static async Task<BibleBooks> GetBookAndChapterByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName, int ChapterNum)
         {
             BibleBooks PBEBook = await context.BibleBooks
@@ -101,7 +115,7 @@ namespace BiblePathsCore.Models.DB
             // Add a Default entry 
             BookSelectList.Add(new SelectListItem
             {
-                Text = " ",
+                Text = "<Select a Book>",
                 Value = 0.ToString()
             });
 
@@ -128,6 +142,13 @@ namespace BiblePathsCore.Models.DB
             List<BibleBooks> Books = await context.BibleBooks
                                       .Where(B => B.BibleId == BibleId)
                                       .ToListAsync();
+
+            // Add a Default entry 
+            BookSelectList.Add(new SelectListItem
+            {
+                Text = " - Select a Book/BookList - ",
+                Value = 0.ToString()
+            });
 
             // Add our BookLists first
             foreach (QuizBookLists BookList in BookLists)

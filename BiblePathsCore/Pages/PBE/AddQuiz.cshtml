@@ -1,0 +1,59 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.AddQuizModel
+
+@{
+    ViewData["Title"] = "Add a Quiz";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Name</span>
+                    </div>
+                    <input asp-for="Quiz.GroupName" class="form-control" />
+                    <span asp-validation-for="Quiz.GroupName" class="text-danger"></span>
+                </div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Book or Book List</span>
+                    </div>
+                    <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
+                    <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
+                </div>
+                <br />
+                <p>or</p>
+                <br />
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Quiz Template</span>
+                    </div>
+                    <select asp-for="Quiz.PredefinedQuiz" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
+                    <p class="font-italic">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
+                    <span asp-validation-for="Quiz.PredefinedQuiz" class="text-danger"></span>
+                </div>
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="BibleId" />
+                    <input type="submit" value="Add Book List" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId">Back to Quizzes</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

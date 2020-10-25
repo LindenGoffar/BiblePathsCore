@@ -22,6 +22,9 @@ namespace BiblePathsCore.Models.DB
         public bool UserCanEdit { get; set; }
 
         [NotMapped]
+        public bool QuestionSelected { get; set; }
+
+        [NotMapped]
         public List<BibleVerses> Verses { get; set; }
 
         public void PopulatePBEQuestionInfo(BibleBooks PBEBook)

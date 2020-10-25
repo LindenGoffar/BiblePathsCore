@@ -68,8 +68,8 @@ namespace BiblePathsCore
             foreach (PathNodes step in Path.PathNodes)
             {
                 _context.PathNodes.Remove(step);
-                await _context.SaveChangesAsync();
             }
+            await _context.SaveChangesAsync();
             // Let's track this event 
             _ = await Path.RegisterEventAsync(_context, EventType.PathDeleted, Path.Id.ToString());
 

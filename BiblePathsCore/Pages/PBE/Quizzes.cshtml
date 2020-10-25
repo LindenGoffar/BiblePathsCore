@@ -1,0 +1,102 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.QuizzesModel
+
+@{
+    ViewData["Title"] = "My Quizzes";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h4>@ViewData["Title"]</h4>
+            <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Book/Template</th>
+                        <th>Stats</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var quiz in Model.Quizzes)
+                    {
+                        <tr>
+                            <td>@quiz.GroupName</td>
+                            <td>@quiz.BookOrTemplateName</td>
+                            <td>
+                                <p>
+                                    Questions Answered - @quiz.QuestionsAsked <br />
+                                    Score - @quiz.Percentage%
+                                </p>
+                            </td>
+                            <td>
+                                - Stats Link Goes here -
+                                <br />
+                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
+                                    Delete Quiz
+                                </button>
+                                <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Template?</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="font-weight-bold">@quiz.GroupName</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form asp-page="/PBE/DeleteQuiz" method="post">
+                                                    <input type="hidden" name="id" value="@quiz.Id" />
+                                                    <input type="submit" value="Confirm" class="btn btn-danger" />
+                                                </form>
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <h6 class="card-title">Book Lists</h6>
+                @foreach (var BookList in Model.BookLists)
+                {
+                    @BookList.BookListName <br />
+                }
+                <a class="card-link" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h6 class="card-title">My Quiz Templates</h6>
+                @foreach (var template in Model.Templates)
+                {
+                    @template.QuizName <br />
+                }
+                <a class="card-link" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>

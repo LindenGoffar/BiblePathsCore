@@ -1,0 +1,20 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.QuizModel
+
+@{
+    ViewData["Title"] = "Quiz - " + Model;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<div class="container-fluid">
+
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>

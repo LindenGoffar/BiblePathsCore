@@ -87,6 +87,32 @@ namespace BiblePathsCore.Models.DB
             }
             return CountSelectList;
         }
+
+        public static async Task<List<SelectListItem>> GetTemplateSelectListAsync(BiblePathsCoreDbContext context, QuizUsers QuizUser)
+        {
+
+            List<SelectListItem> TemplateSelectList = new List<SelectListItem>();
+            List<PredefinedQuizzes> Templates = await context.PredefinedQuizzes
+                                      .Where(T => T.QuizUser == QuizUser)
+                                      .ToListAsync();
+
+            // Add a Default entry 
+            TemplateSelectList.Add(new SelectListItem
+            {
+                Text = "<Select a Template>",
+                Value = 0.ToString()
+            });
+
+            foreach (PredefinedQuizzes Template in Templates)
+            {
+                TemplateSelectList.Add(new SelectListItem
+                {
+                    Text = Template.QuizName,
+                    Value = Template.Id.ToString()
+                });
+            }
+            return TemplateSelectList;
+        }
     }
 
     public partial class PredefinedQuizQuestions

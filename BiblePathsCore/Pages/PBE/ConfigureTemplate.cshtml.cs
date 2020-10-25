@@ -76,6 +76,7 @@ namespace BiblePathsCore.Pages.PBE
             if (TemplateToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "Thats Odd! We were unable to find this Quiz Template" }); }
 
             if (!PBEUser.IsValidPBEQuestionBuilder() || PBEUser != TemplateToUpdate.QuizUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to configure this Quiz Template" }); }
+            if (TemplateToUpdate.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Template Owner may edit a Template" }); }
 
             this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
 
