@@ -19,6 +19,8 @@ namespace BiblePathsCore.Models.DB
         public float Percentage { get; set; }
         [NotMapped]
         public List<QuizBookStats> BookStats { get; set; }
+        [NotMapped]
+        public int QuestionNumber { get; set; }
 
         public void CalculateQuizStats()
         {
@@ -48,7 +50,48 @@ namespace BiblePathsCore.Models.DB
             {
                 BookOrTemplateName = await BibleBooks.GetBookorBookListNameAsync(context, bibleId, BookNumber);
             }
+            QuestionNumber = QuestionsAsked + 1;
             CalculateQuizStats();
+            return retval;
+        }
+
+        public async Task<bool> AddDetailedQuizStatsAsync(BiblePathsCoreDbContext context, string bibleId)
+        {
+            bool retval = true;
+
+            List<QuizBookStats> bookStats = new List<QuizBookStats>();
+            // We need to retrieve all QuizQuestionStat Objects for this Quiz. 
+            List<QuizQuestionStats> QuestionStats = await context.QuizQuestionStats.Where(S => S.QuizGroupId == Id &&
+                                                                                         S.EventType == (int)QuizQuestions.QuestionEventType.QuestionPointsAwarded)
+                                                                                    .ToListAsync();
+            // Then we can iterate across each Question. 
+            foreach (QuizQuestionStats Stat in QuestionStats)
+            {
+                QuizQuestions Question = await context.QuizQuestions.FindAsync(Stat.QuestionId);
+                if (Question == null)
+                {
+                    // That's problematic and will mess up our stats but nothing we can do about it now. 
+                }
+                else
+                {
+                    QuizBookStats bookStat = new QuizBookStats();
+                    try
+                    {
+                        bookStat = bookStats.Where(B => B.BookNumber == Question.BookNumber).Single();
+                    }
+                    catch
+                    {
+                        // Need to add a new bookStat to this quiz Object. 
+                        bookStat.BookNumber = Question.BookNumber;
+                        bookStat.BookName = await BibleBooks.GetBookNameAsync(context, bibleId, Question.BookNumber);
+                        bookStat.ChapterStats = new List<QuizChapterStats>();
+                        bookStats.Add(bookStat);
+                    }
+                    // Now let's go update this bookStat
+                    bookStat.AddQuestionToBookStat(Stat, Question);
+                }
+            }
+            BookStats = bookStats;
             return retval;
         }
 
@@ -94,7 +137,14 @@ namespace BiblePathsCore.Models.DB
             }
             // Ok we've got our Template now which Book/Chapter do we want. 
             int QuestionNumber = QuestionsAsked + 1;
-            PredefinedQuizQuestions TemplateQuestion = Template.PredefinedQuizQuestions.Where(Q => Q.QuestionNumber == QuestionNumber).First();
+            int TemplateQuestionNumber = QuestionNumber;
+            // We need to calculate a Template Number 
+            if (QuestionNumber > Template.NumQuestions) 
+            { 
+                TemplateQuestionNumber = QuestionNumber % Template.NumQuestions;
+                if (TemplateQuestionNumber == 0) { TemplateQuestionNumber = Template.NumQuestions; }
+            }
+            PredefinedQuizQuestions TemplateQuestion = Template.PredefinedQuizQuestions.Where(Q => Q.QuestionNumber == TemplateQuestionNumber).First();
             if (TemplateQuestion.BookNumber == 0 ){                
                 // This is the pick a random Book Scenario
                 if (Template.BookNumber >= Bibles.MinBookListID)
@@ -189,11 +239,15 @@ namespace BiblePathsCore.Models.DB
             try
             {
                 // We now query for 5 questions in the selected chapter ordered by longest time since asked, we want to avoid re-asking questions in a short period of time. 
-                PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber && Q.Challenged == false && Q.IsAnswered == true && !(Q.IsDeleted)).OrderBy(Q => Q.LastAsked).Take(5).ToListAsync();
+                PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber 
+                                                                    && Q.Chapter == Chapter
+                                                                    && Q.Challenged == false 
+                                                                    && Q.IsAnswered == true 
+                                                                    && !(Q.IsDeleted)).OrderBy(Q => Q.LastAsked).Take(5).ToListAsync();
             }
             catch
             {
-                // This is the couldn't find the book scenario.
+                // This is the couldn't find a question scenario.
                 ReturnQuestion.QuestionSelected = false;
                 return ReturnQuestion;
             }
@@ -237,6 +291,37 @@ namespace BiblePathsCore.Models.DB
             PointsAwarded = 0;
             Percentage = 0;
         }
+
+        public void AddQuestionToBookStat(QuizQuestionStats stat, QuizQuestions question)
+        {
+            QuizChapterStats chapterStat = new QuizChapterStats();
+            try
+            {
+                chapterStat = ChapterStats.Where(C => C.Chapter == question.Chapter).Single();
+            }
+            catch
+            {
+                // Need to add a new chapter stat object.
+                chapterStat.Chapter = question.Chapter;
+                ChapterStats.Add(chapterStat);
+            }
+            // Now let's go update this chapterStat
+            chapterStat.AddQuestionToChapterStat(stat, question);
+
+            // and Finally update thisBookStat.
+            QuestionsAsked++;
+            if (stat.Points.HasValue) { PointsAwarded += stat.Points.Value; }
+            PointsPossible += question.Points;
+            if (PointsPossible > 0)
+            {
+                Percentage = ((float)PointsAwarded / PointsPossible) * 100;
+                Percentage = (float)Math.Round((Decimal)Percentage, 2);
+            }
+            else
+            {
+                Percentage = 0;
+            }
+        }
     }
 
     public class QuizChapterStats
@@ -253,6 +338,22 @@ namespace BiblePathsCore.Models.DB
             PointsPossible = 0;
             PointsAwarded = 0;
             Percentage = 0;
+        }
+
+        public void AddQuestionToChapterStat(QuizQuestionStats stat, QuizQuestions question)
+        {
+            QuestionsAsked++;
+            if (stat.Points.HasValue) { PointsAwarded += stat.Points.Value; }
+            PointsPossible += question.Points;
+            if (PointsPossible > 0)
+            {
+                Percentage = ((float)PointsAwarded / PointsPossible) * 100;
+                Percentage = (float)Math.Round((Decimal)Percentage, 2);
+            }
+            else
+            {
+                Percentage = 0;
+            }
         }
     }
 

@@ -27,17 +27,15 @@
                     <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
                     <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
                 </div>
-                <br />
                 <p>or</p>
-                <br />
                 <div class="form-group input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Quiz Template</span>
                     </div>
                     <select asp-for="Quiz.PredefinedQuiz" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
-                    <p class="font-italic">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
                     <span asp-validation-for="Quiz.PredefinedQuiz" class="text-danger"></span>
                 </div>
+                <p class="font-italic">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
                 <div class="form-group input-group">
                     <input type="hidden" asp-for="BibleId" />
                     <input type="submit" value="Add Book List" class="btn btn-primary" />

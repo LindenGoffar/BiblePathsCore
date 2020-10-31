@@ -51,6 +51,7 @@ namespace BiblePathsCore.Models.DB
                 BibleBooks Book = await context.BibleBooks.Where(B => B.BibleId == bibleId
                                                             && B.BookNumber == this.BookNumber)
                                                     .SingleAsync();
+                Book.HasCommentary = await Book.HasCommentaryAsync(context);
                 MinBook minBook = new MinBook(Book);
                 ReturnList.Add(minBook);
             }
@@ -66,6 +67,7 @@ namespace BiblePathsCore.Models.DB
                     BibleBooks BookMapBook = await context.BibleBooks.Where(B => B.BibleId == bibleId
                                             && B.BookNumber == bookMap.BookNumber)
                                     .SingleAsync();
+                    BookMapBook.HasCommentary = await BookMapBook.HasCommentaryAsync(context);
                     MinBook minBook = new MinBook(BookMapBook);
                     ReturnList.Add(minBook);
                 }                                                     

@@ -53,8 +53,8 @@
         </div>
     </div>
     <div class="row">
-        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
-            Delete this BookList
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#DeleteModal">
+            Delete
         </button>
         <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
@@ -68,7 +68,7 @@
                     <div class="modal-body">
                         <p class="font-weight-bold">@Model.BookList.BookListName</p>
                         <br />
-                        <p class="font-italic">By deleting this BookList any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
+                        <p class="font-italic">By deleting this BookList any Quizzes that reference this will no longer function and you will be unable to calculate statistics for them.</p>
                     </div>
                     <div class="modal-footer">
                         <form asp-page="/PBE/DeleteBookList" method="post">

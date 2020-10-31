@@ -12,7 +12,7 @@
 </div>
 <br />
 <div class="list-group list-group-flush">
-    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="list-group-item">Start a Quiz</a>
+    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="list-group-item">Host a Quiz</a>
     <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="list-group-item">Add PBE Questions</a>
     <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="list-group-item">PBE Question List</a>
     @if (User.Identity.IsAuthenticated)
@@ -21,10 +21,16 @@
         <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId" class="list-group-item">Manage PBE Book Lists</a>
     }
 </div>
-
-<div class="card m-2">
-    <div class="card-body">
-        @await Component.InvokeAsync("BookQuestionCounts")
+<br />
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    @await Component.InvokeAsync("BookQuestionCounts")
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

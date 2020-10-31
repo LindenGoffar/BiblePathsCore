@@ -1,0 +1,45 @@
+﻿<!-- This function enables the Submit button when PointsAwarded is selected-->
+<script>
+    $(document).ready(function () {
+        $('#AwardPoints').prop('disabled', true);
+    });
+    // When there is a change to the Points DropDown we determine whether to enable the button or not.
+    $("#Question_PointsAwarded").change(function () {
+        if (parseInt($("#Question_PointsAwarded").val()) >= 0) {
+            $('#AwardPoints').prop('disabled', false);
+        }
+        else {
+            $('#AwardPoints').prop('disabled', true);
+        }
+    });
+
+    function StartTimer(timeLeft) {
+        var elem = document.getElementById('StartTimerButton');
+        // document.getElementById('StartTimerButton').remove();
+        // var TimerCard = document.getElementById('QuestionTimer');
+        var timerId = setInterval(countdown, 1000);
+        $('#StartTimerButton').prop('disabled', true)
+
+        function countdown() {
+            if (timeLeft >= 10 ) {
+                elem.style.backgroundColor = "white";
+                elem.innerHTML = "<h4>" + timeLeft + "</h4>";
+            }
+            if (timeLeft < 10) {
+                elem.style.backgroundColor = "yellow"
+                elem.innerHTML = "<h4> " + timeLeft + "</h4>";
+            }
+            if (timeLeft < 1) {
+                elem.style.backgroundColor = "salmon"
+                elem.innerHTML = "<h4> " + timeLeft + "</h4>";
+            }
+            if (timeLeft == -1) {
+                clearTimeout(timerId);
+            }
+            else {
+                timeLeft--;
+            }
+        }
+    }
+</script>
+

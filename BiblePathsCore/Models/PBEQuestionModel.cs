@@ -10,6 +10,8 @@ namespace BiblePathsCore.Models.DB
 {
     public partial class QuizQuestions
     {
+        public enum QuestionEventType { CorrectAnswer, WrongAnswer, QuestionAdd, QuestionPointsAwarded }
+
         public const int MaxPoints = 15;
 
         [NotMapped]
@@ -20,9 +22,12 @@ namespace BiblePathsCore.Models.DB
         public bool IsCommentaryQuestion { get; set; }
         [NotMapped]
         public bool UserCanEdit { get; set; }
-
         [NotMapped]
         public bool QuestionSelected { get; set; }
+        [NotMapped]
+        public int TimeLimit { get; set; }
+        [NotMapped]
+        public int PointsAwarded { get; set; }
 
         [NotMapped]
         public List<BibleVerses> Verses { get; set; }
@@ -43,6 +48,8 @@ namespace BiblePathsCore.Models.DB
 
             // BibleId may not be set on every question, particularly old ones, so default it.
             if (BibleId == null) { BibleId = Bibles.DefaultPBEBibleId; }
+
+            TimeLimit = (Points * 5) + 20;
         }
 
         public void CheckUserCanEdit(QuizUsers PBEUser)
@@ -122,6 +129,26 @@ namespace BiblePathsCore.Models.DB
             return PointsSelectList;
         }
 
+        public List<SelectListItem> GetQuestionPointsSelectList()
+        {
+            List<SelectListItem> PointsSelectList = new List<SelectListItem>();
+            PointsSelectList.Add(new SelectListItem
+            {
+                Text = "Points",
+                Value = "-1",
+                Selected = true,
+            });
+            for (int i = 0; i <= Points; i++)
+            {
+                PointsSelectList.Add(new SelectListItem
+                {
+                    Text = i.ToString(),
+                    Value = i.ToString(),
+                });
+            }
+            return PointsSelectList;
+        }
+
         public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bibles.DefaultPBEBibleId;
@@ -133,6 +160,29 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             return RetVal;
+        }
+
+        public async Task<bool> RegisterEventAsync(BiblePathsCoreDbContext context, QuestionEventType questionEventType, int QuizUserId, string EventData, int? QuizId, int? Points)
+        {
+            QuizQuestionStats stat = new QuizQuestionStats
+            {
+                QuestionId = Id,
+                QuizUserId = QuizUserId,
+                QuizGroupId = QuizId,
+                EventType = (int)questionEventType,
+                EventData = EventData,
+                Points = Points,
+                EventWritten = DateTime.Now
+            };
+            context.QuizQuestionStats.Add(stat);
+            if (await context.SaveChangesAsync() == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 

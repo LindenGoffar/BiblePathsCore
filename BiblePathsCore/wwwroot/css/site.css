@@ -34,6 +34,13 @@ a.navbar-brand {
     color: #E5E5E5;
 }
 
+.text-question {
+    color: #FFFFFF;
+}
+.text-answer {
+    color: #E7F3DC;
+}
+
 .follow-scroll {
     position: relative;
     display: inline-block;
@@ -69,6 +76,18 @@ a.navbar-brand {
     color: #212529;
     background-color: #E7F3DC;
     border-color: #E7F3DC;
+}
+
+.bg-question {
+    background-color: #2B4F81
+    /* The image used */
+    /*background-image: url('../PBE Background.png');*/
+    /* Full height */
+    /*height: 90%;*/
+    /* Center and scale the image nicely */
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    /*background-size: cover; */
 }
 
 /* Star Rating Styles */

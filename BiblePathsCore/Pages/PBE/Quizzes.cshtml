@@ -29,25 +29,29 @@
                     @foreach (var quiz in Model.Quizzes)
                     {
                         <tr>
-                            <td>@quiz.GroupName</td>
+                            <td>
+                                <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId">@quiz.GroupName</a>
+                            </td>
                             <td>@quiz.BookOrTemplateName</td>
                             <td>
-                                <p>
+                                <span>
                                     Questions Answered - @quiz.QuestionsAsked <br />
                                     Score - @quiz.Percentage%
-                                </p>
+                                </span>
                             </td>
                             <td>
-                                - Stats Link Goes here -
+                                <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Stats
+                                </a>
                                 <br />
-                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#DeleteModal">
-                                    Delete Quiz
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal">
+                                    Delete
                                 </button>
                                 <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Template?</h5>
+                                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Quiz?</h5>
                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
                                                 </button>
@@ -70,13 +74,13 @@
                     }
                 </tbody>
             </table>
-            <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
         </div>
     </div>
+    <hr />
     <div class="row">
         <div class="col">
             <div class="card">
-                <h6 class="card-title">Book Lists</h6>
+                <h4 class="card-title">Book Lists</h4>
                 @foreach (var BookList in Model.BookLists)
                 {
                     @BookList.BookListName <br />
@@ -86,7 +90,7 @@
         </div>
         <div class="col">
             <div class="card">
-                <h6 class="card-title">My Quiz Templates</h6>
+                <h4 class="card-title">My Quiz Templates</h4>
                 @foreach (var template in Model.Templates)
                 {
                     @template.QuizName <br />
