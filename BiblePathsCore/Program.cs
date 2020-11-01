@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Azure.Identity;
 
 namespace BiblePathsCore
 {
@@ -18,6 +19,14 @@ namespace BiblePathsCore
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+.ConfigureAppConfiguration((context, config) =>
+{
+//var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri"));
+//var keyVaultEndpoint = new Uri("https://biblepathscorevault.vault.azure.net/");
+//config.AddAzureKeyVault(
+//keyVaultEndpoint,
+//new DefaultAzureCredential());
+})
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

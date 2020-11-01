@@ -86,7 +86,7 @@ namespace BiblePathsCore.Models.DB
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
             List<QuizQuestions> Questions = await context.QuizQuestions
-                                                        .Where(Q => Q.BibleId == BibleId 
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
@@ -179,7 +179,7 @@ namespace BiblePathsCore.Models.DB
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
             List<QuizQuestions> Questions = await context.QuizQuestions
-                                                        .Where(Q => Q.BibleId == BibleId
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
@@ -199,7 +199,7 @@ namespace BiblePathsCore.Models.DB
             if (Questions == null)
             {
                 Questions = await context.QuizQuestions
-                        .Where(Q => Q.BibleId == BibleId 
+                        .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
                                 && Q.BookNumber == BookNumber 
                                 && Q.IsDeleted == false)
                         .ToListAsync();
