@@ -33,12 +33,12 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="form-group">
                         Verse
-                        <select asp-for="Step.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
+                        <select asp-for="Step.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control small"></select>
                         <span asp-validation-for="Step.StartVerse" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         to
-                        <select asp-for="Step.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control"></select>
+                        <select asp-for="Step.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control small"></select>
                         <span asp-validation-for="Step.EndVerse" class="text-danger"></span>
                     </div>
                     <div class="form-group">

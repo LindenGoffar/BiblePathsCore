@@ -28,9 +28,10 @@ namespace BiblePathsCore.Models.DB
         public int TimeLimit { get; set; }
         [NotMapped]
         public int PointsAwarded { get; set; }
-
         [NotMapped]
         public List<BibleVerses> Verses { get; set; }
+        [NotMapped]
+        public string LegalNote { get; set; }
 
         public void PopulatePBEQuestionInfo(BibleBooks PBEBook)
         {
@@ -50,6 +51,15 @@ namespace BiblePathsCore.Models.DB
             if (BibleId == null) { BibleId = Bibles.DefaultPBEBibleId; }
 
             TimeLimit = (Points * 5) + 20;
+        }
+        public string GetBibleLegalNote()
+        {
+            string LegalNote = "";
+            if (BibleId == "NKJV-EN")
+            {
+                LegalNote = "Scripture taken from the New King James Version®. Copyright © 1982 by Thomas Nelson. Used by permission. All rights reserved.";
+            }
+            return LegalNote;
         }
 
         public void CheckUserCanEdit(QuizUsers PBEUser)

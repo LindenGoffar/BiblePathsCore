@@ -44,10 +44,10 @@
                                     Stats
                                 </a>
                                 <br />
-                                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal">
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@quiz.Id">
                                     Delete
                                 </button>
-                                <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                                <div class="modal fade" id="DeleteModal-@quiz.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -82,9 +82,9 @@
             <div class="card">
                 <h4 class="card-title">Book Lists</h4>
                 @foreach (var BookList in Model.BookLists)
-                {
-                    @BookList.BookListName <br />
-                }
+                    {
+                        <span class="pl-4"> @BookList.BookListName </span> 
+                    }
                 <a class="card-link" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
             </div>
         </div>
@@ -93,7 +93,7 @@
                 <h4 class="card-title">My Quiz Templates</h4>
                 @foreach (var template in Model.Templates)
                 {
-                    @template.QuizName <br />
+                    <span class="pl-4"> @template.QuizName </span>   
                 }
                 <a class="card-link" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
             </div>

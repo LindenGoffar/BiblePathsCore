@@ -45,12 +45,13 @@ namespace BiblePathsCore.Pages.PBE
 
             Quizzes = await _context.QuizGroupStats.Where(G => G.QuizUser == PBEUser
                                                            && G.IsDeleted == false)
+                                                   .OrderByDescending(Q => Q.Modified)
                                                    .ToListAsync();
 
             // Populate Quiz Info 
             foreach (QuizGroupStats quiz in Quizzes)
             {
-                _ = await quiz.AddQuizPropertiesAsync(_context, BibleId);
+                _ = await quiz.AddQuizPropertiesAsync(_context, this.BibleId);
             }
 
             UserMessage = GetUserMessage(Message);

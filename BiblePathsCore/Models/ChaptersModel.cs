@@ -27,7 +27,7 @@ namespace BiblePathsCore.Models.DB
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber 
                                 && Q.Chapter == ChapterNumber 
-                                && Q.BibleId == BibleId 
+                                && (Q.BibleId == BibleId || Q.BibleId == null)
                                 && Q.IsDeleted == false)
                         .Count();
         }

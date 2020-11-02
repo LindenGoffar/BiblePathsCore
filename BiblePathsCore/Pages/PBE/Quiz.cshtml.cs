@@ -47,14 +47,26 @@ namespace BiblePathsCore.Pages.PBE
             if (Quiz.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Quiz Owner can run a Quiz" }); }
             _ = await Quiz.AddQuizPropertiesAsync(_context, BibleId);
 
-            // Now for the Question Object
-            Question = await Quiz.GetNextQuizQuestionAsync(_context, BibleId);
+            // Now for the Question Object... we're going to take 3 swings at this for the scenario where we don't have enough questions. 
+            int iterations = 0;
+            do
+            {
+                Question = await Quiz.GetNextQuizQuestionAsync(_context, BibleId);
+                iterations++;
+            }
+            while (iterations < 3 && Question.QuestionSelected == false);
 
-            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
+            // This is the no questions found scenario
+            if (Question.QuestionSelected == false) { return RedirectToPage("/error", new { errorMessage = "Sorry! We failed to find a random question after three tries... please add more questions." }); }
+            
+            if (Question.BibleId == null) { Question.BibleId = BibleId;  }
+
+            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
             Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, true);
+            Question.LegalNote = Question.GetBibleLegalNote();
 
             // Build our Select List and set a default points value of -1 to require selection.
             ViewData["PointsSelectList"] = Question.GetQuestionPointsSelectList();

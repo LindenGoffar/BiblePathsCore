@@ -258,7 +258,7 @@ namespace BiblePathsCore.Models.DB
         public int GetQuestionCount(List<QuizQuestions> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber 
-                                    && Q.BibleId == BibleId 
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
                                     && Q.IsDeleted == false)
                             .Count();
         }
@@ -266,7 +266,7 @@ namespace BiblePathsCore.Models.DB
         public int GetCommentaryQuestionCount(List<QuizQuestions> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber 
-                                    && Q.BibleId == BibleId 
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
                                     && Q.Chapter == Bibles.CommentaryChapter 
                                     && Q.IsDeleted == false)
                         .Count();

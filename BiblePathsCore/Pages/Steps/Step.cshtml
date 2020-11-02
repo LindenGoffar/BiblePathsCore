@@ -74,71 +74,74 @@
             <div class="col-9">
                 @if (Model.Scenario == StepModel.StepScenarios.Step)
                 {
-                    <span class="text-verse">
-                        @foreach (var item in Model.Step.Verses)
+                <span class="text-verse">
+                    @foreach (var item in Model.Step.Verses)
                         {
                             if (item.InPath)
                             {
-                                <br /><sup>@item.Verse</sup>
-                                <mark>@item.Text</mark>
+                    <br /><sup>@item.Verse</sup>
+                    <mark>@item.Text</mark>
                             }
                             else
                             {
                                 if (item.Proximity == 1)
                                 {
-                                    <font class="text-proximity1">
-                                        <br /><sup>@item.Verse</sup>
-                                        @item.Text
-                                    </font>
+                    <font class="text-proximity1">
+                        <br /><sup>@item.Verse</sup>
+                        @item.Text
+                    </font>
                                 }
                                 if (item.Proximity == 2)
                                 {
-                                    <font class="text-proximity2">
-                                        <br /><sup>@item.Verse</sup>
-                                        @item.Text
-                                    </font>
+                    <font class="text-proximity2">
+                        <br /><sup>@item.Verse</sup>
+                        @item.Text
+                    </font>
                                 }
                                 if (item.Proximity > 2)
                                 {
-                                    <font class="text-proximity3" style="display: none">
-                                        <br /><sup>@item.Verse</sup>
-                                        @item.Text
-                                    </font>
+                    <font class="text-proximity3" style="display: none">
+                        <br /><sup>@item.Verse</sup>
+                        @item.Text
+                    </font>
                                 }
                             }
                         }
-                    </span>
+                </span>
                 }
                 else
                 {
-                    <span class="text-verse">
-                        @foreach (var item in Model.Step.Verses)
+                <span class="text-verse">
+                    @foreach (var item in Model.Step.Verses)
                         {
                             if (Model.Scenario == StepModel.StepScenarios.Study)
                             {
                                 if (item.InRelatedPaths)
                                 {
-                                    <br /><sup>@item.Verse</sup>
-                                    <mark>@item.Text</mark>
+                    <br /><sup>@item.Verse</sup>
+                    <mark>@item.Text</mark>
                                     foreach (var relatedPath in item.RelatedPaths)
                                     {
-                                        <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                    <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
                                     }
                                 }
                                 else
                                 {
-                                    <br /><sup>@item.Verse</sup>
-                                    @item.Text
+                    <br /><sup>@item.Verse</sup>
+                    @item.Text
                                 }
                             }
                             else
                             {
-                                <br /><sup>@item.Verse</sup>
-                                @item.Text
+                    <br /><sup>@item.Verse</sup>
+                    @item.Text
                             }
                         }
-                    </span>
+                </span>
                 }
+                <div class="row text-muted">
+                    @Model.Step.LegalNote
+                </div>
             </div>
             <div class="col-2">
                 <div class="follow-scroll">
@@ -159,9 +162,6 @@
                     }
                 </div>
             </div>
-        </div>
-        <div class="row text-muted">
-            @Model.Step.LegalNote
         </div>
         <div class="row">
             <div class="col-6">

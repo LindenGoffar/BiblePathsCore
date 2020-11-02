@@ -69,7 +69,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Points</span>
                             </div>
-                            <select asp-for="Question.Points" asp-items="ViewBag.PointsSelectList" class="form-control scroll-box" onchange="UpdateQuestionPreview()"></select>
+                            <select asp-for="Question.Points" asp-items="ViewBag.PointsSelectList" class="form-control scroll-box small" onchange="UpdateQuestionPreview()"></select>
                         </div>
                         <span asp-validation-for="Question.Points" class="text-danger"></span>
                     </div>
@@ -88,9 +88,9 @@
                     {
                         <div class="row">
                             <div class="mb-0 input-group input-group-sm form-inline form-group">
-                                <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                                <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
                                 <span> - </span>
-                                <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                                <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
                             </div>
                         </div>
                     }

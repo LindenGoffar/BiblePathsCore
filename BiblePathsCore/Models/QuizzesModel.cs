@@ -240,6 +240,7 @@ namespace BiblePathsCore.Models.DB
             {
                 // We now query for 5 questions in the selected chapter ordered by longest time since asked, we want to avoid re-asking questions in a short period of time. 
                 PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber 
+                                                                    && (Q.BibleId == bibleId || Q.BibleId == null)
                                                                     && Q.Chapter == Chapter
                                                                     && Q.Challenged == false 
                                                                     && Q.IsAnswered == true 
