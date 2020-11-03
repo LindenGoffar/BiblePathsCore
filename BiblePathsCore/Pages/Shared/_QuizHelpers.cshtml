@@ -34,6 +34,7 @@
                 elem.innerHTML = "<h4> " + timeLeft + "</h4>";
             }
             if (timeLeft == -1) {
+                elem.innerHTML = "<h4> 0</h4>";
                 clearTimeout(timerId);
             }
             else {

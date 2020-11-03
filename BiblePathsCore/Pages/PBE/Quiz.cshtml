@@ -13,41 +13,49 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-10">
-            <h1>Question @Model.Quiz.QuestionNumber</h1>
+        <div class="col-9">
+            <h4>Question @Model.Quiz.QuestionNumber</h4>
         </div>
-        <div class="col-2">
-            <div class="float-right">
+        <div class="col-3">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2>@Model.Question.PBEQuestion</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="mb-4">
                 <button class="btn btn-outline-dark" onclick="StartTimer(@Model.Question.TimeLimit)" id="StartTimerButton">Start Timer (@Model.Question.TimeLimit)</button>
+            </div>
+            <div class="mt-4">
+                <button data-toggle="collapse" data-target="#ShowAnswers" class="btn btn-outline-danger">Show Answer</button>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12 ">
-            <h2>@Model.Question.PBEQuestion</h2>
-        </div>
-    </div>
 </div>
-<hr />
-<div>
-    <button data-toggle="collapse" data-target="#ShowAnswers" class="btn btn-outline-danger">Show Answer</button>
-</div>
-<hr />
 <div class="container-fluid collapse" id="ShowAnswers">
     <div class="row">
-        <div class="col-8">
-            @foreach (var answer in Model.Question.QuizAnswers)
-            {
-                <h2>@answer.Answer</h2>
-            }
+        <div class="col-9">
+            <div class="card shadow">
+                <div class="card-body">
+                    @foreach (var answer in Model.Question.QuizAnswers)
+                    {
+                        <h2>@answer.Answer</h2>
+                    }
+                </div>
+            </div>
         </div>
-        <div class="col-4">
+        <div class="col-3">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Points</span>
-                    </div>
+                    @*<div class="input-group-prepend">
+                            <span class="input-group-text">Points</span>
+                        </div>*@
                     <select asp-for="Question.PointsAwarded" asp-items="ViewBag.PointsSelectList" class="form-control"></select>
                 </div>
                 <div class="form-group input-group">
@@ -59,39 +67,43 @@
             </form>
         </div>
     </div>
-    @if (Model.Question.IsCommentaryQuestion) { }
-    else
-    {
-        <hr />
-        <div class="row">
-            @{string VerseRef = Model.Question.BookName + " " + Model.Question.Chapter + ": " + Model.Question.StartVerse;
-                if (Model.Question.EndVerse > Model.Question.StartVerse) { VerseRef += " - " + Model.Question.EndVerse; }
-            }
-            <div class="card">
-                <div class="card-body">
-                    <div class="card-title">
-                        <span class="font-weight-bold">Verses for Reference </span><span>@VerseRef</span>
-                    </div>
-                    <div class="card-text">
-                        @foreach(var Verse in Model.Question.Verses) {
-                        <sup>@Verse.Verse</sup>@Verse.Text<br />
-                        }
-                    </div>
-                    <div class="row text-muted">
-                        @Model.Question.LegalNote
+    <hr />
+    <div class="row">
+        @{string VerseRef = Model.Question.BookName + " " + Model.Question.Chapter + ": " + Model.Question.StartVerse;
+            if (Model.Question.EndVerse > Model.Question.StartVerse) { VerseRef += " - " + Model.Question.EndVerse; }
+        }
+        <div class="col-9">
+            @if (Model.Question.IsCommentaryQuestion) { }
+            else
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title">
+                            <span class="font-weight-bold">Verses for Reference </span><span>@VerseRef</span>
+                        </div>
+                        <div class="card-text">
+                            @foreach (var Verse in Model.Question.Verses)
+                            {
+                                <sup>@Verse.Verse</sup>@Verse.Text<br />
+                            }
+                            <br />
+                            <div class="text-muted">
+                                @Model.Question.LegalNote
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
-    }
+        <div class="col-3">
+            <span class="font-weight-bold">Quiz Stats</span><br />
+            <span class="pl-2">Points Awarded - @Model.Quiz.PointsAwarded</span><br />
+            <span class="pl-2">Points Possible - @Model.Quiz.PointsPossible</span><br />
+            <span class="pl-2">Percentage - @Model.Quiz.Percentage%</span>
+        </div>
+    </div>
 </div>
-<div>
-    <hr />
-    <span class="font-weight-bold">Quiz Stats</span><br />
-    <span>Points Awarded - @Model.Quiz.PointsAwarded</span><br />
-    <span>Points Possible - @Model.Quiz.PointsPossible</span><br />
-    <span>Percentage - @Model.Quiz.Percentage%</span><br />
-</div>
+
 <div>
     <hr />
     <a asp-page="/PBE/Quizzes">Back to Quizzes</a>

@@ -8,7 +8,7 @@
 
 @if (Model.UserMessage != null)
 {
-    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+    <div><span class="bg-light text-primary">@Model.UserMessage</span></div>
 }
 
 <div class="container-fluid">
@@ -80,22 +80,26 @@
     <div class="row">
         <div class="col">
             <div class="card">
-                <h4 class="card-title">Book Lists</h4>
-                @foreach (var BookList in Model.BookLists)
+                <div class="card-body">
+                    <h4 class="card-title">Book Lists</h4>
+                    @foreach (var BookList in Model.BookLists)
                     {
-                        <span class="pl-4"> @BookList.BookListName </span> 
+                        <span class="card-text"> @BookList.BookListName </span><br />
                     }
-                <a class="card-link" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
+                    <a class="card-link" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
+                </div>
             </div>
         </div>
         <div class="col">
             <div class="card">
-                <h4 class="card-title">My Quiz Templates</h4>
-                @foreach (var template in Model.Templates)
-                {
-                    <span class="pl-4"> @template.QuizName </span>   
-                }
-                <a class="card-link" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
+                <div class="card-body">
+                    <h4 class="card-title">My Quiz Templates</h4>
+                    @foreach (var template in Model.Templates)
+                    {
+                        <span class="card-text"> @template.QuizName </span><br />
+                    }
+                    <a class="card-link" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
+                </div>
             </div>
         </div>
     </div>

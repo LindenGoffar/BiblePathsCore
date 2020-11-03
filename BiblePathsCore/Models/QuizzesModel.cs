@@ -97,25 +97,30 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<QuizQuestions> GetNextQuizQuestionAsync(BiblePathsCoreDbContext context, string bibleId)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions();
-            ReturnQuestion.QuestionSelected = false;
+            QuizQuestions ReturnQuestion = new QuizQuestions
+            {
+                QuestionSelected = false
+            };
 
             // Template Scenario
             if (PredefinedQuiz > 0)
             {
                 ReturnQuestion = await GetNextQuizQuestionFromTemplateAsync(context, bibleId);
+                return ReturnQuestion;
             }
 
             // BookList Scenario
             if (BookNumber >= Bibles.MinBookListID)
             {
                 ReturnQuestion = await GetNextQuizQuestionFromBookListAsync(context, bibleId, BookNumber);
+                return ReturnQuestion;
             }
             
             // Book Scenario
-            if (BookNumber > 0)
+            if (BookNumber > 0 && BookNumber < Bibles.MinBookListID)
             {
                 ReturnQuestion = await GetNextQuizQuestionFromBookAsync(context, bibleId, BookNumber);
+                return ReturnQuestion;
             }
 
             return ReturnQuestion;
