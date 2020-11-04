@@ -21,13 +21,27 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public List<Paths> RelatedPaths { get; set;  }
 
+        // This one is expensive we shouldn't use this one if we can avoid.
         public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
         {
             return await context.QuizQuestions
-                        .Where(Q => Q.BookNumber == BookNumber && Q.Chapter == Chapter 
+                        .Where(Q => Q.BookNumber == BookNumber 
+                                && Q.Chapter == Chapter 
                                 && Q.EndVerse == Verse 
-                                && Q.BibleId == BibleId && Q.IsDeleted == false)
+                                && (Q.BibleId == BibleId || Q.BibleId == null)
+                                && Q.IsDeleted == false)
                         .CountAsync();
+        }
+
+        public int GetQuestionCountWithQuestionList(List<QuizQuestions> Questions)
+        {
+            return Questions
+                        .Where(Q => Q.BookNumber == BookNumber
+                                && Q.Chapter == Chapter
+                                && Q.EndVerse == Verse
+                                && (Q.BibleId == BibleId || Q.BibleId == null)
+                                && Q.IsDeleted == false)
+                        .Count();
         }
 
         public async Task<bool> GetRelatedPathsAsync(BiblePathsCoreDbContext context)

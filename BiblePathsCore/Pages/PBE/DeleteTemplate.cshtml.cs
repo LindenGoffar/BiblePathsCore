@@ -59,8 +59,8 @@ namespace BiblePathsCore
             foreach (PredefinedQuizQuestions Question in Template.PredefinedQuizQuestions)
             {
                 _context.PredefinedQuizQuestions.Remove(Question);
-                await _context.SaveChangesAsync();
             }
+            await _context.SaveChangesAsync();
             // Let's track this event 
             // _ = await Path.RegisterEventAsync(_context, EventType.PathDeleted, Path.Id.ToString());
 

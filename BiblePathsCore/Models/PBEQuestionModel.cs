@@ -89,6 +89,15 @@ namespace BiblePathsCore.Models.DB
         public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
         {
             List<BibleVerses> bibleVerses = new List<BibleVerses>();
+            // Go grab all of the questions for this Chapter once
+            // So we can count them as we iterate through each verse
+            List<QuizQuestions> Questions = await context.QuizQuestions
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.BookNumber == BookNumber
+                                                                && Q.Chapter == Chapter
+                                                                && Q.IsDeleted == false)
+                                                        .ToListAsync();
+
             if (Chapter != Bibles.CommentaryChapter)
             {
                 // First retrieve all of the verses, 
@@ -102,7 +111,7 @@ namespace BiblePathsCore.Models.DB
                 }
                 foreach (BibleVerses verse in bibleVerses)
                 {
-                    verse.QuestionCount = await verse.GetQuestionCountAsync(context);
+                    verse.QuestionCount = verse.GetQuestionCountWithQuestionList (Questions);
                 }
             }
             else // COMMENTARY SCENARIO:
@@ -117,7 +126,7 @@ namespace BiblePathsCore.Models.DB
                     BookNumber = BookNumber,
                     Chapter = Chapter,
                     Verse = 1,
-                    Text = commentary.Text
+                    Text = commentary.Text,
                 };
                 bibleVerses.Add(CommentaryVerse);
             }
