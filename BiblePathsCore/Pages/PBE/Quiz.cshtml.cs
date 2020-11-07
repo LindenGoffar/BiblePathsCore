@@ -124,6 +124,12 @@ namespace BiblePathsCore.Pages.PBE
             _context.Attach(QuestionToUpdate);
             QuestionToUpdate.LastAsked = DateTime.Now;
 
+            if (Question.Challenged)
+            {
+                QuestionToUpdate.Challenged = true;
+                QuestionToUpdate.ChallengeComment = Question.ChallengeComment;
+            }
+
             // Save both of these changes. 
             await _context.SaveChangesAsync();
 

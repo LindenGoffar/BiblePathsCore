@@ -115,7 +115,7 @@ namespace BiblePathsCore.Pages.PBE
             if (await TryUpdateModelAsync<QuizQuestions>(
                 QuestionToUpdate,
                 "Question",   // Prefix for form value.
-                Q => Q.BibleId, Q => Q.Points, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question))
+                Q => Q.BibleId, Q => Q.Points, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question, Q => Q.Challenged, Q => Q.ChallengeComment))
             {
                 QuestionToUpdate.Modified = DateTime.Now;
 

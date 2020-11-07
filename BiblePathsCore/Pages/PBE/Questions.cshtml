@@ -54,6 +54,19 @@
                         <span><small>Owner: @question.Owner</small></span> <br />
                         <span><small>Last Asked: @String.Format("{0:d/M/yyyy HH:mm:ss}", question.LastAsked)</small></span> <br />
 
+                        @if (question.Challenged == true)
+                        {
+                            <div class="card">
+                                <div class="card-header bg-danger">
+                                    <span class="card-title">Question Challenged</span>
+                                </div>
+                                <div class="card-body">
+                                    <span class="card-text">@question.ChallengeComment</span><br />
+                                    <span class="card-text text-info">Edit this question to fix and remove the challenge. A challenged question will not appear in a quiz until the challenge is removed.</span>
+                                </div>
+                            </div>
+                        }
+
                         @if (Model.IsCommentary == false)
                         {
                             <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link"

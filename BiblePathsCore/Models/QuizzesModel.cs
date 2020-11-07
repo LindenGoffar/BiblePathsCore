@@ -149,9 +149,28 @@ namespace BiblePathsCore.Models.DB
                 TemplateQuestionNumber = QuestionNumber % Template.NumQuestions;
                 if (TemplateQuestionNumber == 0) { TemplateQuestionNumber = Template.NumQuestions; }
             }
-            PredefinedQuizQuestions TemplateQuestion = Template.PredefinedQuizQuestions.Where(Q => Q.QuestionNumber == TemplateQuestionNumber).First();
+            // It is actually OK to not find a Question Object, we just treat that as the random book scenario.
+            PredefinedQuizQuestions TemplateQuestion = new PredefinedQuizQuestions();
+            try
+            {
+                TemplateQuestion = Template.PredefinedQuizQuestions.Where(Q => Q.QuestionNumber == TemplateQuestionNumber).First();
+            }
+            catch
+            {
+                // This is the more common pick a random Book Scenario.
+                if (Template.BookNumber >= Bibles.MinBookListID)
+                {
+                    // This is the BookList Scenario
+                    return await GetNextQuizQuestionFromBookListAsync(context, bibleId, Template.BookNumber);
+                }
+                else
+                {
+                    // this is the Book scenario.
+                    return await GetNextQuizQuestionFromBookAsync(context, bibleId, Template.BookNumber);
+                }
+            }
             if (TemplateQuestion.BookNumber == 0 ){                
-                // This is the pick a random Book Scenario
+                // This is the pick a random Book Scenario, we're unlikely to hit this, more often the question object won't exist at all.
                 if (Template.BookNumber >= Bibles.MinBookListID)
                 {
                     // This is the BookList Scenario
@@ -176,7 +195,6 @@ namespace BiblePathsCore.Models.DB
                     // this is the selected Book and Chapter scenario
                     return await GetNextQuizQuestionFromBookAndChapterAsync(context, bibleId, TemplateQuestion.BookNumber, TemplateQuestion.Chapter);
                 }
-
             }
         }
 

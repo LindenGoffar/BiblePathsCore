@@ -9,12 +9,21 @@
     if (book.TestamentNumber == 1)
     {
 
-        if (book.InBookList == true)
+        if (book.InBookList == true && Model.IsPBE)
         {
             <button type="button" class="btn btn-book-inlist btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
                 @book.Name
                 @if (Model.IsPBE && book.QuestionCount > 0)
-                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+                {
+                    @if (book.HasChallenge == true)
+                    {
+                        <span class="badge badge-pill badge-danger">@book.QuestionCount</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-pill badge-secondary">@book.QuestionCount</span>
+                    }
+                }
             </button>
         }
         else
@@ -22,7 +31,16 @@
             <button type="button" class="btn btn-book btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
                 @book.Name
                 @if (Model.IsPBE && book.QuestionCount > 0)
-                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+                {
+                    @if (book.HasChallenge == true)
+                    {
+                        <span class="badge badge-pill badge-danger">@book.QuestionCount</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-pill badge-secondary">@book.QuestionCount</span>
+                    }
+                }
             </button>
         }
 
@@ -61,7 +79,12 @@
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
-                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        {
+                                            @if (chapter.HasChallenge) 
+                                            { <span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else 
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
                                     </a>
                                     break;
 
@@ -69,7 +92,12 @@
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
-                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        {
+                                            @if (chapter.HasChallenge)
+                                            {<span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
                                     </a>
                                     break;
 
@@ -102,12 +130,21 @@
 {
     if (book.TestamentNumber == 2)
     {
-        if (book.InBookList == true)
+        if (book.InBookList == true && Model.IsPBE)
         {
             <button type="button" class="btn btn-book-inlist btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
                 @book.Name
                 @if (Model.IsPBE && book.QuestionCount > 0)
-                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+                {
+                    @if (book.HasChallenge == true)
+                    {
+                        <span class="badge badge-pill badge-danger">@book.QuestionCount</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-pill badge-secondary">@book.QuestionCount</span>
+                    }
+                }
             </button>
         }
         else
@@ -115,7 +152,16 @@
             <button type="button" class="btn btn-book btn-sm mb-2" data-toggle="modal" data-target="#Book-@book.BookNumber">
                 @book.Name
                 @if (Model.IsPBE && book.QuestionCount > 0)
-                {<span class="badge badge-pill badge-secondary">@book.QuestionCount</span>}
+                {
+                    @if (book.HasChallenge == true)
+                    {
+                        <span class="badge badge-pill badge-danger">@book.QuestionCount</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-pill badge-secondary">@book.QuestionCount</span>
+                    }
+                }
             </button>
         }
 
@@ -154,7 +200,12 @@
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
-                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        {
+                                            @if (chapter.HasChallenge)
+                                            {<span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
                                     </a>
                                     break;
 
@@ -162,7 +213,12 @@
                                     <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
-                                        {<span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        {
+                                            @if (chapter.HasChallenge)
+                                            {<span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
                                     </a>
                                     break;
 
@@ -177,7 +233,16 @@
                             <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
                                 SDA Bible Commentary
                                 @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
-                                {<span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>}
+                                {
+                                    @if (book.CommentaryHasChallenge)
+                                    {
+                                        <span class="badge badge-pill badge-danger">@book.CommentaryQuestionCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>
+                                    }
+                                }
                             </a>
                         }
                     </div>
@@ -189,4 +254,12 @@
         </div>
     }
 }
+<hr />
+<div>
+    @if (Model.IsPBE)
+    {
+        <span class="text-info">Highlighted books indicate they are part of a PBE Book List</span><br />
+        <span class="text-info">A red badge indicates there are challenged questions.</span><br />
+    }
+</div>
 

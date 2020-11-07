@@ -15,10 +15,13 @@ namespace BiblePathsCore.Models.DB
         public int QuestionCount { get; set; }
         [NotMapped]
         public bool IsCommentary { get; set; }
+        [NotMapped]
+        public bool HasChallenge { get; set; }
 
         public bool AddPBEChapterProperties(List<QuizQuestions> Questions)
         {
             QuestionCount = GetQuestionCount(Questions);
+            HasChallenge = HasChallengedQuestion(Questions);
             IsCommentary = (ChapterNumber == Bibles.CommentaryChapter);
             return true;
         }
@@ -30,6 +33,16 @@ namespace BiblePathsCore.Models.DB
                                 && (Q.BibleId == BibleId || Q.BibleId == null)
                                 && Q.IsDeleted == false)
                         .Count();
+        }
+
+        public bool HasChallengedQuestion(List<QuizQuestions> Questions)
+        {
+            return Questions.Where(Q => Q.BookNumber == BookNumber
+                                    && Q.Chapter == ChapterNumber
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
+                                    && Q.IsDeleted == false
+                                    && Q.Challenged == true)
+                            .Any();
         }
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)

@@ -41,6 +41,7 @@ namespace BiblePathsCore.Pages.PBE
                                                     .ToListAsync();
 
             BookLists = await _context.QuizBookLists.Where(L => L.IsDeleted == false)
+                                                    .OrderByDescending(L => L.Created)
                                                     .ToListAsync();
 
             Quizzes = await _context.QuizGroupStats.Where(G => G.QuizUser == PBEUser

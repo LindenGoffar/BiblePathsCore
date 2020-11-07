@@ -22,7 +22,6 @@ namespace BiblePathsCore
 
         [BindProperty(SupportsGet = true)]
         public string SearchString { get; set; }
-
         public SortBy OrderedBy { get; set; }
         public IList<Paths> Paths { get;set; }
 

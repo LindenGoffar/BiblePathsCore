@@ -63,6 +63,19 @@
                     <input type="hidden" asp-for="Quiz.Id" />
                     <input type="hidden" asp-for="Question.Id" />
                     <input id="AwardPoints" type="submit" value="Award Points" class="btn btn-primary" />
+                    <div class="card mt-2">
+                        <div class="card-body">
+                            <span class="card-title font-weight-bold">
+                                <input type="checkbox" asp-for="@Model.Question.Challenged" id="UnHide" />
+                                <label asp-for="@Model.Question.Challenged">Challenge?</label>
+                            </span>
+                            <div class="HideUnHide" style="display: none">
+                                <textarea asp-for="Question.ChallengeComment" rows="2" placeholder="Comment" class="scroll-box"> </textarea>
+                                <span asp-validation-for="Question.ChallengeComment" class="text-danger"></span><br />
+                                <small class="text-info">A Challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -113,5 +126,6 @@
 
 @section Scripts {
     <partial name="_QuizHelpers" />
+    <partial name="_HideUnHide" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

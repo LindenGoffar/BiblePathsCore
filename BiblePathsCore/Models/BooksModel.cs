@@ -22,6 +22,10 @@ namespace BiblePathsCore.Models.DB
         public string CommentaryTitle { get; set; }
         [NotMapped]
         public int CommentaryQuestionCount { get; set; }
+        [NotMapped]
+        public bool HasChallenge { get; set; }
+        [NotMapped]
+        public bool CommentaryHasChallenge { get; set; }
 
         public static async Task<string> GetBookNameAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
         {
@@ -115,7 +119,7 @@ namespace BiblePathsCore.Models.DB
             // Add a Default entry 
             BookSelectList.Add(new SelectListItem
             {
-                Text = "<Select a Book>",
+                Text = "Select a Book",
                 Value = 0.ToString()
             });
 
@@ -137,16 +141,18 @@ namespace BiblePathsCore.Models.DB
 
             List<QuizBookLists> BookLists = await context.QuizBookLists
                                                 .Where(L => L.IsDeleted == false)
+                                                .OrderByDescending(L => L.Created)
                                                 .ToListAsync();
 
             List<BibleBooks> Books = await context.BibleBooks
                                       .Where(B => B.BibleId == BibleId)
+                                      .OrderBy(B => B.BookNumber)
                                       .ToListAsync();
 
             // Add a Default entry 
             BookSelectList.Add(new SelectListItem
             {
-                Text = " - Select a Book/BookList - ",
+                Text = "Select a Book or BookList",
                 Value = 0.ToString()
             });
 
@@ -206,11 +212,13 @@ namespace BiblePathsCore.Models.DB
             }
             InBookList = IsInBooklist(context, BookLists);
             QuestionCount = GetQuestionCount(Questions);
+            HasChallenge = HasChallengedQuestion(Questions);
             HasCommentary = await HasCommentaryAsync(context);
             if (HasCommentary)
             {
                 CommentaryTitle = await GetCommentaryTitleAsync(context);
                 CommentaryQuestionCount = GetCommentaryQuestionCount(Questions);
+                CommentaryHasChallenge = CommentaryHasChallengedQuestion(Questions);
             }
             if (ChapterNum.HasValue)
             {   
@@ -263,13 +271,31 @@ namespace BiblePathsCore.Models.DB
                             .Count();
         }
 
+        public bool HasChallengedQuestion(List<QuizQuestions> Questions)
+        {
+            return Questions.Where(Q => Q.BookNumber == BookNumber
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
+                                    && Q.IsDeleted == false
+                                    && Q.Challenged == true)
+                            .Any();
+        }
+
         public int GetCommentaryQuestionCount(List<QuizQuestions> Questions)
         {
-            return Questions.Where(Q => Q.BookNumber == BookNumber 
+            return Questions.Where(Q => Q.BookNumber == BookNumber
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
-                                    && Q.Chapter == Bibles.CommentaryChapter 
+                                    && Q.Chapter == Bibles.CommentaryChapter
                                     && Q.IsDeleted == false)
                         .Count();
+        }
+        public bool CommentaryHasChallengedQuestion(List<QuizQuestions> Questions)
+        {
+            return Questions.Where(Q => Q.BookNumber == BookNumber
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
+                                    && Q.Chapter == Bibles.CommentaryChapter
+                                    && Q.IsDeleted == false
+                                    && Q.Challenged == true)
+                        .Any();
         }
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)

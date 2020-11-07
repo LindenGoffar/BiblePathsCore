@@ -18,10 +18,10 @@ namespace BiblePathsCore.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync(int TopN)
         {
-            int SupersetSize = TopN + 5; // We'l grab 5 more than requested so we can randomize slightly. 
+            int SupersetSize = TopN + 5; // We'll grab 5 more than requested so we can randomize slightly. 
 
             List<Paths> Superset = await _context.Paths.Where(P => P.IsPublished == true && P.IsDeleted == false)
-                                                       .OrderBy(P => P.Modified).Take(SupersetSize).ToListAsync();
+                                                       .OrderByDescending(P => P.Created).Take(SupersetSize).ToListAsync();
             List<Paths> ReturnPaths = new List<Paths>();
 
             var random = new Random();
