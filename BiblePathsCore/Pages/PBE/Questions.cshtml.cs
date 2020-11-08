@@ -57,7 +57,9 @@ namespace BiblePathsCore.Pages.PBE
                 questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false);
             }
 
-            Questions = await questions.Include(Q => Q.QuizAnswers).ToListAsync();
+            Questions = await questions.Include(Q => Q.QuizAnswers)
+                                        .OrderBy(Q=> Q.EndVerse)
+                                        .ToListAsync();
 
             foreach (QuizQuestions Question in Questions)
             {
