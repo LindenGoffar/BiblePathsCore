@@ -57,7 +57,7 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&
         $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value 1
         $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value 2
         $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value 2
-        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value "linden@Goffar.com"
+        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value <OWNER-EMAIL>
         $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "API Test"
 
         $AcceptedAnswers = @() # each question can have multiple answers we'll add one.

@@ -58,7 +58,7 @@ Foreach ($Verse in $JSONVerses){
         $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value $ChapterNum
         $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value $VerseNum
         $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value $VerseNum
-        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value "linden@Goffar.com"
+        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value <OWNER-EMAIL>
         $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "Fill in Blank Script Import 001"
 
         $AcceptedAnswers = @() # each question can have multiple answers.
