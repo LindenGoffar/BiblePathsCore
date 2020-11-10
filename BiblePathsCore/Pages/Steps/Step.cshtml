@@ -65,7 +65,7 @@
                         @if (Model.Step.BWStepId > 0)
                         {
                             <div class="font-weight-bolder text-nowrap">
-                                <a asp-page="Step" asp-route-id="@Model.Step.BWStepId" asp-route-BibleId="@Model.BibleId"><i class="fas fa-arrow-left"></i></a>
+                                <a asp-page="Step" asp-route-id="@Model.Step.BWStepId" asp-route-BibleId="@Model.BibleId"><i class="fas fa-arrow-left fa-lg"></i></a>
                             </div>
                         }
                     }
@@ -150,13 +150,13 @@
                         @if (Model.Step.FWStepId > 0)
                         {
                             <div class="font-weight-bolder text-nowrap">
-                                <a asp-page="Step" asp-route-id="@Model.Step.FWStepId" asp-route-BibleId="@Model.BibleId"><i class="fas fa-arrow-right"></i></a>
+                                <a asp-page="Step" asp-route-id="@Model.Step.FWStepId" asp-route-BibleId="@Model.BibleId"><i class="fas fa-arrow-right fa-lg"></i></a>
                             </div>
                         }
                         else
                         {
                             <div class="font-weight-bolder text-nowrap">
-                                <a asp-page="/Paths/PathCompleted" asp-route-id="@Model.Step.PathId"><i class="fas fa-arrow-right"></i></a>
+                                <a asp-page="/Paths/PathCompleted" asp-route-id="@Model.Step.PathId"><i class="fas fa-arrow-right fa-lg"></i></a>
                             </div>
                         }
                     }

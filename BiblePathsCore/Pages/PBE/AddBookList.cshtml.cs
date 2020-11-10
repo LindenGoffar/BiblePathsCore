@@ -45,7 +45,7 @@ namespace BiblePathsCore.Pages.PBE
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
+            if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
           
             this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
 
@@ -73,7 +73,7 @@ namespace BiblePathsCore.Pages.PBE
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
+            if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
 
             // Now let's create an empty BookList
             var emptyBookList = new QuizBookLists

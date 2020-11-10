@@ -12,8 +12,22 @@
 }
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#Quizzes">My Quizzes</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#Templates">My Templates</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#BookLists">Book Lists</a>
+        </li>
+    </ul>
+    <br />
+    <div class="tab-content">
+        <div id="Quizzes" class="container tab-pane active">
+            <br />
             <h4>@ViewData["Title"]</h4>
             <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
             <table class="table">
@@ -75,32 +89,40 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <hr />
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Book Lists</h4>
-                    @foreach (var BookList in Model.BookLists)
-                    {
-                        <span class="card-text"> @BookList.BookListName </span><br />
-                    }
-                    <a class="card-link" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
-                </div>
-            </div>
+        <div id="Templates" class="container tab-pane fade">
+            <br />
+            <h4>My Quiz Templates</h4>
+            <span class="text-info">
+                Quiz Templates allow a host greater control over the books and chapters that questions will be taken from for a quiz. 
+                A template serves as a pattern that is repeated throughout the quiz, the more times a book/chapter appear in the template the 
+                more times they will appear in a quiz. 
+            </span>
+            <hr />
+            @foreach (var template in Model.Templates)
+            {
+                <span> @template.QuizName </span><br />
+            }
+            <hr />
+            <a class="btn btn-outline-primary" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
+
         </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">My Quiz Templates</h4>
-                    @foreach (var template in Model.Templates)
-                    {
-                        <span class="card-text"> @template.QuizName </span><br />
-                    }
-                    <a class="card-link" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
-                </div>
-            </div>
+        <div id="BookLists" class="container tab-pane fade">
+            <br />
+            <h4>Book Lists</h4>
+            <span class="text-info">
+                Book Lists provide a convenient way to group books together. It is not uncommon for PBE teams to have to learn
+                more then one book in a year, Book Lists are used to simplify the management of Quizzes and Templates.
+            </span>
+            <hr />
+            @foreach (var BookList in Model.BookLists)
+            {
+                <span> @BookList.BookListName </span><br />
+            }
+            <hr />
+            @if (Model.PBEUser.IsModerator)
+            {
+                <a class="btn btn-outline-primary" asp-page="BookLists" asp-route-BibleId="@Model.BibleId">Manage Book Lists</a>
+            }
         </div>
     </div>
 </div>

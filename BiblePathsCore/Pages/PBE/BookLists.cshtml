@@ -11,16 +11,20 @@
     <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
 }
 <h4>@ViewData["Title"]</h4>
+<span class="text-info">
+    Book Lists provide a convenient way to group books together. It is not uncommon for PBE teams to have to learn
+    more then one book in a year, Book Lists are used to simplify the management of Quizzes and Templates.
+</span>
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <a asp-page="AddBookList" asp-route-BibleId="@Model.BibleId" >Add Book List</a>
+            <a asp-page="AddBookList" asp-route-BibleId="@Model.BibleId">Add Book List</a>
         </div>
     </div>
     <hr />
     @foreach (var BookList in Model.BookLists)
-    { 
+    {
         <div class="row">
             <div class="col-10">
                 <div class="card">
@@ -35,7 +39,7 @@
                 </div>
             </div>
             <div class="col-2">
-                <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id" >Edit</a>
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id">Edit</a>
             </div>
         </div>
     }

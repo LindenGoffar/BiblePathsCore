@@ -12,13 +12,23 @@
 </div>
 <br />
 <div class="list-group list-group-flush">
-    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="list-group-item">Host a Quiz</a>
-    <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="list-group-item">Add PBE Questions</a>
-    <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="list-group-item">PBE Question List</a>
+    <span class="list-group-item"><a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold" >Host a Quiz</a> Start or continue a quiz and review results</span>
+    <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="btn btn-light btn-sm font-weight-bold">Add PBE Questions</a> Choose a Book and Chapter then add some PBE Questions for all to use</span>
+    <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="btn btn-light btn-sm font-weight-bold">PBE Question List</a> Choose a Book and Chapter to review qustions and resolve challenges to questions</span>
+</div>
+<br />
+<div>
     @if (User.Identity.IsAuthenticated)
     {
-        <a asp-page="Templates" asp-route-BibleId="@Model.BibleId" class="list-group-item">My Quiz Templates</a>
-        <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId" class="list-group-item">Manage PBE Book Lists</a>
+        <a asp-page="Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">My Quiz Templates</a>
+        @if (Model.PBEUser != null)
+        {
+            @if (Model.PBEUser.IsModerator)
+            {
+                <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Manage PBE Book Lists</a>
+                <a asp-page="PBEUsers" class="btn btn-outline-primary btn-sm">Manage PBE Users</a>
+            }
+        }
     }
 </div>
 <br />

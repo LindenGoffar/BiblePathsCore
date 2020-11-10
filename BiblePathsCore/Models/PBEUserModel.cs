@@ -29,6 +29,20 @@ namespace BiblePathsCore.Models.DB
             return ReturnUser;
         }
 
+        public static async Task<QuizUsers> GetPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
+        {
+            // First we'll try to find the user in the DB.
+            QuizUsers ReturnUser = new QuizUsers();
+            try
+            {
+                ReturnUser = await context.QuizUsers.Where(U => U.Email == LoggedOnUserName).SingleAsync();
+            }
+            catch (InvalidOperationException) // Generally means the user was not found. So Let's add one.
+            {
+            }
+            return ReturnUser;
+        }
+
         public static async Task<bool> IsValidPBEUserAsync(BiblePathsCoreDbContext context, string UserName)
         {
             return await context.QuizUsers.Where(U => U.Email.ToLower() == UserName.ToLower() && U.IsQuestionBuilderLocked == false).AnyAsync();
@@ -38,5 +52,13 @@ namespace BiblePathsCore.Models.DB
         {
             return !IsQuestionBuilderLocked;
         }
+
+        public bool IsQuizModerator()
+        {
+            return IsModerator;
+        }
+
+
+
     }
 }
