@@ -93,7 +93,7 @@ a.navbar-brand {
 /* Star Rating Styles */
 .rating-star {
     direction: rtl;
-    font-size: 40px;
+    font-size: 20px;
     unicode-bidi: bidi-override;
     display: inline-block;
 }
@@ -101,7 +101,7 @@ a.navbar-brand {
     .rating-star input {
         opacity: 0;
         position: relative;
-        left: -30px;
+        left: -18px;
         z-index: 2;
         cursor: pointer;
     }
@@ -120,7 +120,7 @@ a.navbar-brand {
     }
 
     .rating-star span {
-        margin-left: -30px;
+        margin-left: -15px;
     }
 
         .rating-star span.star:before {
@@ -136,7 +136,7 @@ a.navbar-brand {
 .selected-rating {
     color: #ffd100;
     font-weight: bold;
-    font-size: 42px;
+    font-size: 24px;
 }
 
 /* Provide sufficient contrast against white background */

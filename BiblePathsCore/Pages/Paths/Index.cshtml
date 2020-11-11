@@ -61,11 +61,11 @@
     @foreach (var item in Model.Paths)
     {
     <div class="row">
-        <div class="col-10 border border-top-0 border-right-0 mb-3">
+        <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
             <strong><a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a></strong>
             <small> @item.Topics</small>
         </div>
-        <div class="col-2 border border-top-0 border-left-0 border-right-0 mb-3">
+        <div class="col-md-2 col-4 border border-top-0 border-left-0 border-right-0 mb-3">
             <small>Length: @item.Length min</small><br />
             <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
             <small>Reads: @item.Reads</small>
