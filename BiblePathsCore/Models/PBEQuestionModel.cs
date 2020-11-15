@@ -10,7 +10,7 @@ namespace BiblePathsCore.Models.DB
 {
     public partial class QuizQuestions
     {
-        public enum QuestionEventType { CorrectAnswer, WrongAnswer, QuestionAdd, QuestionPointsAwarded }
+        public enum QuestionEventType { CorrectAnswer, WrongAnswer, QuestionAdd, QuestionPointsAwarded, QuestionAPIToken }
 
         public const int MaxPoints = 15;
 
@@ -227,6 +227,7 @@ namespace BiblePathsCore.Models.DB
         public List<string> Answers { get; set; }
         public bool IsCommentaryQuestion { get; set; }
         public string Owner { get; set; }
+        public string Token { get; set; }
         public MinQuestion()
         {
             // Parameterless constructor required for Post Action. 
@@ -255,6 +256,25 @@ namespace BiblePathsCore.Models.DB
             {
                 Answers.Add(Answer.Answer);
             }
+        }
+
+        public async Task<bool> APIUserTokenCheckAsync(BiblePathsCoreDbContext context)
+        {
+            // Do we have a valid Owner value:
+            if (await QuizUsers.IsValidPBEUserAsync(context, this.Owner) == false)
+            {
+                return false;
+            }
+            else
+            {
+                QuizUsers PBEUser = await QuizUsers.GetPBEUserAsync(context, this.Owner); // Static method not requiring an instance
+                if (PBEUser.IsQuestionBuilderLocked) { return false; }
+                if (await PBEUser.CheckAPITokenAsync(context, this.Token) == true)
+                {
+                    return true;
+                }
+            }
+            return false; 
         }
     }
 

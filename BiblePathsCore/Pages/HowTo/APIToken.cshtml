@@ -1,0 +1,46 @@
+﻿@page
+@model BiblePathsCore.Pages.HowTo.APITokenModel
+
+@{
+    ViewData["Title"] = "API Token:  " + Model.PBEUser.Email;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div class="card">
+                    <div class="card-header">
+                        API Token
+                    </div>
+                    <div class="card-body">
+                        @Model.TokenString
+                    </div>
+                    <div class="card-footer">
+                        <div class="form-group input-group">
+                            <input type="submit" value="Generate API Token" class="btn btn-primary" />
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div>
+    <hr />
+    <a asp-page="PBEUsers">Back to PBEUsers</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_AddEditMultiple" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

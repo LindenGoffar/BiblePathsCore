@@ -49,6 +49,11 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&
 
 
 # Add QuizQuestion
+# To obtain a valid Token browse to ../howto/apitoken
+    $APIToken = "..."
+    $OwnerEmail = "..."
+    
+
         $QuestionObj = New-Object -TypeName psobject
         $QuestionObj | Add-Member -MemberType NoteProperty -Name BibleId -value "NKJV-EN"
         $QuestionObj | Add-Member -MemberType NoteProperty -Name question -value "The earth was described as Formless and What?"
@@ -57,7 +62,8 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&
         $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value 1
         $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value 2
         $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value 2
-        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value <OWNER-EMAIL>
+        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value $OwnerEmail
+        $QuestionObj | Add-member -MemberType NoteProperty -Name token -value $APIToken
         $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "API Test"
 
         $AcceptedAnswers = @() # each question can have multiple answers we'll add one.

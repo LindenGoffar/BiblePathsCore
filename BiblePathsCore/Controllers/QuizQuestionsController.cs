@@ -33,7 +33,7 @@ namespace BiblePathsCore.Controllers
             List<MinQuestion> minQuestions = new List<MinQuestion>();
             List<QuizQuestions> Questions = await _context.QuizQuestions
                                                         .Include(Q => Q.QuizAnswers)
-                                                        .Where(Q => Q.BibleId == BibleId
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.BookNumber == Book.BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
@@ -107,8 +107,8 @@ namespace BiblePathsCore.Controllers
         public async Task<ActionResult<MinQuestion>> PostQuizQuestions([FromBody]MinQuestion Question)
         {
            
-            // confirm our specified Owner is a valid PBE User. 
-            if (await QuizUsers.IsValidPBEUserAsync(_context, Question.Owner) == false)
+            // Confirm we have a valid user and token
+            if (await Question.APIUserTokenCheckAsync(_context) == false)
             {
                 return Unauthorized();
             }
