@@ -1,0 +1,50 @@
+﻿@page
+@model SearchModel
+
+@{
+    ViewData["Title"] = "Search";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <form>
+                <p>
+                    <input type="hidden" asp-for="@Model.BibleId" />
+                    <input type="text" asp-for="PageSearchString" />
+                    <input type="submit" value="Search the Bible" />
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+<hr />
+@if (Model.NoResults == true)
+{
+    <strong>Sorry! This search returned no results... </strong>
+}
+@if (Model.BibleVerses != null)
+{
+    @foreach (var item in Model.BibleVerses)
+    {
+        <div class="row border border-top-0 border-right-0 mb-2">
+            <div class="col-9">
+                <span class="text-verse">
+                    <strong>@item.BookName @item.Chapter: @item.Verse </strong>
+                    @item.Text
+                </span>
+            </div>
+            <div class="col-3">
+                <a class="btn btn-outline-primary btn-sm" asp-page="./Steps/Step" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@item.BookNumber" asp-route-Chapter="@item.Chapter" asp-route-Verse="@item.Verse">
+                    Full Chapter
+                </a>
+            </div>
+        </div>
+    }
+}
+<div>
+    <hr />
+    <a asp-page="/Paths/Steps">Back to Path</a>
+</div>

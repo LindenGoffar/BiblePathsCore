@@ -48,6 +48,19 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
+        public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            string RetVal = Bibles.DefaultBibleId;
+            if (BibleId != null)
+            {
+                if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
+                {
+                    RetVal = BibleId;
+                }
+            }
+            return RetVal;
+        }
+
     }
 
     public class MinBible

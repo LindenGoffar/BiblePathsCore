@@ -185,7 +185,7 @@ namespace BiblePathsCore.Models
             modelBuilder.Entity<Paths>(entity =>
             {
                 entity.HasIndex(e => e.Name)
-                    .HasName("AK_Name")
+                    .HasDatabaseName("AK_Name")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");

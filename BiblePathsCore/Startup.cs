@@ -38,6 +38,8 @@ namespace BiblePathsCore
                 options.UseSqlServer(
                     Configuration.GetConnectionString("AppConnection")));
 
+            services.AddDatabaseDeveloperPageExceptionFilter();
+
             services.AddDefaultIdentity<IdentityUser>(options => {
                     options.SignIn.RequireConfirmedAccount = false;
                     options.User.RequireUniqueEmail = true;
@@ -74,6 +76,7 @@ namespace BiblePathsCore
                 .AddRazorPagesOptions(options =>
                  {
                      options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
+                     options.Conventions.AddPageRoute("/Search", "/Search/{SearchString?}");
                  });
         }
 
@@ -84,7 +87,8 @@ namespace BiblePathsCore
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
+                app.UseDeveloperExceptionPage();
+                app.UseMigrationsEndPoint();
             }
             else
             {

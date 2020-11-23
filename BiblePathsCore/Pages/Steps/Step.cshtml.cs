@@ -35,7 +35,7 @@ namespace BiblePathsCore
         public string PageTitle { get; set;  }
         public List<SelectListItem> BibleSelectList { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id, string BibleId, int? BookNumber, int? Chapter)
+        public async Task<IActionResult> OnGetAsync(int? id, string BibleId, int? BookNumber, int? Chapter, int? Verse)
         {
             bool hasValidStepId = false;
             Step = new PathNodes();
@@ -67,8 +67,13 @@ namespace BiblePathsCore
             {
                 Step.BookNumber = (int)BookNumber;
                 Step.Chapter = (int)Chapter;
+                if (Verse.HasValue)
+                {
+                    Step.StartVerse = (int)Verse;
+                    Step.EndVerse = (int)Verse;
+                }
                 if (await Step.ValidateBookChapterAsync(_context, this.BibleId) == false) {
-                    return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" });
+                    return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step, or Book/Chapter combination" });
                 }
                 else
                 { 

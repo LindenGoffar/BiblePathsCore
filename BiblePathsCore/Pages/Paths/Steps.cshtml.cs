@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BiblePathsCore
 {
-    [Authorize]
+    // [Authorize]
     public class StepsModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;

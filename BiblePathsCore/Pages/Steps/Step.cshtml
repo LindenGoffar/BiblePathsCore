@@ -111,33 +111,41 @@
                 }
                 else
                 {
-                <span class="text-verse">
-                    @foreach (var item in Model.Step.Verses)
+            <span class="text-verse">
+                @foreach (var item in Model.Step.Verses)
+                {
+                    if (Model.Scenario == StepModel.StepScenarios.Study)
+                    {
+                        if (item.InRelatedPaths)
                         {
-                            if (Model.Scenario == StepModel.StepScenarios.Study)
+                            <br /><sup>@item.Verse</sup>
+                            <mark>@item.Text</mark>
+                            foreach (var relatedPath in item.RelatedPaths)
                             {
-                                if (item.InRelatedPaths)
-                                {
-                    <br /><sup>@item.Verse</sup>
-                    <mark>@item.Text</mark>
-                                    foreach (var relatedPath in item.RelatedPaths)
-                                    {
-                    <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
-                                    }
-                                }
-                                else
-                                {
-                    <br /><sup>@item.Verse</sup>
-                    @item.Text
-                                }
+                                <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                            }
+                        }
+                        else
+                        {
+                            if (item.InPath)
+                            {
+                                <br /><sup>@item.Verse</sup>
+                                <mark>@item.Text</mark>
                             }
                             else
                             {
-                    <br /><sup>@item.Verse</sup>
-                    @item.Text
+                                <br /><sup>@item.Verse</sup>
+                                @item.Text
                             }
                         }
-                </span>
+                    }
+                    else
+                    {
+                        <br /><sup>@item.Verse</sup>
+                        @item.Text
+                    }
+                }
+            </span>
                 }
                 <div class="row text-muted">
                     @Model.Step.LegalNote
