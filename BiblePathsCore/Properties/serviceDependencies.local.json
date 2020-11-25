@@ -1,3 +1,17 @@
 {
-  "dependencies": {}
+  "dependencies": {
+    "appInsights1": {
+      "type": "appInsights.sdk"
+    },
+    "mssql2": {
+      "type": "mssql.local",
+      "connectionId": "AuthConnection",
+      "secretStore": "LocalSecretsFile"
+    },
+    "mssql1": {
+      "type": "mssql.local",
+      "connectionId": "AppConnection",
+      "secretStore": "LocalSecretsFile"
+    }
+  }
 }

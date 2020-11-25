@@ -78,6 +78,7 @@ namespace BiblePathsCore
                      options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
                      options.Conventions.AddPageRoute("/Search", "/Search/{SearchString?}");
                  });
+            services.AddApplicationInsightsTelemetry();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

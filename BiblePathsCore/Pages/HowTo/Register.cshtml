@@ -1,0 +1,30 @@
+﻿@page
+@model BiblePathsCore.Pages.HowTo.RegisterModel
+@{
+    ViewData["Title"] = "HowTo: Register";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+<div class="container-fluid">
+    <p>
+        BiblePaths.Net relies on a few popular social login providers for authentication.
+        We do this in order to ensure as many are able to use this service as possible while allowing us to avoid
+        having to store or manage password or other profile information. This also allows you to avoid having to remember
+        yet another password.
+    </p>
+    <p>
+        After logging in for the first time you will be asked to register using your email address. You will need to provide a
+        unique email address, we encourage you to use a valid email address just in case we need to get ahold of you. This
+        Email Address is the only piece of information we store about you and it is used to ensure you retain access to any
+        Bible Paths, Quizzes etc. that you might decide to create.
+    </p>
+    <p class="text-info">
+        This is the new BiblePaths if you had already registered with the previous version you will be asked to register again.
+        Note though that as long as you register your same Email Address you will retain access to any items you created. 
+    </p>
+    <p class="text-info">
+        For more informaiton see our <a asp-area="" asp-page="/Privacy">Privacy Policy</a>.
+    </p>
+</div>
+
