@@ -1,0 +1,57 @@
+﻿@page
+@model BiblePathsCore.Pages.Play.GroupModel
+
+@{
+    ViewData["Title"] = "Group: " + Model.Group.Name;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Selected Path
+                </div>
+                <div class="Card-Body">
+                    <span class="card-title">@Model.SelectedPath.Name</span>
+                    <span class="card-text">@Model.SelectedPath.Topics</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        @foreach (var team in Model.Group.GameTeams)
+        {
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        @team.Name
+                    </div>
+                    <div class="Card-Body">
+                        <span class="card-title">Player Link: </span>
+                        <span class="card-text">Host Link: </span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_AddEditMultiple-Name" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

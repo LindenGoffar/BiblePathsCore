@@ -27,13 +27,15 @@ namespace BiblePathsCore
                 Path = await _context.Paths.Where(P => P.Name == name && P.IsPublished == true && P.IsDeleted == false).SingleAsync();
                 if (Path == null)
                 {
-                    return RedirectToPage("/Index");
+                    return RedirectToPage("Index");
                 }
-                return RedirectToPage("/Steps", new { PathId = Path.Id });
+                // We need to find the first Step
+                _ = await Path.AddCalculatedPropertiesAsync(_context);
+                return RedirectToPage("/Steps/Step", new { Id = Path.FirstStepId });
             }
             catch
             {
-                return RedirectToPage("/Index");
+                return RedirectToPage("Index");
             }
         }
     }
