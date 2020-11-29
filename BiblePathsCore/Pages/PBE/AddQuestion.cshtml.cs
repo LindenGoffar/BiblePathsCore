@@ -25,10 +25,10 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
         [BindProperty]
-        public QuizQuestions Question { get; set; }
+        public QuizQuestion Question { get; set; }
         [BindProperty]
         public string AnswerText { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
         public bool IsCommentary { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
@@ -36,10 +36,10 @@ namespace BiblePathsCore.Pages.PBE
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
-            Question = new QuizQuestions();
+            Question = new QuizQuestion();
             Question.BookNumber = BookNumber;
             Question.Chapter = Chapter;
             Question.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
@@ -47,15 +47,15 @@ namespace BiblePathsCore.Pages.PBE
             Question.Points = 0;
 
             // Setup our PBEBook Object
-            Question.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
+            Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
 
-            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
+            BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
             Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
-            IsCommentary = (Question.Chapter == Bibles.CommentaryChapter);
+            IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (IsCommentary == false)
             {
                 ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
@@ -76,15 +76,15 @@ namespace BiblePathsCore.Pages.PBE
             if (!ModelState.IsValid)
             {
                 // Setup our PBEBible Object
-                Question.BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, Question.BibleId);
-                BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
+                Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, Question.BibleId);
+                BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
                 if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
 
-                IsCommentary = (Question.Chapter == Bibles.CommentaryChapter);
+                IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)
                 {
                     ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
@@ -99,17 +99,17 @@ namespace BiblePathsCore.Pages.PBE
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
             // Now let's create an empty question and put only our validated properties onto it. 
-            var emptyQuestion = new QuizQuestions
+            var emptyQuestion = new QuizQuestion
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now
             };
 
-            if (await TryUpdateModelAsync<QuizQuestions>(
+            if (await TryUpdateModelAsync<QuizQuestion>(
                 emptyQuestion,
                 "Question",   // Prefix for form value.
                 Q => Q.BibleId, Q => Q.Points, Q => Q.BookNumber, Q => Q.Chapter, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question))
@@ -121,7 +121,7 @@ namespace BiblePathsCore.Pages.PBE
                 // now we need to add the Answer if there is one. 
                 if (AnswerText.Length > 0) 
                 {
-                    QuizAnswers Answer = new QuizAnswers
+                    QuizAnswer Answer = new QuizAnswer
                     {
                         Created = DateTime.Now,
                         Modified = DateTime.Now,

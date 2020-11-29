@@ -30,7 +30,7 @@ namespace BiblePathsCore.Controllers
 
         // GET: api/BibleVerses/?BibleID=$BibleID&BookNumber=$BookNumber&Chapter=$Chapter&StartVerse=$StartVerse&EndVerse=$EndVerse"
         [HttpGet]
-        public async Task<List<BibleVerses>> GetBibleVerses(string BibleId, int BookNumber, int Chapter, int StartVerse, int EndVerse)
+        public async Task<List<BibleVerse>> GetBibleVerses(string BibleId, int BookNumber, int Chapter, int StartVerse, int EndVerse)
         {
             return await _context.BibleVerses.Where(v => v.BibleId == BibleId
                                                                 && v.BookNumber == BookNumber

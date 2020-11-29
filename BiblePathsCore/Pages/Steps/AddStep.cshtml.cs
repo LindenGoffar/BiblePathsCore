@@ -25,10 +25,10 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         [BindProperty]
-        public PathNodes Step { get; set; }
+        public PathNode Step { get; set; }
 
         [BindProperty]
         public string BibleId { get; set; }
@@ -46,7 +46,7 @@ namespace BiblePathsCore
 
             BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
 
-            Step = new PathNodes();
+            Step = new PathNode();
             Step.PathId = Path.Id;
             Step.BookNumber = BookNumber;
             Step.Chapter = Chapter;
@@ -93,13 +93,13 @@ namespace BiblePathsCore
             }
 
             // Now let's create an empty Step aka. PathNode object so we can put only our validated properties onto it. 
-            var emptyStep = new PathNodes
+            var emptyStep = new PathNode
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now
             };
 
-            if (await TryUpdateModelAsync<PathNodes>(
+            if (await TryUpdateModelAsync<PathNode>(
                 emptyStep,
                 "Step",   // Prefix for form value.
                 S => S.StartVerse, S => S.EndVerse, S => S.PathId, S => S.BookNumber, S => S.Chapter, S => S.Position))

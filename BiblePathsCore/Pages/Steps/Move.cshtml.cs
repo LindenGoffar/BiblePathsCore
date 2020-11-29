@@ -22,8 +22,8 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public PathNodes Step { get; set; }
-        public Paths Path { get; set; }
+        public PathNode Step { get; set; }
+        public Path Path { get; set; }
         public void OnGet()
         {
             RedirectToPage("/error", new { errorMessage = "That's Odd! The Move page should never actually be hit... " });

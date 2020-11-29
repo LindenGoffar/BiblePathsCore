@@ -23,10 +23,10 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         [BindProperty]
-        public PathNodes Step { get; set; }
+        public PathNode Step { get; set; }
 
         [BindProperty]
         public string BibleId { get; set; }
@@ -78,7 +78,7 @@ namespace BiblePathsCore
                 return Page();
             }
             // Now let's validate a few things, first lets go grab the Step and Path
-            PathNodes StepToUpdate = await _context.PathNodes.FindAsync(Id);
+            PathNode StepToUpdate = await _context.PathNodes.FindAsync(Id);
             Path = await _context.Paths.FindAsync(Step.PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Path" }); }
             if (StepToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
@@ -94,7 +94,7 @@ namespace BiblePathsCore
                 _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
             }
 
-            if (await TryUpdateModelAsync<PathNodes>(
+            if (await TryUpdateModelAsync<PathNode>(
                             StepToUpdate,
                             "Step",   // Prefix for form value.
                             S => S.StartVerse, S => S.EndVerse, S => S.BookNumber, S => S.Chapter))

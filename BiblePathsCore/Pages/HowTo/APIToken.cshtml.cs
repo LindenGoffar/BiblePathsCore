@@ -28,13 +28,13 @@ namespace BiblePathsCore.Pages.HowTo
         }
 
         public string TokenString { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
         public string UserMessage { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string Message)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (PBEUser.IsQuestionBuilderLocked) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to create an API token" }); }
 
             TokenString = await PBEUser.GetQuestionAPITokenAsync(_context);
@@ -47,7 +47,7 @@ namespace BiblePathsCore.Pages.HowTo
         {
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (PBEUser.IsQuestionBuilderLocked) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to create an API token" }); }
 
             if (!ModelState.IsValid)

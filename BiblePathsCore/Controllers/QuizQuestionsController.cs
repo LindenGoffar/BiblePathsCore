@@ -25,20 +25,20 @@ namespace BiblePathsCore.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MinQuestion>>> GetQuizQuestions(string BibleId, string BookName, int Chapter)
         {
-            BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
+            BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
 
-            BibleBooks Book = await BibleBooks.GetBookAndChapterByNameAsync(_context, BibleId, BookName, Chapter);
+            BibleBook Book = await BibleBook.GetBookAndChapterByNameAsync(_context, BibleId, BookName, Chapter);
             if (Book == null) { return NotFound(); }
 
             List<MinQuestion> minQuestions = new List<MinQuestion>();
-            List<QuizQuestions> Questions = await _context.QuizQuestions
+            List<QuizQuestion> Questions = await _context.QuizQuestions
                                                         .Include(Q => Q.QuizAnswers)
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.BookNumber == Book.BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
                                                                 && Q.IsAnswered == true).ToListAsync();
-            foreach(QuizQuestions Question in Questions)
+            foreach(QuizQuestion Question in Questions)
             {
                 Question.PopulatePBEQuestionInfo(Book);
                 MinQuestion minQuestion = new MinQuestion(Question);
@@ -60,7 +60,7 @@ namespace BiblePathsCore.Controllers
             // Explicit load our answers.
             await _context.Entry(quizQuestion).Collection(q => q.QuizAnswers).LoadAsync();
 
-            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, quizQuestion.BibleId, quizQuestion.BookNumber, quizQuestion.Chapter);
+            BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, quizQuestion.BibleId, quizQuestion.BookNumber, quizQuestion.Chapter);
             quizQuestion.PopulatePBEQuestionInfo(PBEBook);
             MinQuestion minQuestion = new MinQuestion(quizQuestion);
 
@@ -114,7 +114,7 @@ namespace BiblePathsCore.Controllers
             }
 
             // Now let's create an empty question and put only our valid properties onto it. 
-            var emptyQuestion = new QuizQuestions
+            var emptyQuestion = new QuizQuestion
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
@@ -134,7 +134,7 @@ namespace BiblePathsCore.Controllers
             {
                 if (AnswerString.Length > 0)
                 {
-                    QuizAnswers Answer = new QuizAnswers
+                    QuizAnswer Answer = new QuizAnswer
                     {
                         Created = DateTime.Now,
                         Modified = DateTime.Now,

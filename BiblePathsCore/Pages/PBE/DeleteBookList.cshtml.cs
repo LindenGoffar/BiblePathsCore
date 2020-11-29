@@ -23,8 +23,8 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public QuizBookLists BookList { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizBookList BookList { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public void OnGet(int? id)
         {
@@ -40,7 +40,7 @@ namespace BiblePathsCore
 
             try
             {
-                BookList = await _context.QuizBookLists.Include(B => B.QuizBookListBookMap).Where(B => B.Id == id).SingleAsync();
+                BookList = await _context.QuizBookLists.Include(B => B.QuizBookListBookMaps).Where(B => B.Id == id).SingleAsync();
             }
             catch {
                 return RedirectToPage("/error", new
@@ -51,15 +51,15 @@ namespace BiblePathsCore
 
             // confirm Path Owner
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to delete a PBE BookList" }); }
 
             // We only ever soft delete a BookList but we do delete the maps. 
 
             // First we need to iterate through each BookList Map and delete them, these are a leaf node so this should be OK.
-            foreach (QuizBookListBookMap book in BookList.QuizBookListBookMap)
+            foreach (QuizBookListBookMap book in BookList.QuizBookListBookMaps)
             {
-                _context.QuizBookListBookMap.Remove(book);
+                _context.QuizBookListBookMaps.Remove(book);
             }
             await _context.SaveChangesAsync();
             // Let's track this event 

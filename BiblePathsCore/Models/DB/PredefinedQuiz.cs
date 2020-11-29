@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class PredefinedQuizzes
+    public partial class PredefinedQuiz
     {
-        public PredefinedQuizzes()
+        public PredefinedQuiz()
         {
-            PredefinedQuizQuestions = new HashSet<PredefinedQuizQuestions>();
+            PredefinedQuizQuestions = new HashSet<PredefinedQuizQuestion>();
         }
 
         public int Id { get; set; }
@@ -19,7 +21,7 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Modified { get; set; }
         public bool IsDeleted { get; set; }
 
-        public virtual QuizUsers QuizUser { get; set; }
-        public virtual ICollection<PredefinedQuizQuestions> PredefinedQuizQuestions { get; set; }
+        public virtual QuizUser QuizUser { get; set; }
+        public virtual ICollection<PredefinedQuizQuestion> PredefinedQuizQuestions { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace BiblePathsCore.Pages.PBE
 
         [BindProperty] 
         public String BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
         [PageRemote(
             ErrorMessage = "Sorry, this Name is not valid, ",
             AdditionalFields = "__RequestVerificationToken",
@@ -44,14 +44,14 @@ namespace BiblePathsCore.Pages.PBE
         public async Task<IActionResult> OnGetAsync(string BibleId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
           
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             //Initialize Books
             Books = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            ViewData["BookSelectList"] = await BibleBooks.GetBookSelectListAsync(_context, BibleId);
+            ViewData["BookSelectList"] = await BibleBook.GetBookSelectListAsync(_context, BibleId);
             return Page();
         }
 
@@ -59,24 +59,24 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            if (await QuizBookLists.ListNameAlreadyExistsStaticAsync(_context, Name))
+            if (await QuizBookList.ListNameAlreadyExistsStaticAsync(_context, Name))
             {
                 ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
             }
             if (!ModelState.IsValid)
             {
-                ViewData["BookSelectList"] = await BibleBooks.GetBookSelectListAsync(_context, BibleId);
+                ViewData["BookSelectList"] = await BibleBook.GetBookSelectListAsync(_context, BibleId);
 
                 return Page();
             }
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
 
             // Now let's create an empty BookList
-            var emptyBookList = new QuizBookLists
+            var emptyBookList = new QuizBookList
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now
@@ -97,7 +97,7 @@ namespace BiblePathsCore.Pages.PBE
                     BookMap.IsDeleted = false;
                     BookMap.Created = DateTime.Now;
                     BookMap.Modified = DateTime.Now;
-                    _context.QuizBookListBookMap.Add(BookMap);
+                    _context.QuizBookListBookMaps.Add(BookMap);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -108,7 +108,7 @@ namespace BiblePathsCore.Pages.PBE
 
         public async Task<JsonResult> OnPostCheckNameAsync()
         {
-            if (await QuizBookLists.ListNameAlreadyExistsStaticAsync(_context, Name))
+            if (await QuizBookList.ListNameAlreadyExistsStaticAsync(_context, Name))
             {
                 return new JsonResult("Sorry, this Name is already in use.");
             }

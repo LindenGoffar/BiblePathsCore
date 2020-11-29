@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class PathStats
+    public partial class PathStat
     {
         public int Id { get; set; }
         public int? PathId { get; set; }
@@ -11,6 +13,6 @@ namespace BiblePathsCore.Models.DB
         public string EventData { get; set; }
         public DateTimeOffset? EventWritten { get; set; }
 
-        public virtual Paths Path { get; set; }
+        public virtual Path Path { get; set; }
     }
 }

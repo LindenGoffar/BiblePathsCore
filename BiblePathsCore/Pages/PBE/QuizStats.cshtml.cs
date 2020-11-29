@@ -21,12 +21,12 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
 
-        public QuizGroupStats Quiz { get; set; }
+        public QuizGroupStat Quiz { get; set; }
         public string BibleId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int QuizId)
         {
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object with Stats 
             Quiz = await _context.QuizGroupStats.FindAsync(QuizId);

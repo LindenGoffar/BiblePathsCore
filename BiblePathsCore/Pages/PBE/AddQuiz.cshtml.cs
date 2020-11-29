@@ -27,23 +27,23 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         [BindProperty]
-        public QuizGroupStats Quiz { get; set; }
+        public QuizGroupStat Quiz { get; set; }
 
         [BindProperty] 
         public String BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz" }); }
           
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             //Initialize Select Lists
-            ViewData["BookSelectList"] = await BibleBooks.GetBookAndBookListSelectListAsync(_context, BibleId);
-            ViewData["TemplateSelectList"] = await PredefinedQuizzes.GetTemplateSelectListAsync(_context, PBEUser);
+            ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
+            ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
             return Page();
         }
 
@@ -59,18 +59,18 @@ namespace BiblePathsCore.Pages.PBE
             if (!ModelState.IsValid)
             {
                 //Initialize Select Lists
-                ViewData["BookSelectList"] = await BibleBooks.GetBookAndBookListSelectListAsync(_context, BibleId);
-                ViewData["TemplateSelectList"] = await PredefinedQuizzes.GetTemplateSelectListAsync(_context, PBEUser);
+                ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
+                ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
                 return Page();
             }
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz" }); }
 
             // Now let's create an empty Quiz
-            var emptyQuiz = new QuizGroupStats
+            var emptyQuiz = new QuizGroupStat
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
@@ -78,7 +78,7 @@ namespace BiblePathsCore.Pages.PBE
                 IsDeleted = false
             };
 
-            if (await TryUpdateModelAsync<QuizGroupStats>(
+            if (await TryUpdateModelAsync<QuizGroupStat>(
                 emptyQuiz,
                 "Quiz",   // Prefix for form value.
                 q => q.GroupName, q => q.BookNumber, q => q.PredefinedQuiz))

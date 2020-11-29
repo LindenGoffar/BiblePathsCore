@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class BibleVerses
+    public partial class BibleVerse
     {
         [NotMapped]
         public bool InPath { get; set; }
@@ -19,7 +19,7 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public bool InRelatedPaths { get; set; }
         [NotMapped]
-        public List<Paths> RelatedPaths { get; set;  }
+        public List<Path> RelatedPaths { get; set;  }
 
         // This one is expensive we shouldn't use this one if we can avoid.
         public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
@@ -33,7 +33,7 @@ namespace BiblePathsCore.Models.DB
                         .CountAsync();
         }
 
-        public int GetQuestionCountWithQuestionList(List<QuizQuestions> Questions)
+        public int GetQuestionCountWithQuestionList(List<QuizQuestion> Questions)
         {
             return Questions
                         .Where(Q => Q.BookNumber == BookNumber
@@ -47,17 +47,17 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
         {
             InRelatedPaths = false;
-            List<Paths> relatedPaths = new List<Paths>();
+            List<Path> relatedPaths = new List<Path>();
             // Return all PathNodes or Steps that contain this verse.
             // EF CORE 5 Will contain Filtered Includes we can simplify when it releases. 
-            List<PathNodes> RelatedSteps = await context.PathNodes
+            List<PathNode> RelatedSteps = await context.PathNodes
                                                         .Include(N => N.Path)
                                                         .Where(N => N.BookNumber == BookNumber
                                                                 && N.Chapter == Chapter
                                                                 && N.StartVerse <= Verse
                                                                 && N.EndVerse >= Verse)
                                                         .ToListAsync();
-            foreach (PathNodes relatedStep in RelatedSteps)
+            foreach (PathNode relatedStep in RelatedSteps)
             {
                 if (relatedStep.Path.IsDeleted == false && relatedStep.Path.IsPublished == true)
                 {

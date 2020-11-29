@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizQuestions
+    public partial class QuizQuestion
     {
-        public QuizQuestions()
+        public QuizQuestion()
         {
-            QuizAnswers = new HashSet<QuizAnswers>();
-            QuizQuestionStats = new HashSet<QuizQuestionStats>();
+            QuizAnswers = new HashSet<QuizAnswer>();
+            QuizQuestionStats = new HashSet<QuizQuestionStat>();
         }
 
         public int Id { get; set; }
@@ -30,8 +32,8 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset LastAsked { get; set; }
         public string BibleId { get; set; }
 
-        public virtual Bibles Bible { get; set; }
-        public virtual ICollection<QuizAnswers> QuizAnswers { get; set; }
-        public virtual ICollection<QuizQuestionStats> QuizQuestionStats { get; set; }
+        public virtual Bible Bible { get; set; }
+        public virtual ICollection<QuizAnswer> QuizAnswers { get; set; }
+        public virtual ICollection<QuizQuestionStat> QuizQuestionStats { get; set; }
     }
 }

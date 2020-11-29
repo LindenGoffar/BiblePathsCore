@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class Bibles
+    public partial class Bible
     {
         public const string DefaultBibleId = "KJV-EN";
         public const string DefaultPBEBibleId = "NKJV-EN";
@@ -37,7 +37,7 @@ namespace BiblePathsCore.Models.DB
 
         public static async Task<string> GetValidPBEBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultPBEBibleId;
+            string RetVal = Bible.DefaultPBEBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -50,7 +50,7 @@ namespace BiblePathsCore.Models.DB
 
         public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultBibleId;
+            string RetVal = Bible.DefaultBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -76,14 +76,14 @@ namespace BiblePathsCore.Models.DB
 
         }
 
-        public MinBible(Bibles Bible)
+        public MinBible(Bible Bible)
         {
             LegalNote = Bible.LegalNote;
             Id = Bible.Id;
             Language = Bible.Language;
             Version = Bible.Version;
             BibleBooks = new List<MinBook>();
-            foreach(BibleBooks Book in Bible.BibleBooks)
+            foreach(BibleBook Book in Bible.BibleBooks)
             {
                 MinBook minBook = new MinBook(Book);
                 BibleBooks.Add(minBook);

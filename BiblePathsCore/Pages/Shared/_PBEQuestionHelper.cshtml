@@ -1,9 +1,9 @@
-﻿@model BiblePathsCore.Models.DB.QuizQuestions;
+﻿@model BiblePathsCore.Models.DB.QuizQuestion;
 
     <script>
     function UpdateQuestionPreview() {
         var div = document.getElementById('QuestionPreview');
-        if (@Model.Chapter == @BiblePathsCore.Models.DB.Bibles.CommentaryChapter) {
+        if (@Model.Chapter == @BiblePathsCore.Models.DB.Bible.CommentaryChapter) {
             div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to the SDABC for @Model.BookName, ' + $("#Question_Question").val() + '';
         }
         else {

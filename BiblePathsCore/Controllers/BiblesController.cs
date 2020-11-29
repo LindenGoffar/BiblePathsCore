@@ -27,9 +27,9 @@ namespace BiblePathsCore.API
         {
             try
             {
-                List<Bibles> BibleList = await _context.Bibles.Include(b => b.BibleBooks).ToListAsync();
+                List<Bible> BibleList = await _context.Bibles.Include(b => b.BibleBooks).ToListAsync();
                 List<MinBible> minBibles = new List<MinBible>();
-                foreach (Bibles bible in BibleList)
+                foreach (Bible bible in BibleList)
                 {
                     _ = bible.HydrateBible();
                     MinBible minBible = new MinBible(bible);

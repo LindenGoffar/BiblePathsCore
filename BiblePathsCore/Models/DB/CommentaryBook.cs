@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class CommentaryBooks
+    public partial class CommentaryBook
     {
         public int Id { get; set; }
         public string BibleId { get; set; }
@@ -11,6 +13,6 @@ namespace BiblePathsCore.Models.DB
         public string BookName { get; set; }
         public string Text { get; set; }
 
-        public virtual Bibles Bible { get; set; }
+        public virtual Bible Bible { get; set; }
     }
 }

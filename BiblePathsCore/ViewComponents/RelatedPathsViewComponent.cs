@@ -17,9 +17,9 @@ namespace BiblePathsCore.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync(int PathId)
         {
-            Paths Path = await _context.Paths.FindAsync(PathId);
-            List<Paths> ReturnPaths = await Path.GetRelatedPathsAsync(_context);
-            foreach (Paths relatedPath in ReturnPaths)
+            Path Path = await _context.Paths.FindAsync(PathId);
+            List<Path> ReturnPaths = await Path.GetRelatedPathsAsync(_context);
+            foreach (Path relatedPath in ReturnPaths)
             {
                 _ = await relatedPath.AddCalculatedPropertiesAsync(_context);
             }

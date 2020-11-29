@@ -11,20 +11,20 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class PredefinedQuizzes
+    public partial class PredefinedQuiz
     {
         public const int MaxTemplateQuestions = 45;
 
-        public List<PredefinedQuizQuestions> IntiQuestionListForAddEdit()
+        public List<PredefinedQuizQuestion> IntiQuestionListForAddEdit()
         {
-            List<PredefinedQuizQuestions> ReturnQuestions = new List<PredefinedQuizQuestions>();
+            List<PredefinedQuizQuestion> ReturnQuestions = new List<PredefinedQuizQuestion>();
             
             // Step through the questions we already have adding filler questions where needed. 
             for (int i = 1; i <= NumQuestions; i++)
             {
                 // Create an undefined or "Random" question and replace it with the real one if it exists.
                 // We're stuffing the List with undefined or "Random" questions. 
-                PredefinedQuizQuestions QuestionToAdd = new PredefinedQuizQuestions
+                PredefinedQuizQuestion QuestionToAdd = new PredefinedQuizQuestion
                 {
                     BookNumber = 0,
                     Chapter = 0,
@@ -46,9 +46,9 @@ namespace BiblePathsCore.Models.DB
         public async Task<List<MinBook>> GetTemplateBooksAsync(BiblePathsCoreDbContext context, string bibleId)
         {
             List<MinBook> ReturnList = new List<MinBook>();
-            if (this.BookNumber < Bibles.MinBookListID)
+            if (this.BookNumber < Bible.MinBookListID)
             {
-                BibleBooks Book = await context.BibleBooks.Where(B => B.BibleId == bibleId
+                BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == bibleId
                                                             && B.BookNumber == this.BookNumber)
                                                     .SingleAsync();
                 Book.HasCommentary = await Book.HasCommentaryAsync(context);
@@ -57,14 +57,14 @@ namespace BiblePathsCore.Models.DB
             }
             else
             {
-                QuizBookLists BookList = await context.QuizBookLists.Where(L => L.Id == this.BookNumber
+                QuizBookList BookList = await context.QuizBookLists.Where(L => L.Id == this.BookNumber
                                                                            && L.IsDeleted == false)
-                                                                    .Include(L => L.QuizBookListBookMap)
+                                                                    .Include(L => L.QuizBookListBookMaps)
                                                                     .SingleAsync();
 
-                foreach (QuizBookListBookMap bookMap in BookList.QuizBookListBookMap)
+                foreach (QuizBookListBookMap bookMap in BookList.QuizBookListBookMaps)
                 {
-                    BibleBooks BookMapBook = await context.BibleBooks.Where(B => B.BibleId == bibleId
+                    BibleBook BookMapBook = await context.BibleBooks.Where(B => B.BibleId == bibleId
                                             && B.BookNumber == bookMap.BookNumber)
                                     .SingleAsync();
                     BookMapBook.HasCommentary = await BookMapBook.HasCommentaryAsync(context);
@@ -90,11 +90,11 @@ namespace BiblePathsCore.Models.DB
             return CountSelectList;
         }
 
-        public static async Task<List<SelectListItem>> GetTemplateSelectListAsync(BiblePathsCoreDbContext context, QuizUsers QuizUser)
+        public static async Task<List<SelectListItem>> GetTemplateSelectListAsync(BiblePathsCoreDbContext context, QuizUser QuizUser)
         {
 
             List<SelectListItem> TemplateSelectList = new List<SelectListItem>();
-            List<PredefinedQuizzes> Templates = await context.PredefinedQuizzes
+            List<PredefinedQuiz> Templates = await context.PredefinedQuizzes
                                       .Where(T => T.QuizUser == QuizUser)
                                       .ToListAsync();
 
@@ -105,7 +105,7 @@ namespace BiblePathsCore.Models.DB
                 Value = 0.ToString()
             });
 
-            foreach (PredefinedQuizzes Template in Templates)
+            foreach (PredefinedQuiz Template in Templates)
             {
                 TemplateSelectList.Add(new SelectListItem
                 {
@@ -117,7 +117,7 @@ namespace BiblePathsCore.Models.DB
         }
     }
 
-    public partial class PredefinedQuizQuestions
+    public partial class PredefinedQuizQuestion
     {
         [NotMapped]
         public List<SelectListItem> ChapterSelectList { get; set; }

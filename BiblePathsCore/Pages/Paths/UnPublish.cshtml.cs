@@ -23,7 +23,7 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {

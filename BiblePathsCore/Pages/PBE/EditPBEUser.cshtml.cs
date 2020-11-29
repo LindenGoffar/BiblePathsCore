@@ -28,13 +28,13 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         [BindProperty]
-        public QuizUsers EditUser { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser EditUser { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int Id)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to manage a PBE User" }); }
 
             EditUser = await _context.QuizUsers.FindAsync(Id);
@@ -49,10 +49,10 @@ namespace BiblePathsCore.Pages.PBE
         {
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to manage a PBE User" }); }
 
-            QuizUsers UserToUpdate = await _context.QuizUsers.FindAsync(Id);
+            QuizUser UserToUpdate = await _context.QuizUsers.FindAsync(Id);
             if (UserToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this User" }); }
 
             if (!ModelState.IsValid)
@@ -60,7 +60,7 @@ namespace BiblePathsCore.Pages.PBE
                 return Page();
             }
 
-            if (await TryUpdateModelAsync<QuizUsers>(
+            if (await TryUpdateModelAsync<QuizUser>(
                 UserToUpdate,
                  "EditUser",
                  U => U.IsModerator, U => U.IsQuestionBuilderLocked))

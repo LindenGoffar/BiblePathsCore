@@ -19,7 +19,7 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public IList<BibleVerses> BibleVerses { get;set; }
+        public IList<BibleVerse> BibleVerses { get;set; }
         public bool NoResults { get; set; }
         public string BibleId { get; set;  }
 
@@ -28,7 +28,7 @@ namespace BiblePathsCore
 
         public async Task<IActionResult> OnGetAsync(string SearchString)
         {
-            BibleId = await Bibles.GetValidBibleIdAsync(_context, BibleId);
+            BibleId = await Bible.GetValidBibleIdAsync(_context, BibleId);
             NoResults = false; 
             if(PageSearchString != null) { SearchString = PageSearchString; }
             if(SearchString != null ) { PageSearchString = SearchString; }

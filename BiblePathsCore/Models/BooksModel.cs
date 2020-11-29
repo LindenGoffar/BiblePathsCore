@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class BibleBooks
+    public partial class BibleBook
     {
         [NotMapped]
         public bool InBookList { get; set; }
@@ -36,27 +36,27 @@ namespace BiblePathsCore.Models.DB
         public static async Task<string> GetBookorBookListNameAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
         {
             // BookList scenario
-            if(BookNumber >= Bibles.MinBookListID)
+            if(BookNumber >= Bible.MinBookListID)
             {
                 return (await context.QuizBookLists.Where(L => L.Id == BookNumber).Select(L => new { L.BookListName }).FirstAsync()).BookListName;
             }
             else
             {
                 // Get BookName 
-                return await BibleBooks.GetBookNameAsync(context, bibleId, BookNumber);
+                return await BibleBook.GetBookNameAsync(context, bibleId, BookNumber);
             }
         }
-        public static async Task<BibleBooks> GetBookAndChapterByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName, int ChapterNum)
+        public static async Task<BibleBook> GetBookAndChapterByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName, int ChapterNum)
         {
-            BibleBooks PBEBook = await context.BibleBooks
+            BibleBook PBEBook = await context.BibleBooks
                                                   .Where(B => B.BibleId == BibleId && B.Name.ToLower().Contains(BookName.ToLower()))
                                                   .SingleAsync();
             if (PBEBook == null) { return null; }
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List<QuizBookLists> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMap)
+            List<QuizBookList> BookLists = await context.QuizBookLists
+                                                .Include(L => L.QuizBookListBookMaps)
                                                 .Where(L => L.IsDeleted == false)
                                                 .ToListAsync();
 
@@ -64,44 +64,44 @@ namespace BiblePathsCore.Models.DB
             return PBEBook;
         }
 
-        public static async Task<BibleBooks> GetPBEBookAndChapterAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int ChapterNum)
+        public static async Task<BibleBook> GetPBEBookAndChapterAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int ChapterNum)
         {
-            BibleBooks PBEBook = await context.BibleBooks
+            BibleBook PBEBook = await context.BibleBooks
                                                   .Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber)
                                                   .SingleAsync();
             if (PBEBook == null) { return null; }
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List<QuizBookLists> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMap)
+            List<QuizBookList> BookLists = await context.QuizBookLists
+                                                .Include(L => L.QuizBookListBookMaps)
                                                 .Where(L => L.IsDeleted == false)
                                                 .ToListAsync();
 
             await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null, BookLists);
             return PBEBook;
         }
-        public static async Task<IList<BibleBooks>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId)
+        public static async Task<IList<BibleBook>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            IList<BibleBooks> PBEBooks = await context.BibleBooks
+            IList<BibleBook> PBEBooks = await context.BibleBooks
                                                   .Include(B => B.BibleChapters)
                                                   .Where(B => B.BibleId == BibleId)
                                                   .ToListAsync();
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
-            List<QuizQuestions> Questions = await context.QuizQuestions
+            List<QuizQuestion> Questions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List<QuizBookLists> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMap)
+            List<QuizBookList> BookLists = await context.QuizBookLists
+                                                .Include(L => L.QuizBookListBookMaps)
                                                 .Where(L => L.IsDeleted == false)
                                                 .ToListAsync();
 
-            foreach (BibleBooks Book in PBEBooks)
+            foreach (BibleBook Book in PBEBooks)
             {
                 await Book.AddPBEBookPropertiesAsync(context, null, Questions, BookLists);
             }
@@ -112,7 +112,7 @@ namespace BiblePathsCore.Models.DB
         {
 
             List<SelectListItem> BookSelectList = new List<SelectListItem>();
-            List<BibleBooks> Books = await context.BibleBooks
+            List<BibleBook> Books = await context.BibleBooks
                                       .Where(B => B.BibleId == BibleId)
                                       .ToListAsync();
 
@@ -123,7 +123,7 @@ namespace BiblePathsCore.Models.DB
                 Value = 0.ToString()
             });
 
-            foreach (BibleBooks Book in Books)
+            foreach (BibleBook Book in Books)
             {
                 BookSelectList.Add(new SelectListItem
                 {
@@ -139,12 +139,12 @@ namespace BiblePathsCore.Models.DB
 
             List<SelectListItem> BookSelectList = new List<SelectListItem>();
 
-            List<QuizBookLists> BookLists = await context.QuizBookLists
+            List<QuizBookList> BookLists = await context.QuizBookLists
                                                 .Where(L => L.IsDeleted == false)
                                                 .OrderByDescending(L => L.Created)
                                                 .ToListAsync();
 
-            List<BibleBooks> Books = await context.BibleBooks
+            List<BibleBook> Books = await context.BibleBooks
                                       .Where(B => B.BibleId == BibleId)
                                       .OrderBy(B => B.BookNumber)
                                       .ToListAsync();
@@ -157,7 +157,7 @@ namespace BiblePathsCore.Models.DB
             });
 
             // Add our BookLists first
-            foreach (QuizBookLists BookList in BookLists)
+            foreach (QuizBookList BookList in BookLists)
             {
                 BookSelectList.Add(new SelectListItem
                 {
@@ -166,7 +166,7 @@ namespace BiblePathsCore.Models.DB
                 });
             }
 
-            foreach (BibleBooks Book in Books)
+            foreach (BibleBook Book in Books)
             {
                 BookSelectList.Add(new SelectListItem
                 {
@@ -176,20 +176,20 @@ namespace BiblePathsCore.Models.DB
             }
             return BookSelectList;
         }
-        public static async Task<List<BibleBooks>> GetPBEBooksWithQuestionsAsync(BiblePathsCoreDbContext context, string BibleId)
+        public static async Task<List<BibleBook>> GetPBEBooksWithQuestionsAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            List<BibleBooks> ReturnBooks = new List<BibleBooks>();
-            List<BibleBooks> PBEBooks = await context.BibleBooks
+            List<BibleBook> ReturnBooks = new List<BibleBook>();
+            List<BibleBook> PBEBooks = await context.BibleBooks
                                                   .Where(B => B.BibleId == BibleId)
                                                   .ToListAsync();
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
-            List<QuizQuestions> Questions = await context.QuizQuestions
+            List<QuizQuestion> Questions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
-            foreach (BibleBooks Book in PBEBooks)
+            foreach (BibleBook Book in PBEBooks)
             {
                 Book.QuestionCount = Book.GetQuestionCount(Questions);
                 if (Book.QuestionCount > 0)
@@ -200,7 +200,7 @@ namespace BiblePathsCore.Models.DB
             return ReturnBooks;
         }
 
-        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum, List<QuizQuestions> Questions, List<QuizBookLists> BookLists)
+        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum, List<QuizQuestion> Questions, List<QuizBookList> BookLists)
         {
             if (Questions == null)
             {
@@ -222,9 +222,9 @@ namespace BiblePathsCore.Models.DB
             }
             if (ChapterNum.HasValue)
             {   
-                if (ChapterNum != Bibles.CommentaryChapter)
+                if (ChapterNum != Bible.CommentaryChapter)
                 {
-                    BibleChapters Chapter = await context.BibleChapters
+                    BibleChapter Chapter = await context.BibleChapters
                                         .Where(C => C.BibleId == BibleId && C.BookNumber == BookNumber && C.ChapterNumber == ChapterNum)
                                         .SingleAsync();
                     Chapter.AddPBEChapterProperties(Questions);
@@ -234,7 +234,7 @@ namespace BiblePathsCore.Models.DB
             else
             {
                 // Caller must have loaded Chapters
-                foreach (BibleChapters Chapter in BibleChapters)
+                foreach (BibleChapter Chapter in BibleChapters)
                 {
                     Chapter.AddPBEChapterProperties(Questions);
                 }
@@ -242,12 +242,12 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
-        public bool IsInBooklist(BiblePathsCoreDbContext context, List<QuizBookLists> BookLists)
+        public bool IsInBooklist(BiblePathsCoreDbContext context, List<QuizBookList> BookLists)
         {
             // We need to determine whether any of the non-deleted BookLists contains our Book.
-            foreach (QuizBookLists list in BookLists)
+            foreach (QuizBookList list in BookLists)
             {
-                if (list.QuizBookListBookMap.Where(B => B.BookNumber == BookNumber).Any())
+                if (list.QuizBookListBookMaps.Where(B => B.BookNumber == BookNumber).Any())
                 {
                     return true;
                 }
@@ -263,7 +263,7 @@ namespace BiblePathsCore.Models.DB
                              .AnyAsync();
         }
 
-        public int GetQuestionCount(List<QuizQuestions> Questions)
+        public int GetQuestionCount(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber 
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
@@ -271,7 +271,7 @@ namespace BiblePathsCore.Models.DB
                             .Count();
         }
 
-        public bool HasChallengedQuestion(List<QuizQuestions> Questions)
+        public bool HasChallengedQuestion(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
@@ -280,19 +280,19 @@ namespace BiblePathsCore.Models.DB
                             .Any();
         }
 
-        public int GetCommentaryQuestionCount(List<QuizQuestions> Questions)
+        public int GetCommentaryQuestionCount(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
-                                    && Q.Chapter == Bibles.CommentaryChapter
+                                    && Q.Chapter == Bible.CommentaryChapter
                                     && Q.IsDeleted == false)
                         .Count();
         }
-        public bool CommentaryHasChallengedQuestion(List<QuizQuestions> Questions)
+        public bool CommentaryHasChallengedQuestion(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
-                                    && Q.Chapter == Bibles.CommentaryChapter
+                                    && Q.Chapter == Bible.CommentaryChapter
                                     && Q.IsDeleted == false
                                     && Q.Challenged == true)
                         .Any();
@@ -300,7 +300,7 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultPBEBibleId;
+            string RetVal = Bible.DefaultPBEBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -333,7 +333,7 @@ namespace BiblePathsCore.Models.DB
         {
 
         }
-        public MinBook(BibleBooks Book)
+        public MinBook(BibleBook Book)
         {
             BibleId = Book.BibleId;
             Testament = Book.Testament;

@@ -22,7 +22,7 @@ namespace BiblePathsCore
             _context = context;
         }
         [BindProperty]
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         [BindProperty]
         public List<SelectListItem> BibleSelectList { get; set; }
@@ -75,7 +75,7 @@ namespace BiblePathsCore
             // Is this an attempt to change the name? If so check the name. 
             if (pathToUpdate.Name.ToLower() != Name.ToLower())
             {
-                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
                 }
@@ -89,7 +89,7 @@ namespace BiblePathsCore
 
             if (pathToUpdate.IsPublished)
             {
-                if (await TryUpdateModelAsync<Paths>(
+                if (await TryUpdateModelAsync<Path>(
                     pathToUpdate,
                      "Path",
                      p => p.OwnerBibleId, p => p.IsPublicEditable))
@@ -100,7 +100,7 @@ namespace BiblePathsCore
             }
             else
             {
-                if (await TryUpdateModelAsync<Paths>(
+                if (await TryUpdateModelAsync<Path>(
                         pathToUpdate,
                         "Path",
                         p => p.Name, p => p.OwnerBibleId, p => p.Topics, p => p.IsPublicEditable))
@@ -118,7 +118,7 @@ namespace BiblePathsCore
             // Is this an attempted name change... for reals? 
             if (Name.ToLower() != Path.Name.ToLower())
             {
-                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     return new JsonResult("Sorry, this Name is already in use.");
                 }

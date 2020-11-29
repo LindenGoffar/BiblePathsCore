@@ -23,8 +23,8 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public QuizGroupStats Quiz { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizGroupStat Quiz { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public void OnGet(int? id)
         {
@@ -51,7 +51,7 @@ namespace BiblePathsCore
 
             // confirm Quiz Owner
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (Quiz.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Quiz Owner may delete a Quiz" }); }
 
             // Let's track this event 

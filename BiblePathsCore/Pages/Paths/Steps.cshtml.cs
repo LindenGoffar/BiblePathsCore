@@ -25,12 +25,12 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public IList<PathNodes> PathNodes { get;set; }
-        public Paths Path { get; set; }
+        public IList<PathNode> PathNodes { get;set; }
+        public Path Path { get; set; }
         public bool IsPathReader { get; set; } // Path Reader scenario overrides most Owner/Editor capabilities
         public bool IsPathOwner { get; set; }
         public bool IsPathEditor { get; set; }
-        public Bibles Bible { get; set; }
+        public Bible Bible { get; set; }
         public List<SelectListItem> BibleSelectList { get; set; }
 
         [BindProperty(SupportsGet = true)]
@@ -72,7 +72,7 @@ namespace BiblePathsCore
             PathNodes = await _context.PathNodes
                 .Where(pn => pn.PathId == Path.Id).OrderBy(pn => pn.Position).ToListAsync();
             // Add our Bible Verse and fwd/back step Data to each node. 
-            foreach (PathNodes step in PathNodes)
+            foreach (PathNode step in PathNodes)
             {
                 _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
                 step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizBookLists
+    public partial class QuizBookList
     {
         public static async Task<bool> ListNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
         {
@@ -23,7 +23,7 @@ namespace BiblePathsCore.Models.DB
         // Book List Book Maps to allow for editing 
         public void PadBookListBookMapsForEdit()
         {
-            int MapCount = QuizBookListBookMap.Count;
+            int MapCount = QuizBookListBookMaps.Count;
             int MapsNeeded = 10 - MapCount;
             if (MapsNeeded > 0)
             {
@@ -31,7 +31,7 @@ namespace BiblePathsCore.Models.DB
                 {
                     Models.DB.QuizBookListBookMap BookMap = new QuizBookListBookMap();
                     BookMap.BookNumber = 0;
-                    QuizBookListBookMap.Add(BookMap);
+                    QuizBookListBookMaps.Add(BookMap);
                 }
             }
         }
@@ -44,7 +44,7 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> AddBookNameAsync(BiblePathsCoreDbContext context, string bibleId)
         {
             // Get BookName 
-            BookName = await BibleBooks.GetBookNameAsync(context, bibleId, BookNumber);
+            BookName = await BibleBook.GetBookNameAsync(context, bibleId, BookNumber);
             return true;
         }
     }
