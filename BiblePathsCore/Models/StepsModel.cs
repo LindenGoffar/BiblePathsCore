@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class PathNodes
+    public partial class PathNode
     {
         [NotMapped]
         public int FWStepId { get; set; }
@@ -16,7 +16,7 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int StepNumber { get; set; }
         [NotMapped]
-        public List<BibleVerses> Verses { get; set; }
+        public List<BibleVerse> Verses { get; set; }
         [NotMapped]
         public string BookName { get; set; }
         [NotMapped]
@@ -56,7 +56,7 @@ namespace BiblePathsCore.Models.DB
             // Get BWStepID
             try
             {
-                PathNodes Node = await context.PathNodes.Where(N => N.PathId == PathId && N.Position < Position).OrderByDescending(L => L.Position).FirstAsync();
+                PathNode Node = await context.PathNodes.Where(N => N.PathId == PathId && N.Position < Position).OrderByDescending(L => L.Position).FirstAsync();
                 BWStepId = Node.Id;
             }
             catch (InvalidOperationException) { BWStepId = 0;  }
@@ -64,7 +64,7 @@ namespace BiblePathsCore.Models.DB
             // Get FWStepID
             try
             {
-                PathNodes Node = await context.PathNodes.Where(N => N.PathId == PathId && N.Position > Position).OrderBy(L => L.Position).FirstAsync();
+                PathNode Node = await context.PathNodes.Where(N => N.PathId == PathId && N.Position > Position).OrderBy(L => L.Position).FirstAsync();
                 FWStepId = Node.Id;
             }
             catch (InvalidOperationException) { FWStepId = 0; }
@@ -75,7 +75,7 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> AddBookNameAsync(BiblePathsCoreDbContext context, string bibleId)
         {
             // Get BookName 
-            BibleBooks Book = await context.BibleBooks.Where(B => B.BibleId == bibleId && B.BookNumber == BookNumber).FirstAsync();
+            BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == bibleId && B.BookNumber == BookNumber).FirstAsync();
             BookName = Book.Name;
 
             return true;
@@ -85,7 +85,7 @@ namespace BiblePathsCore.Models.DB
         {
             try
             {
-                Paths path = await context.Paths.Where(p => p.Id == PathId).FirstAsync();
+                Path path = await context.Paths.Where(p => p.Id == PathId).FirstAsync();
                 PathName = path.Name;
                 PathStepCount = Path.StepCount;
             }
@@ -106,7 +106,7 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultBibleId;
+            string RetVal = Bible.DefaultBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -118,7 +118,7 @@ namespace BiblePathsCore.Models.DB
         }
         public async Task<bool> AddLegalNoteAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            Bibles Bible = await context.Bibles.FindAsync(BibleId);
+            Bible Bible = await context.Bibles.FindAsync(BibleId);
             Bible.HydrateBible();
             LegalNote = Bible.LegalNote;
             return true;
@@ -131,9 +131,9 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
-        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly, bool includeProximity)
+        public async Task<List<BibleVerse>> GetBibleVersesAsync(BiblePathsCoreDbContext context, string bibleId, bool inPathOnly, bool includeProximity)
         {
-            List<BibleVerses> bibleVerses = new List<BibleVerses>();
+            List<BibleVerse> bibleVerses = new List<BibleVerse>();
             // First retrieve all of the verses, 
             if (inPathOnly)
             {
@@ -145,7 +145,7 @@ namespace BiblePathsCore.Models.DB
             }
             if (includeProximity)
             {
-                foreach (BibleVerses verse in bibleVerses)
+                foreach (BibleVerse verse in bibleVerses)
                 {
                     verse.InPath = false; //default all verses to false
                     if (verse.Verse < StartVerse) { verse.Proximity = StartVerse - verse.Verse; }

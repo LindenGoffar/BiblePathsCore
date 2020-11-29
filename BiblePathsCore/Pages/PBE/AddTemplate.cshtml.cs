@@ -27,22 +27,22 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         [BindProperty]
-        public PredefinedQuizzes Template { get; set; }
+        public PredefinedQuiz Template { get; set; }
 
         [BindProperty] 
         public String BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); 
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); 
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz Template" }); }
           
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            ViewData["BookSelectList"] = await BibleBooks.GetBookAndBookListSelectListAsync(_context, BibleId);
-            ViewData["CountSelectList"] = PredefinedQuizzes.GetCountSelectList();
+            ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
+            ViewData["CountSelectList"] = PredefinedQuiz.GetCountSelectList();
             return Page();
         }
 
@@ -52,24 +52,24 @@ namespace BiblePathsCore.Pages.PBE
         {
             if (!ModelState.IsValid)
             {
-                ViewData["BookSelectList"] = await BibleBooks.GetBookAndBookListSelectListAsync(_context, BibleId);
+                ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
                 return Page();
             }
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz Template" }); }
 
             // Now let's create an empty template
-            var emptyTemplate = new PredefinedQuizzes
+            var emptyTemplate = new PredefinedQuiz
             {
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
                 QuizUser = PBEUser
                 
             };
-            if (await TryUpdateModelAsync<PredefinedQuizzes>(
+            if (await TryUpdateModelAsync<PredefinedQuiz>(
                 emptyTemplate,
                 "Template",   // Prefix for form value.
                 t => t.QuizName, t => t.BookNumber, t => t.NumQuestions))

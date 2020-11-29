@@ -24,18 +24,18 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
 
-        public List<PredefinedQuizzes> Templates { get;set; }
-        public List<QuizBookLists> BookLists { get; set; }
-        public List<QuizGroupStats> Quizzes { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public List<PredefinedQuiz> Templates { get;set; }
+        public List<QuizBookList> BookLists { get; set; }
+        public List<QuizGroupStat> Quizzes { get; set; }
+        public QuizUser PBEUser { get; set; }
         public string BibleId { get; set; }
         public string UserMessage { get; set;  }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, string Message)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
                                                     .ToListAsync();
@@ -50,7 +50,7 @@ namespace BiblePathsCore.Pages.PBE
                                                    .ToListAsync();
 
             // Populate Quiz Info 
-            foreach (QuizGroupStats quiz in Quizzes)
+            foreach (QuizGroupStat quiz in Quizzes)
             {
                 _ = await quiz.AddQuizPropertiesAsync(_context, this.BibleId);
             }

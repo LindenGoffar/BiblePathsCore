@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizUsers
+    public partial class QuizUser
     {
-        public static async Task<QuizUsers> GetOrAddPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
+        public static async Task<QuizUser> GetOrAddPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
         {
             // First we'll try to find the user in the DB.
-            QuizUsers ReturnUser = new QuizUsers();
+            QuizUser ReturnUser = new QuizUser();
             try
             {
                 ReturnUser = await context.QuizUsers.Where(U => U.Email == LoggedOnUserName).SingleAsync();
@@ -29,10 +29,10 @@ namespace BiblePathsCore.Models.DB
             return ReturnUser;
         }
 
-        public static async Task<QuizUsers> GetPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
+        public static async Task<QuizUser> GetPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
         {
             // First we'll try to find the user in the DB.
-            QuizUsers ReturnUser = new QuizUsers();
+            QuizUser ReturnUser = new QuizUser();
             try
             {
                 ReturnUser = await context.QuizUsers.Where(U => U.Email == LoggedOnUserName).SingleAsync();
@@ -61,11 +61,11 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> CheckAPITokenAsync(BiblePathsCoreDbContext context, string Token)
         {
             // Find the most recent token for this user
-            QuizQuestionStats TokenStat = new QuizQuestionStats();
+            QuizQuestionStat TokenStat = new QuizQuestionStat();
             try
             {
                 TokenStat = await context.QuizQuestionStats.Where(T => T.QuizUserId == this.Id
-                                                                    && T.EventType == (int)QuizQuestions.QuestionEventType.QuestionAPIToken)
+                                                                    && T.EventType == (int)QuizQuestion.QuestionEventType.QuestionAPIToken)
                                                                  .OrderByDescending(T => T.EventWritten).Take(1).SingleAsync();
             }
             catch
@@ -89,11 +89,11 @@ namespace BiblePathsCore.Models.DB
         {
             string TokenString = "No API Token Found";
             // Find the most recent token for this user
-            QuizQuestionStats TokenStat = new QuizQuestionStats();
+            QuizQuestionStat TokenStat = new QuizQuestionStat();
             try
             {
                 TokenStat = await context.QuizQuestionStats.Where(T => T.QuizUserId == this.Id
-                                                                    && T.EventType == (int)QuizQuestions.QuestionEventType.QuestionAPIToken)
+                                                                    && T.EventType == (int)QuizQuestion.QuestionEventType.QuestionAPIToken)
                                                                  .OrderByDescending(T => T.EventWritten).Take(1).SingleAsync();
             }
             catch 
@@ -123,8 +123,8 @@ namespace BiblePathsCore.Models.DB
             try
             {
                 // Tokens are stored on Question Stat objects so we need to grab an dummy question, any will work.
-                QuizQuestions DummyQuestion = await context.QuizQuestions.Take(1).FirstAsync();
-                if (await DummyQuestion.RegisterEventAsync(context, QuizQuestions.QuestionEventType.QuestionAPIToken, this.Id, TokenString, null, null))
+                QuizQuestion DummyQuestion = await context.QuizQuestions.Take(1).FirstAsync();
+                if (await DummyQuestion.RegisterEventAsync(context, QuizQuestion.QuestionEventType.QuestionAPIToken, this.Id, TokenString, null, null))
                 {
                     returnString = TokenString;
                 }

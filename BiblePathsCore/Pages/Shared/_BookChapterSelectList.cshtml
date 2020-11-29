@@ -109,7 +109,7 @@
                         @if (Model.IsPBE && book.HasCommentary == true)
                         {
                             // No switch should be necessary as long as TargetPage has identical signature.
-                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
                                 SDA Bible Commentary
                                 @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
                                 {<span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>}
@@ -230,7 +230,7 @@
                         @if (Model.IsPBE && book.HasCommentary == true)
                         {
                             // No switch should be necessary as long as TargetPage has identical signature.
-                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bibles.CommentaryChapter">
+                            <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
                                 SDA Bible Commentary
                                 @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
                                 {

@@ -19,8 +19,8 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public IList<BibleVerses> BibleVerses { get;set; }
-        public Paths Path { get; set; }
+        public IList<BibleVerse> BibleVerses { get;set; }
+        public Path Path { get; set; }
         public bool NoResults { get; set; }
         public string BibleId { get; set;  }
         public int StepPosition { get; set; }

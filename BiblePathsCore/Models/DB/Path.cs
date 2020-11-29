@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class Paths
+    public partial class Path
     {
-        public Paths()
+        public Path()
         {
-            PathNodes = new HashSet<PathNodes>();
-            PathStats = new HashSet<PathStats>();
+            GameGroups = new HashSet<GameGroup>();
+            PathNodes = new HashSet<PathNode>();
+            PathStats = new HashSet<PathStat>();
         }
 
         public int Id { get; set; }
@@ -26,7 +29,8 @@ namespace BiblePathsCore.Models.DB
         public int StepCount { get; set; }
         public int Reads { get; set; }
 
-        public virtual ICollection<PathNodes> PathNodes { get; set; }
-        public virtual ICollection<PathStats> PathStats { get; set; }
+        public virtual ICollection<GameGroup> GameGroups { get; set; }
+        public virtual ICollection<PathNode> PathNodes { get; set; }
+        public virtual ICollection<PathStat> PathStats { get; set; }
     }
 }

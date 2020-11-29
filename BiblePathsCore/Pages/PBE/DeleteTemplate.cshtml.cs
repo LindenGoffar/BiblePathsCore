@@ -23,8 +23,8 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public PredefinedQuizzes Template { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public PredefinedQuiz Template { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public void OnGet(int? id)
         {
@@ -52,11 +52,11 @@ namespace BiblePathsCore
 
             // confirm Template Owner
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (Template.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Template Owner may delete a Template" }); }
 
             // First we need to iterate through each Step and delete them one by one, steps are a leaf node so this should be OK.
-            foreach (PredefinedQuizQuestions Question in Template.PredefinedQuizQuestions)
+            foreach (PredefinedQuizQuestion Question in Template.PredefinedQuizQuestions)
             {
                 _context.PredefinedQuizQuestions.Remove(Question);
             }

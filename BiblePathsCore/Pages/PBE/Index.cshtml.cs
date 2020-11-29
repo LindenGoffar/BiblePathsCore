@@ -24,17 +24,17 @@ namespace BiblePathsCore.Pages.PBE
             _logger = logger;
         }
         public string BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
-            PBEUser = new QuizUsers();
+            PBEUser = new QuizUser();
             if (User.Identity.IsAuthenticated)
             {
                 IdentityUser user = await _userManager.GetUserAsync(User);
-                PBEUser = await QuizUsers.GetPBEUserAsync(_context, user.Email);
+                PBEUser = await QuizUser.GetPBEUserAsync(_context, user.Email);
             }
-            BibleId = Bibles.DefaultPBEBibleId;
+            BibleId = Bible.DefaultPBEBibleId;
             return Page();
         }
     }

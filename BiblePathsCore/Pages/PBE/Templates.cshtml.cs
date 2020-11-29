@@ -24,16 +24,16 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
 
-        public List<PredefinedQuizzes> Templates { get;set; }
-        public QuizUsers PBEUser { get; set; }
+        public List<PredefinedQuiz> Templates { get;set; }
+        public QuizUser PBEUser { get; set; }
         public string BibleId { get; set; }
         public string UserMessage { get; set;  }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, string Message)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             Templates = await _context.PredefinedQuizzes.Include(T => T.PredefinedQuizQuestions)
                                                     .Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)

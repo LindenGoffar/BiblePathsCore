@@ -23,7 +23,7 @@ namespace BiblePathsCore
         [BindProperty(SupportsGet = true)]
         public string SearchString { get; set; }
         public SortBy OrderedBy { get; set; }
-        public IList<Paths> Paths { get;set; }
+        public IList<Path> Paths { get;set; }
 
         public async Task OnGetAsync(SortBy SortOrder = SortBy.HighestRated)
         {
@@ -65,7 +65,7 @@ namespace BiblePathsCore
 
             Paths = await paths.ToListAsync();
 
-            foreach (Paths Path in Paths)
+            foreach (Path Path in Paths)
             {
                 _ = await Path.AddCalculatedPropertiesAsync(_context);
             }

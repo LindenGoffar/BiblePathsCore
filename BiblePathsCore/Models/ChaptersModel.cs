@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class BibleChapters
+    public partial class BibleChapter
     {
 
         [NotMapped]
@@ -18,15 +18,15 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public bool HasChallenge { get; set; }
 
-        public bool AddPBEChapterProperties(List<QuizQuestions> Questions)
+        public bool AddPBEChapterProperties(List<QuizQuestion> Questions)
         {
             QuestionCount = GetQuestionCount(Questions);
             HasChallenge = HasChallengedQuestion(Questions);
-            IsCommentary = (ChapterNumber == Bibles.CommentaryChapter);
+            IsCommentary = (ChapterNumber == Bible.CommentaryChapter);
             return true;
         }
 
-        public int GetQuestionCount(List<QuizQuestions> Questions)
+        public int GetQuestionCount(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber 
                                 && Q.Chapter == ChapterNumber 
@@ -35,7 +35,7 @@ namespace BiblePathsCore.Models.DB
                         .Count();
         }
 
-        public bool HasChallengedQuestion(List<QuizQuestions> Questions)
+        public bool HasChallengedQuestion(List<QuizQuestion> Questions)
         {
             return Questions.Where(Q => Q.BookNumber == BookNumber
                                     && Q.Chapter == ChapterNumber
@@ -47,7 +47,7 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultPBEBibleId;
+            string RetVal = Bible.DefaultPBEBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())

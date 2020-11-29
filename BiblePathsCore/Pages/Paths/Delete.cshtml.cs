@@ -23,7 +23,7 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         public void OnGet(int? id)
         {
@@ -65,7 +65,7 @@ namespace BiblePathsCore
             if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner may delete a Path" }); }
 
             // First we need to iterate through each Step and delete them one by one, steps are a leaf node so this should be OK.
-            foreach (PathNodes step in Path.PathNodes)
+            foreach (PathNode step in Path.PathNodes)
             {
                 _context.PathNodes.Remove(step);
             }

@@ -19,7 +19,7 @@ namespace BiblePathsCore
         }
 
         public string Name { get; set; }
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
         public async Task<IActionResult> OnGetAsync(string name)
         {
             try

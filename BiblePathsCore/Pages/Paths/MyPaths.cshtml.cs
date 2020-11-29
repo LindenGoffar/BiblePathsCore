@@ -24,7 +24,7 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public IList<Paths> Paths { get;set; }
+        public IList<Path> Paths { get;set; }
 
         public async Task OnGetAsync()
         {

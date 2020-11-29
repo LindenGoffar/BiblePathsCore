@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizAnswers
+    public partial class QuizAnswer
     {
         public int Id { get; set; }
         public int? QuestionId { get; set; }
@@ -12,6 +14,6 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Modified { get; set; }
 
-        public virtual QuizQuestions Question { get; set; }
+        public virtual QuizQuestion Question { get; set; }
     }
 }

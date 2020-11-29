@@ -23,8 +23,8 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public PathNodes Step { get; set; }
-        public Paths Path { get; set; }
+        public PathNode Step { get; set; }
+        public Path Path { get; set; }
 
         public void OnGet(int? id)
         {

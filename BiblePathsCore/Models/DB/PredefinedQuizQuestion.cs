@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class PredefinedQuizQuestions
+    public partial class PredefinedQuizQuestion
     {
         public int Id { get; set; }
         public int? PredefinedQuizId { get; set; }
@@ -11,6 +13,6 @@ namespace BiblePathsCore.Models.DB
         public int BookNumber { get; set; }
         public int Chapter { get; set; }
 
-        public virtual PredefinedQuizzes PredefinedQuiz { get; set; }
+        public virtual PredefinedQuiz PredefinedQuiz { get; set; }
     }
 }

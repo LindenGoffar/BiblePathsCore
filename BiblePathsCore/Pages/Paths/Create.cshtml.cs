@@ -34,7 +34,7 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         [PageRemote(
             ErrorMessage = "Sorry, this Name is not valid, ",
@@ -54,7 +54,7 @@ namespace BiblePathsCore
 
             Path.Name = Name;
 
-            if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+            if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
             {
                 ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
             }
@@ -64,11 +64,11 @@ namespace BiblePathsCore
                 return Page();
             }
 
-            var emptyPath = new Paths();
+            var emptyPath = new Path();
             var user = await _userManager.GetUserAsync(User);
             emptyPath.SetInitialProperties(user.Email);
 
-            if (await TryUpdateModelAsync<Paths>(
+            if (await TryUpdateModelAsync<Path>(
                 emptyPath,
                 "Path",   // Prefix for form value.
                 p => p.IsPublicEditable, p => p.OwnerBibleId))
@@ -85,7 +85,7 @@ namespace BiblePathsCore
 
         public async Task<JsonResult> OnPostCheckNameAsync()
         {
-            if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+            if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
             {
                 return new JsonResult("Sorry, this Name is already in use.");
             }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizQuestions
+    public partial class QuizQuestion
     {
         public enum QuestionEventType { CorrectAnswer, WrongAnswer, QuestionAdd, QuestionPointsAwarded, QuestionAPIToken }
 
@@ -29,13 +29,13 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int PointsAwarded { get; set; }
         [NotMapped]
-        public List<BibleVerses> Verses { get; set; }
+        public List<BibleVerse> Verses { get; set; }
         [NotMapped]
         public string LegalNote { get; set; }
 
-        public void PopulatePBEQuestionInfo(BibleBooks PBEBook)
+        public void PopulatePBEQuestionInfo(BibleBook PBEBook)
         {
-            if (Chapter == Bibles.CommentaryChapter)
+            if (Chapter == Bible.CommentaryChapter)
             {
                 IsCommentaryQuestion = true;
                 BookName = PBEBook.CommentaryTitle;
@@ -48,7 +48,7 @@ namespace BiblePathsCore.Models.DB
             PBEQuestion = GetPBEQuestionText();
 
             // BibleId may not be set on every question, particularly old ones, so default it.
-            if (BibleId == null) { BibleId = Bibles.DefaultPBEBibleId; }
+            if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
 
             TimeLimit = (Points * 5) + 20;
         }
@@ -62,7 +62,7 @@ namespace BiblePathsCore.Models.DB
             return LegalNote;
         }
 
-        public void CheckUserCanEdit(QuizUsers PBEUser)
+        public void CheckUserCanEdit(QuizUser PBEUser)
         {
             UserCanEdit =  (Owner == PBEUser.Email || PBEUser.IsModerator);
         }
@@ -86,19 +86,19 @@ namespace BiblePathsCore.Models.DB
             return tempstring;
         }
 
-        public async Task<List<BibleVerses>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
+        public async Task<List<BibleVerse>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
         {
-            List<BibleVerses> bibleVerses = new List<BibleVerses>();
+            List<BibleVerse> bibleVerses = new List<BibleVerse>();
             // Go grab all of the questions for this Chapter once
             // So we can count them as we iterate through each verse
-            List<QuizQuestions> Questions = await context.QuizQuestions
+            List<QuizQuestion> Questions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.BookNumber == BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
-            if (Chapter != Bibles.CommentaryChapter)
+            if (Chapter != Bible.CommentaryChapter)
             {
                 // First retrieve all of the verses, 
                 if (inQuestionOnly)
@@ -109,17 +109,17 @@ namespace BiblePathsCore.Models.DB
                 {
                     bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
                 }
-                foreach (BibleVerses verse in bibleVerses)
+                foreach (BibleVerse verse in bibleVerses)
                 {
                     verse.QuestionCount = verse.GetQuestionCountWithQuestionList (Questions);
                 }
             }
             else // COMMENTARY SCENARIO:
             {
-                CommentaryBooks commentary = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                CommentaryBook commentary = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
                                                                             && c.BookNumber == BookNumber)
                                                                           .FirstAsync();
-                BibleVerses CommentaryVerse = new BibleVerses
+                BibleVerse CommentaryVerse = new BibleVerse
                 {
                     BibleId = BibleId,
                     BookName = BookName,
@@ -170,7 +170,7 @@ namespace BiblePathsCore.Models.DB
 
         public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultPBEBibleId;
+            string RetVal = Bible.DefaultPBEBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -183,7 +183,7 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<bool> RegisterEventAsync(BiblePathsCoreDbContext context, QuestionEventType questionEventType, int QuizUserId, string EventData, int? QuizId, int? Points)
         {
-            QuizQuestionStats stat = new QuizQuestionStats
+            QuizQuestionStat stat = new QuizQuestionStat
             {
                 QuestionId = Id,
                 QuizUserId = QuizUserId,
@@ -232,7 +232,7 @@ namespace BiblePathsCore.Models.DB
         {
             // Parameterless constructor required for Post Action. 
         }
-        public MinQuestion(QuizQuestions quizQuestion)
+        public MinQuestion(QuizQuestion quizQuestion)
         {
             Id = quizQuestion.Id;
             Question = quizQuestion.Question;
@@ -252,7 +252,7 @@ namespace BiblePathsCore.Models.DB
             IsCommentaryQuestion = quizQuestion.IsCommentaryQuestion;
 
             Answers = new List<string>();
-            foreach(QuizAnswers Answer in quizQuestion.QuizAnswers)
+            foreach(QuizAnswer Answer in quizQuestion.QuizAnswers)
             {
                 Answers.Add(Answer.Answer);
             }
@@ -261,13 +261,13 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> APIUserTokenCheckAsync(BiblePathsCoreDbContext context)
         {
             // Do we have a valid Owner value:
-            if (await QuizUsers.IsValidPBEUserAsync(context, this.Owner) == false)
+            if (await QuizUser.IsValidPBEUserAsync(context, this.Owner) == false)
             {
                 return false;
             }
             else
             {
-                QuizUsers PBEUser = await QuizUsers.GetPBEUserAsync(context, this.Owner); // Static method not requiring an instance
+                QuizUser PBEUser = await QuizUser.GetPBEUserAsync(context, this.Owner); // Static method not requiring an instance
                 if (PBEUser.IsQuestionBuilderLocked) { return false; }
                 if (await PBEUser.CheckAPITokenAsync(context, this.Token) == true)
                 {
