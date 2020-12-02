@@ -4,8 +4,15 @@ Description: Create individual or all BiblePaths Core tables.
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
-ALTER TABLE QuizQuestions
-		ADD BibleID nvarchar(64) FOREIGN KEY References Bibles(ID)
+
+ALTER TABLE BibleNoiseWords
+		ADD	Occurs int NOT NULL
+
+ALTER TABLE BibleNoiseWords
+		ADD	isNoise BIT NOT NULL DEFAULT 0
+
+ALTER TABLE BibleNoiseWords
+		ADD	WordType int NOT NULL
 
 UPDATE dbo.QuizQuestions
 SET BibleID = 'NKJV-EN'
@@ -26,6 +33,7 @@ Param(  #[switch] $SetupSecurity,
         [switch] $CreateQuizTables,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
+		[switch] $CreateGameTables,
 		[switch] $LocalDB
         #[switch] $ProductionDB,
         #[switch] $StagingDB
@@ -113,7 +121,10 @@ If ($CreateBibleNoiseWordsTable){
 		(
 			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
 			NoiseWord nvarchar(32) NOT NULL,
-			CONSTRAINT pk_NoiseWordID PRIMARY KEY (BibleID,NoiseWord)
+			CONSTRAINT pk_NoiseWordID PRIMARY KEY (BibleID,NoiseWord),
+			Occurs int NOT NULL,
+			isNoise BIT NOT NULL DEFAULT 0,
+			WordType int NOT NULL
         )
 "@
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleNoiseWordsTableQuery -Username $User -Password $Password
@@ -372,5 +383,40 @@ If ($CreatePreDefinedQuizTables){
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizTableQuery -Username $User -Password $Password
 	Write-Host "Creating Predefined Quiz Question Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizQuestionsTableQuery -Username $User -Password $Password
+}
+
+If ($CreateGameTables){
+	$CreateGameGroupsTableQuery = @"
+		CREATE TABLE GameGroups
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			Name nvarchar(256),
+			Owner nvarchar(256),
+			PathID int FOREIGN KEY References Paths(ID),
+			GroupType int NOT NULL,
+			GroupState int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	$CreateGameTeamsTableQuery = @"
+		CREATE TABLE GameTeams
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			GroupID int FOREIGN KEY References GameGroups(ID),
+			Name nvarchar(256), 
+			CurrentStepID int NOT NULL,
+			TeamType int NOT NULL,
+			BoardState int NOT NULL,
+			KeyWord nvarchar(256), 
+			GuideWord nvarchar(256), 
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	Write-Host "Creating GameGroups Quiz Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameGroupsTableQuery -Username $User -Password $Password
+	Write-Host "Creating GameTeams Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameTeamsTableQuery -Username $User -Password $Password
 
 }

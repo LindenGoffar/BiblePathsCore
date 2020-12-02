@@ -27,7 +27,7 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public PathNodes Step { get; set; }
+        public PathNode Step { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string BibleId { get; set; }
@@ -38,7 +38,7 @@ namespace BiblePathsCore
         public async Task<IActionResult> OnGetAsync(int? id, string BibleId, int? BookNumber, int? Chapter, int? Verse)
         {
             bool hasValidStepId = false;
-            Step = new PathNodes();
+            Step = new PathNode();
             int StepBookNumber = 0;
             int StepChapter = 0; 
 
@@ -99,7 +99,7 @@ namespace BiblePathsCore
             { 
                 PageTitle = Step.BookName + " " + Step.Chapter; 
                 // Add related path info
-                foreach(BibleVerses verse in Step.Verses)
+                foreach(BibleVerse verse in Step.Verses)
                 {
                     _ = await verse.GetRelatedPathsAsync(_context);
                 }

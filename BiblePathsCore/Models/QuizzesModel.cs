@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class QuizGroupStats
+    public partial class QuizGroupStat
     {
         [NotMapped]
         public string BookOrTemplateName { get; set; }
@@ -42,13 +42,13 @@ namespace BiblePathsCore.Models.DB
             // a Book or Booklist name. 
             if(PredefinedQuiz > 0) // Template Scenario
             {
-                PredefinedQuizzes Template = await context.PredefinedQuizzes.FindAsync(PredefinedQuiz);
+                PredefinedQuiz Template = await context.PredefinedQuizzes.FindAsync(PredefinedQuiz);
                 if (Template != null){ BookOrTemplateName = Template.QuizName; }
                 else { BookOrTemplateName = "Unknown";  }
             }
             else
             {
-                BookOrTemplateName = await BibleBooks.GetBookorBookListNameAsync(context, bibleId, BookNumber);
+                BookOrTemplateName = await BibleBook.GetBookorBookListNameAsync(context, bibleId, BookNumber);
             }
             QuestionNumber = QuestionsAsked + 1;
             CalculateQuizStats();
@@ -61,13 +61,13 @@ namespace BiblePathsCore.Models.DB
 
             List<QuizBookStats> bookStats = new List<QuizBookStats>();
             // We need to retrieve all QuizQuestionStat Objects for this Quiz. 
-            List<QuizQuestionStats> QuestionStats = await context.QuizQuestionStats.Where(S => S.QuizGroupId == Id &&
-                                                                                         S.EventType == (int)QuizQuestions.QuestionEventType.QuestionPointsAwarded)
+            List<QuizQuestionStat> QuestionStats = await context.QuizQuestionStats.Where(S => S.QuizGroupId == Id &&
+                                                                                         S.EventType == (int)QuizQuestion.QuestionEventType.QuestionPointsAwarded)
                                                                                     .ToListAsync();
             // Then we can iterate across each Question. 
-            foreach (QuizQuestionStats Stat in QuestionStats)
+            foreach (QuizQuestionStat Stat in QuestionStats)
             {
-                QuizQuestions Question = await context.QuizQuestions.FindAsync(Stat.QuestionId);
+                QuizQuestion Question = await context.QuizQuestions.FindAsync(Stat.QuestionId);
                 if (Question == null)
                 {
                     // That's problematic and will mess up our stats but nothing we can do about it now. 
@@ -83,7 +83,7 @@ namespace BiblePathsCore.Models.DB
                     {
                         // Need to add a new bookStat to this quiz Object. 
                         bookStat.BookNumber = Question.BookNumber;
-                        bookStat.BookName = await BibleBooks.GetBookNameAsync(context, bibleId, Question.BookNumber);
+                        bookStat.BookName = await BibleBook.GetBookNameAsync(context, bibleId, Question.BookNumber);
                         bookStat.ChapterStats = new List<QuizChapterStats>();
                         bookStats.Add(bookStat);
                     }
@@ -95,9 +95,9 @@ namespace BiblePathsCore.Models.DB
             return retval;
         }
 
-        public async Task<QuizQuestions> GetNextQuizQuestionAsync(BiblePathsCoreDbContext context, string bibleId)
+        public async Task<QuizQuestion> GetNextQuizQuestionAsync(BiblePathsCoreDbContext context, string bibleId)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions
+            QuizQuestion ReturnQuestion = new QuizQuestion
             {
                 QuestionSelected = false
             };
@@ -110,14 +110,14 @@ namespace BiblePathsCore.Models.DB
             }
 
             // BookList Scenario
-            if (BookNumber >= Bibles.MinBookListID)
+            if (BookNumber >= Bible.MinBookListID)
             {
                 ReturnQuestion = await GetNextQuizQuestionFromBookListAsync(context, bibleId, BookNumber);
                 return ReturnQuestion;
             }
             
             // Book Scenario
-            if (BookNumber > 0 && BookNumber < Bibles.MinBookListID)
+            if (BookNumber > 0 && BookNumber < Bible.MinBookListID)
             {
                 ReturnQuestion = await GetNextQuizQuestionFromBookAsync(context, bibleId, BookNumber);
                 return ReturnQuestion;
@@ -126,10 +126,10 @@ namespace BiblePathsCore.Models.DB
             return ReturnQuestion;
         }
 
-        public async Task<QuizQuestions> GetNextQuizQuestionFromTemplateAsync(BiblePathsCoreDbContext context, string bibleId)
+        public async Task<QuizQuestion> GetNextQuizQuestionFromTemplateAsync(BiblePathsCoreDbContext context, string bibleId)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions();
-            PredefinedQuizzes Template = new PredefinedQuizzes();
+            QuizQuestion ReturnQuestion = new QuizQuestion();
+            PredefinedQuiz Template = new PredefinedQuiz();
             try
             {
                 Template = await context.PredefinedQuizzes.Include(T => T.PredefinedQuizQuestions).Where(T => T.Id == PredefinedQuiz).FirstAsync();
@@ -150,7 +150,7 @@ namespace BiblePathsCore.Models.DB
                 if (TemplateQuestionNumber == 0) { TemplateQuestionNumber = Template.NumQuestions; }
             }
             // It is actually OK to not find a Question Object, we just treat that as the random book scenario.
-            PredefinedQuizQuestions TemplateQuestion = new PredefinedQuizQuestions();
+            PredefinedQuizQuestion TemplateQuestion = new PredefinedQuizQuestion();
             try
             {
                 TemplateQuestion = Template.PredefinedQuizQuestions.Where(Q => Q.QuestionNumber == TemplateQuestionNumber).First();
@@ -158,7 +158,7 @@ namespace BiblePathsCore.Models.DB
             catch
             {
                 // This is the more common pick a random Book Scenario.
-                if (Template.BookNumber >= Bibles.MinBookListID)
+                if (Template.BookNumber >= Bible.MinBookListID)
                 {
                     // This is the BookList Scenario
                     return await GetNextQuizQuestionFromBookListAsync(context, bibleId, Template.BookNumber);
@@ -171,7 +171,7 @@ namespace BiblePathsCore.Models.DB
             }
             if (TemplateQuestion.BookNumber == 0 ){                
                 // This is the pick a random Book Scenario, we're unlikely to hit this, more often the question object won't exist at all.
-                if (Template.BookNumber >= Bibles.MinBookListID)
+                if (Template.BookNumber >= Bible.MinBookListID)
                 {
                     // This is the BookList Scenario
                     return await GetNextQuizQuestionFromBookListAsync(context, bibleId, Template.BookNumber);
@@ -198,14 +198,14 @@ namespace BiblePathsCore.Models.DB
             }
         }
 
-        public async Task<QuizQuestions> GetNextQuizQuestionFromBookListAsync(BiblePathsCoreDbContext context, string bibleId, int BookListId)
+        public async Task<QuizQuestion> GetNextQuizQuestionFromBookListAsync(BiblePathsCoreDbContext context, string bibleId, int BookListId)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions();
-            QuizBookLists BookList = new QuizBookLists();
+            QuizQuestion ReturnQuestion = new QuizQuestion();
+            QuizBookList BookList = new QuizBookList();
             int SelectedBookNumber = 0;
             try
             {
-                BookList = await context.QuizBookLists.Include(L => L.QuizBookListBookMap).Where(L => L.Id == BookListId).FirstAsync();
+                BookList = await context.QuizBookLists.Include(L => L.QuizBookListBookMaps).Where(L => L.Id == BookListId).FirstAsync();
             }
             catch
             {
@@ -215,19 +215,19 @@ namespace BiblePathsCore.Models.DB
             }
             // Ok we've got our BookList Now... so which Book? 
             Random rand = new Random();
-            if (BookList.QuizBookListBookMap.Count > 0)
+            if (BookList.QuizBookListBookMaps.Count > 0)
             {
-                List<QuizBookListBookMap> Books = BookList.QuizBookListBookMap.ToList();
-                int BIndex = rand.Next(0, BookList.QuizBookListBookMap.Count); // Rand will return an int >= 0 and < bookMaps.Count, which works with a zero based array right?
+                List<QuizBookListBookMap> Books = BookList.QuizBookListBookMaps.ToList();
+                int BIndex = rand.Next(0, BookList.QuizBookListBookMaps.Count); // Rand will return an int >= 0 and < bookMaps.Count, which works with a zero based array right?
                 SelectedBookNumber = Books[BIndex].BookNumber;
             }
             return await GetNextQuizQuestionFromBookAsync(context, bibleId, SelectedBookNumber);
         }
 
-        public async Task<QuizQuestions> GetNextQuizQuestionFromBookAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
+        public async Task<QuizQuestion> GetNextQuizQuestionFromBookAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions();
-            BibleBooks Book = new BibleBooks();
+            QuizQuestion ReturnQuestion = new QuizQuestion();
+            BibleBook Book = new BibleBook();
             int SelectedChapter = 0; 
             try
             {
@@ -255,10 +255,10 @@ namespace BiblePathsCore.Models.DB
 
             return await GetNextQuizQuestionFromBookAndChapterAsync(context, bibleId, BookNumber, SelectedChapter);
         }
-        public async Task<QuizQuestions> GetNextQuizQuestionFromBookAndChapterAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber, int Chapter)
+        public async Task<QuizQuestion> GetNextQuizQuestionFromBookAndChapterAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber, int Chapter)
         {
-            QuizQuestions ReturnQuestion = new QuizQuestions();
-            List<QuizQuestions> PossibleQuestions = new List<QuizQuestions>();
+            QuizQuestion ReturnQuestion = new QuizQuestion();
+            List<QuizQuestion> PossibleQuestions = new List<QuizQuestion>();
             try
             {
                 // We now query for 5 questions in the selected chapter ordered by longest time since asked, we want to avoid re-asking questions in a short period of time. 
@@ -316,7 +316,7 @@ namespace BiblePathsCore.Models.DB
             Percentage = 0;
         }
 
-        public void AddQuestionToBookStat(QuizQuestionStats stat, QuizQuestions question)
+        public void AddQuestionToBookStat(QuizQuestionStat stat, QuizQuestion question)
         {
             QuizChapterStats chapterStat = new QuizChapterStats();
             try
@@ -364,7 +364,7 @@ namespace BiblePathsCore.Models.DB
             Percentage = 0;
         }
 
-        public void AddQuestionToChapterStat(QuizQuestionStats stat, QuizQuestions question)
+        public void AddQuestionToChapterStat(QuizQuestionStat stat, QuizQuestion question)
         {
             QuestionsAsked++;
             if (stat.Points.HasValue) { PointsAwarded += stat.Points.Value; }

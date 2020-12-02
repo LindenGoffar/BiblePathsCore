@@ -1,0 +1,67 @@
+﻿@page
+@model BiblePathsCore.Pages.Play.AddGroupModel
+
+@{
+    ViewData["Title"] = "Add Game Group";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Name</span>
+                    </div>
+                    <input asp-for="Group.Name" class="form-control" />
+                    <span asp-validation-for="Group.Name" class="text-danger"></span>
+                </div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Bible Path</span>
+                    </div>
+                    <select asp-for="Group.PathId" asp-items="ViewBag.PathSelectList" class="form-control"></select>
+                </div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Team #1</span>
+                    </div>
+                    <input asp-for="Teams[0].Name" class="form-control" id="Name-0">
+                </div>
+                @for (var i = 1; i <= 9; i++)
+                {
+                    <div id="AddName-@i" class="hide-on-start">
+                        <div class="form-group input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Team #@i</span>
+                            </div>
+                            <input asp-for="Teams[i].Name" class="form-control" id="Name-@i">
+                        </div>
+                    </div>
+                }
+                <div id="AddAnotherButton">
+                    <a href="#" onclick="AddAnother()">Add Another Team</a>
+                </div>
+
+                <div class="form-group input-group">
+                    <input type="submit" value="Add Quiz Template" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_AddEditMultiple-Name" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

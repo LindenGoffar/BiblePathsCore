@@ -18,8 +18,8 @@ namespace BiblePathsCore.Pages.Shared
             _context = context;
         }
 
-        public IList<BibleBooks> BibleBooks { get; set; }
-        public Bibles Bible { get; set; }
+        public IList<BibleBook> BibleBooks { get; set; }
+        public Bible Bible { get; set; }
         // public BiblePathsCore.Models.DB.Paths Path { get; set; } // Paths is ambiguous in this namespace
         public int PathId { get; set; }
         public int StepId { get; set; }
@@ -42,7 +42,7 @@ namespace BiblePathsCore.Pages.Shared
             if (TargetPage.Contains("PBE"))
             {
                 IsPBE = true;
-                BibleBooks = await Models.DB.BibleBooks.GetPBEBooksAsync(_context, BibleId);
+                BibleBooks = await Models.DB.BibleBook.GetPBEBooksAsync(_context, BibleId);
             }
             else { 
                 IsPBE = false;
@@ -57,7 +57,7 @@ namespace BiblePathsCore.Pages.Shared
         {
             if (string.IsNullOrEmpty(BibleId) || !(await _context.Bibles.AnyAsync(B => B.Id == BibleId)))
             {
-                BibleId = Bibles.DefaultBibleId;
+                BibleId = Bible.DefaultBibleId;
             }
             return BibleId;
         }

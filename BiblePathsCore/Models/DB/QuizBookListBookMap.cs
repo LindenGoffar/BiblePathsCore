@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
     public partial class QuizBookListBookMap
@@ -12,6 +14,6 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Modified { get; set; }
         public bool IsDeleted { get; set; }
 
-        public virtual QuizBookLists BookList { get; set; }
+        public virtual QuizBookList BookList { get; set; }
     }
 }

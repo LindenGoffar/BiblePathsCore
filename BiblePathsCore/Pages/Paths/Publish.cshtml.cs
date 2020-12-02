@@ -23,11 +23,11 @@ namespace BiblePathsCore
         }
 
         [BindProperty]
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
 
         [BindProperty]
         public string BibleId { get; set; }
-        public List<BibleVerses> BibleVerses { get; set; }
+        public List<BibleVerse> BibleVerses { get; set; }
 
         [PageRemote(
             ErrorMessage = "Sorry, this Name is not valid, ",
@@ -77,7 +77,7 @@ namespace BiblePathsCore
             // Is this an attempt to change the name? If so check the name. 
             if (pathToUpdate.Name.ToLower() != Name.ToLower())
             {
-                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
                 }
@@ -90,7 +90,7 @@ namespace BiblePathsCore
             BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
             BibleVerses = await Path.GetPathVersesAsync(_context, BibleId);
 
-            if (await TryUpdateModelAsync<Paths>(
+            if (await TryUpdateModelAsync<Path>(
                 pathToUpdate,
                 "Path",
                 p => p.Name, p => p.Topics))
@@ -99,7 +99,7 @@ namespace BiblePathsCore
                 // Now We've got some necessary validation to do here so let's build the verse text block
                 pathToUpdate.Name = Name; // Name is handled seperately for remote validation to work. 
                 StringBuilder PathText = new StringBuilder();
-                foreach (BibleVerses Verse in BibleVerses)
+                foreach (BibleVerse Verse in BibleVerses)
                 {
                     PathText.Append(Verse.Text + " ");
                 }
@@ -176,7 +176,7 @@ namespace BiblePathsCore
             // Is this an attempted name change... for reals? 
             if (Name.ToLower() != Path.Name.ToLower())
             {
-                if (await Paths.PathNameAlreadyExistsStaticAsync(_context, Name))
+                if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     return new JsonResult("Sorry, this Name is already in use.");
                 }

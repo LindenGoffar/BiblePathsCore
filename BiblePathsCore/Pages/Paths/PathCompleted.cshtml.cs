@@ -19,7 +19,7 @@ namespace BiblePathsCore
         {
             _context = context;
         }
-        public Paths Path { get; set; }
+        public Path Path { get; set; }
         public bool RatingAccepted { get; set; }
         public bool RatingAcknowledged { get; set; }
         public async Task<IActionResult> OnGetAsync(int? id)

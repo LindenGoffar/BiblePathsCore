@@ -23,14 +23,14 @@ namespace BiblePathsCore.API
 
         // GET: api/Paths
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Paths>>> GetPaths()
+        public async Task<ActionResult<IEnumerable<Path>>> GetPaths()
         {
             return await _context.Paths.Where(P => P.IsDeleted == false && P.IsPublished == true).ToListAsync();
         }
 
         // GET: api/Paths/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Paths>> GetPaths(int id)
+        public async Task<ActionResult<Path>> GetPaths(int id)
         {
             var paths = await _context.Paths.FindAsync(id);
 

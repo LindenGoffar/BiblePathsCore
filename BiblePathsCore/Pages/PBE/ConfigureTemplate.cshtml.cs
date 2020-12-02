@@ -26,29 +26,29 @@ namespace BiblePathsCore.Pages.PBE
             _userManager = userManager;
             _context = context;
         }
-        public PredefinedQuizzes Template { get; set; }
+        public PredefinedQuiz Template { get; set; }
         public List<MinBook> TemplateBooks { get; set; }
         public string JSONBooks { get; set; }
 
         [BindProperty]
-        public List<PredefinedQuizQuestions> Questions { get; set; }
+        public List<PredefinedQuizQuestion> Questions { get; set; }
 
         [BindProperty] 
         public String BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
 
 
         public async Task<IActionResult> OnGetAsync(int Id, string BibleId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
 
             Template = await _context.PredefinedQuizzes.FindAsync(Id);
             if (Template == null) { return RedirectToPage("/error", new { errorMessage = "Thats Odd! We were unable to find this Quiz Template" }); }
 
             if (!PBEUser.IsValidPBEQuestionBuilder() || PBEUser != Template.QuizUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to configure this Quiz Template" }); }
           
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             //Initialize Our Template
             _context.Entry(Template).Collection(T => T.PredefinedQuizQuestions).Load();
@@ -57,7 +57,7 @@ namespace BiblePathsCore.Pages.PBE
             TemplateBooks = await Template.GetTemplateBooksAsync(_context, this.BibleId);
             JSONBooks = JsonSerializer.Serialize(TemplateBooks);
             // Build Select Lists
-            foreach (PredefinedQuizQuestions Question in Questions)
+            foreach (PredefinedQuizQuestion Question in Questions)
             {
                 Question.AddChapterSelectList(TemplateBooks);
             }
@@ -70,20 +70,20 @@ namespace BiblePathsCore.Pages.PBE
         public async Task<IActionResult> OnPostAsync(int Id)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
 
-            PredefinedQuizzes TemplateToUpdate = await _context.PredefinedQuizzes.FindAsync(Id);
+            PredefinedQuiz TemplateToUpdate = await _context.PredefinedQuizzes.FindAsync(Id);
             if (TemplateToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "Thats Odd! We were unable to find this Quiz Template" }); }
 
             if (!PBEUser.IsValidPBEQuestionBuilder() || PBEUser != TemplateToUpdate.QuizUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to configure this Quiz Template" }); }
             if (TemplateToUpdate.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Template Owner may edit a Template" }); }
 
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             _context.Entry(TemplateToUpdate).Collection(T => T.PredefinedQuizQuestions).Load();
 
             // We need a copy of the Questions list to compare to while the origonal is being updated.
-            List<PredefinedQuizQuestions> CompareQuestions = TemplateToUpdate.PredefinedQuizQuestions.ToList();
+            List<PredefinedQuizQuestion> CompareQuestions = TemplateToUpdate.PredefinedQuizQuestions.ToList();
 
             if (!ModelState.IsValid)
             {
@@ -93,7 +93,7 @@ namespace BiblePathsCore.Pages.PBE
                 TemplateBooks = await Template.GetTemplateBooksAsync(_context, this.BibleId);
                 JSONBooks = JsonSerializer.Serialize(TemplateBooks);
                 // Build Select Lists
-                foreach (PredefinedQuizQuestions Question in Questions)
+                foreach (PredefinedQuizQuestion Question in Questions)
                 {
                     Question.AddChapterSelectList(TemplateBooks);
                 }
@@ -105,11 +105,11 @@ namespace BiblePathsCore.Pages.PBE
             TemplateToUpdate.Modified = DateTime.Now;
 
             // Iterate through each of our Questions and make appropriate changes. 
-            foreach (PredefinedQuizQuestions Question in Questions)
+            foreach (PredefinedQuizQuestion Question in Questions)
             {
                 // See if this is one of our existing Question objects. 
                 bool ExistingQuestion = true;
-                PredefinedQuizQuestions OriginalQuestion = new PredefinedQuizQuestions();
+                PredefinedQuizQuestion OriginalQuestion = new PredefinedQuizQuestion();
                 try
                 {
                     OriginalQuestion = CompareQuestions.Where(Q => Q.QuestionNumber == Question.QuestionNumber).Single();
@@ -120,7 +120,7 @@ namespace BiblePathsCore.Pages.PBE
                     // New Question Scenario let's add the Question.
                     if (Question.BookNumber != 0)
                     {
-                        PredefinedQuizQuestions QuestionToAdd = new PredefinedQuizQuestions();
+                        PredefinedQuizQuestion QuestionToAdd = new PredefinedQuizQuestion();
                         QuestionToAdd.PredefinedQuiz = TemplateToUpdate;
                         QuestionToAdd.QuestionNumber = Question.QuestionNumber;
                         QuestionToAdd.BookNumber = Question.BookNumber;

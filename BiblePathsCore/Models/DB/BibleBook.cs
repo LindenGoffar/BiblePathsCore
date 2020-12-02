@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace BiblePathsCore.Models.DB
 {
-    public partial class BibleBooks
+    public partial class BibleBook
     {
-        public BibleBooks()
+        public BibleBook()
         {
-            BibleChapters = new HashSet<BibleChapters>();
+            BibleChapters = new HashSet<BibleChapter>();
         }
 
         public string BibleId { get; set; }
@@ -17,7 +19,7 @@ namespace BiblePathsCore.Models.DB
         public string Name { get; set; }
         public int? Chapters { get; set; }
 
-        public virtual Bibles Bible { get; set; }
-        public virtual ICollection<BibleChapters> BibleChapters { get; set; }
+        public virtual Bible Bible { get; set; }
+        public virtual ICollection<BibleChapter> BibleChapters { get; set; }
     }
 }

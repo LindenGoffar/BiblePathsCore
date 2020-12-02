@@ -2,6 +2,7 @@
 # load for Prod
 # $BaseURI = "https://biblepaths.net"
 
+# $BaseURI = "https://www.biblepaths.net"
 # load for Test
 # $BaseURI = "https://biblepathstaging.azurewebsites.net"
 

@@ -28,14 +28,14 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         [BindProperty]
-        public QuizBookLists BookList { get; set; }
+        public QuizBookList BookList { get; set; }
 
         [BindProperty]
         public List<QuizBookListBookMap> Books { get; set;  }
 
         [BindProperty] 
         public String BibleId { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizUser PBEUser { get; set; }
         [PageRemote(
             ErrorMessage = "Sorry, this Name is not valid, ",
             AdditionalFields = "__RequestVerificationToken, BookList.BookListName",
@@ -48,20 +48,20 @@ namespace BiblePathsCore.Pages.PBE
         public async Task<IActionResult> OnGetAsync(string BibleId, int Id)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
 
             BookList = await _context.QuizBookLists.FindAsync(Id);
             if (BookList == null ) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Book List" }); }
 
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             //Initialize Books
-            await _context.Entry(BookList).Collection(L => L.QuizBookListBookMap).LoadAsync();
+            await _context.Entry(BookList).Collection(L => L.QuizBookListBookMaps).LoadAsync();
             BookList.PadBookListBookMapsForEdit();
-            Books = BookList.QuizBookListBookMap.ToList();
+            Books = BookList.QuizBookListBookMaps.ToList();
             Name = BookList.BookListName;
-            ViewData["BookSelectList"] = await BibleBooks.GetBookSelectListAsync(_context, BibleId);
+            ViewData["BookSelectList"] = await BibleBook.GetBookSelectListAsync(_context, BibleId);
             return Page();
         }
 
@@ -71,22 +71,22 @@ namespace BiblePathsCore.Pages.PBE
         {
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
 
-            QuizBookLists BookListToUpdate = await _context.QuizBookLists.FindAsync(Id);
+            QuizBookList BookListToUpdate = await _context.QuizBookLists.FindAsync(Id);
             if (BookListToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Book List" }); }
-            await _context.Entry(BookListToUpdate).Collection(L => L.QuizBookListBookMap).LoadAsync();
+            await _context.Entry(BookListToUpdate).Collection(L => L.QuizBookListBookMaps).LoadAsync();
 
             // We need a copy of the BookListMap to compare to while the origonal is being updated.
-            List<QuizBookListBookMap> CompareMap = BookListToUpdate.QuizBookListBookMap.ToList();
+            List<QuizBookListBookMap> CompareMap = BookListToUpdate.QuizBookListBookMaps.ToList();
 
-            BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Is this an attempted name change... for reals? 
             if (Name.ToLower() != BookList.BookListName.ToLower())
             {
-                if (await QuizBookLists.ListNameAlreadyExistsStaticAsync(_context, Name))
+                if (await QuizBookList.ListNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     ModelState.AddModelError("Name", "Sorry, this Name is already in use.");
                 }
@@ -97,9 +97,9 @@ namespace BiblePathsCore.Pages.PBE
             if (!ModelState.IsValid)
             {
                 BookList.PadBookListBookMapsForEdit();
-                Books = BookList.QuizBookListBookMap.ToList();
+                Books = BookList.QuizBookListBookMaps.ToList();
                 Name = BookList.BookListName;
-                ViewData["BookSelectList"] = await BibleBooks.GetBookSelectListAsync(_context, BibleId);
+                ViewData["BookSelectList"] = await BibleBook.GetBookSelectListAsync(_context, BibleId);
                 return Page();
             }
 
@@ -121,7 +121,7 @@ namespace BiblePathsCore.Pages.PBE
                     ExistingBookMap = false;
                     // New Book Scenario let's add the book. 
                     // But first we won't add it if the Book is already in the List. 
-                    if (BookListToUpdate.QuizBookListBookMap.Where(B => B.BookNumber == Book.BookNumber).Any())
+                    if (BookListToUpdate.QuizBookListBookMaps.Where(B => B.BookNumber == Book.BookNumber).Any())
                     {
                         // Dupe scenario, don't add
                     }
@@ -135,7 +135,7 @@ namespace BiblePathsCore.Pages.PBE
                             BookToAdd.Created = DateTime.Now;
                             BookToAdd.Modified = DateTime.Now;
                             BookToAdd.BookNumber = Book.BookNumber;
-                            _context.QuizBookListBookMap.Add(BookToAdd);
+                            _context.QuizBookListBookMaps.Add(BookToAdd);
                             //await _context.SaveChangesAsync();
                         }
 
@@ -157,7 +157,7 @@ namespace BiblePathsCore.Pages.PBE
                         else
                         {
                             // This is the delete BookMap scenario
-                            _context.QuizBookListBookMap.Remove(OriginalBook);
+                            _context.QuizBookListBookMaps.Remove(OriginalBook);
                             // await _context.SaveChangesAsync();
                         }
                     }
@@ -172,7 +172,7 @@ namespace BiblePathsCore.Pages.PBE
             // Is this an attempted name change... for reals? 
             if (Name.ToLower() != BookList.BookListName.ToLower())
             {
-                if (await QuizBookLists.ListNameAlreadyExistsStaticAsync(_context, Name))
+                if (await QuizBookList.ListNameAlreadyExistsStaticAsync(_context, Name))
                 {
                     return new JsonResult("Sorry, this Name is already in use.");
                 }

@@ -9,7 +9,7 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using static BiblePathsCore.Models.DB.QuizQuestions;
+using static BiblePathsCore.Models.DB.QuizQuestion;
 
 namespace BiblePathsCore.Pages.PBE
 {
@@ -26,17 +26,17 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         [BindProperty]
-        public QuizQuestions Question { get; set; }
-        public QuizGroupStats Quiz { get; set; }
-        public QuizUsers PBEUser { get; set; }
+        public QuizQuestion Question { get; set; }
+        public QuizGroupStat Quiz { get; set; }
+        public QuizUser PBEUser { get; set; }
         public string BibleId { get; set; }
         public string UserMessage { get; set;  }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int QuizId, string Message)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object
             Quiz = await _context.QuizGroupStats.FindAsync(QuizId);
@@ -61,7 +61,7 @@ namespace BiblePathsCore.Pages.PBE
             
             if (Question.BibleId == null) { Question.BibleId = BibleId;  }
 
-            BibleBooks PBEBook = await BibleBooks.GetPBEBookAndChapterAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
+            BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
             Question.PopulatePBEQuestionInfo(PBEBook);
@@ -88,8 +88,8 @@ namespace BiblePathsCore.Pages.PBE
             }
 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            this.BibleId = await Bibles.GetValidPBEBibleIdAsync(_context, BibleId);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object in order to update it. 
             Quiz = await _context.QuizGroupStats.FindAsync(QuizId);
@@ -100,7 +100,7 @@ namespace BiblePathsCore.Pages.PBE
             if (Quiz.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Quiz Owner can award points during a Quiz" }); }
 
             // We need to upate the Question object as well so let's go grab it. 
-            QuizQuestions QuestionToUpdate = await _context.QuizQuestions.FindAsync(Question.Id);
+            QuizQuestion QuestionToUpdate = await _context.QuizQuestions.FindAsync(Question.Id);
             if (QuestionToUpdate == null)
             {
                 return RedirectToPage("/error", new { errorMessage = "That's Odd... We were unable to find this Question so we can't update it" });

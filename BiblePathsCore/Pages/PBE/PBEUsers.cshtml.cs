@@ -26,14 +26,14 @@ namespace BiblePathsCore.Pages.PBE
 
         [BindProperty(SupportsGet = true)]
         public string SearchString { get; set; }
-        public List<QuizUsers> PBEUsers { get;set; }
-        public QuizUsers PBEUser { get; set; }
+        public List<QuizUser> PBEUsers { get;set; }
+        public QuizUser PBEUser { get; set; }
         public string UserMessage { get; set;  }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, string Message)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to manage PBE Users" }); }
 
             var pbeUsers = from u in _context.QuizUsers

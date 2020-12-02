@@ -19,7 +19,7 @@ namespace BiblePathsCore.Models
 
 namespace BiblePathsCore.Models.DB
 {
-    public partial class Paths
+    public partial class Path
     {
         [NotMapped]
         public int FirstStepId { get; set; }
@@ -89,7 +89,7 @@ namespace BiblePathsCore.Models.DB
         }
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
-            string RetVal = Bibles.DefaultBibleId;
+            string RetVal = Bible.DefaultBibleId;
             if (BibleId != null)
             {
                 if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
@@ -110,8 +110,8 @@ namespace BiblePathsCore.Models.DB
         public async Task<int> GetPathVerseCountAsync(BiblePathsCoreDbContext context)
         {
             int retVal = 0;
-            List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).ToListAsync();
-            foreach (PathNodes node in pathNodes)
+            List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).ToListAsync();
+            foreach (PathNode node in pathNodes)
             {
                 retVal += (node.EndVerse - node.StartVerse + 1);
             }
@@ -131,11 +131,11 @@ namespace BiblePathsCore.Models.DB
             return LengthInMinutes;
         }
 
-        public async Task<List<BibleVerses>> GetPathVersesAsync(BiblePathsCoreDbContext context, String BibleId)
+        public async Task<List<BibleVerse>> GetPathVersesAsync(BiblePathsCoreDbContext context, String BibleId)
         {
-            List<BibleVerses> returnVerses = new List<BibleVerses>();
-            List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(P => P.Position).ToListAsync();
-            foreach (PathNodes node in pathNodes)
+            List<BibleVerse> returnVerses = new List<BibleVerse>();
+            List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(P => P.Position).ToListAsync();
+            foreach (PathNode node in pathNodes)
             {
                 returnVerses.AddRange(await context.BibleVerses
                    .Where(v => v.BibleId == BibleId && v.BookNumber == node.BookNumber && v.Chapter == node.Chapter && v.Verse >= node.StartVerse && v.Verse <= node.EndVerse)
@@ -166,8 +166,8 @@ namespace BiblePathsCore.Models.DB
             // Through this list and re-position the remaining nodes if necessary. 
             try
             {
-                List<PathNodes> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(L => L.Position).ToListAsync();
-                foreach (PathNodes node in pathNodes)
+                List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(L => L.Position).ToListAsync();
+                foreach (PathNode node in pathNodes)
                 {
                     if (node.Position != NextPosition)
                     {
@@ -188,30 +188,30 @@ namespace BiblePathsCore.Models.DB
         // This method returns a list of Path objects related to the current path
         // These can be referenced in the PathCompleted view or 
         // elsewhere as determined helpful. 
-        public async Task<List<Paths>> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
+        public async Task<List<Path>> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
         {
             Hashtable UniqueRelatedPaths = new Hashtable();
 
-            List<Paths> RelatedPaths = new List<Paths>();
+            List<Path> RelatedPaths = new List<Path>();
 
             // We need to load the collection of Steps assocaited with this Path. 
             context.Entry(this)
                 .Collection(p => p.PathNodes)
                 .Load();
 
-            foreach (PathNodes Step in PathNodes)
+            foreach (PathNode Step in PathNodes)
             {
                 // Let's go fetch any other PathNodes that match the Book/Chapter/Verse combo
                 // this means any steps that start between the curent Steps range of verses... 
                 // NOTE: The above described logic may not be intuitive, what if the step ends with in the curent steps range? 
 
                 // TODO Perf: this likely becomes expensive over time. 
-                List<PathNodes> dbNodes = await context.PathNodes.Include(N => N.Path).Where(N => N.BookNumber == Step.BookNumber && N.Chapter == Step.Chapter && N.StartVerse >= Step.StartVerse && N.StartVerse <= Step.EndVerse && N.PathId != Id).ToListAsync();
+                List<PathNode> dbNodes = await context.PathNodes.Include(N => N.Path).Where(N => N.BookNumber == Step.BookNumber && N.Chapter == Step.Chapter && N.StartVerse >= Step.StartVerse && N.StartVerse <= Step.EndVerse && N.PathId != Id).ToListAsync();
 
                 if (dbNodes.Count > 0)
                 {
                     // Iterate through the related step nodes to see if it is part of a unique published path
-                    foreach (PathNodes entry in dbNodes)
+                    foreach (PathNode entry in dbNodes)
                     {
                         // At this point we only know there is another Step associated with this Step, but is the Path published? 
                         if (entry.Path != null)
@@ -233,7 +233,7 @@ namespace BiblePathsCore.Models.DB
         }
         public async Task<bool> RegisterEventAsync(BiblePathsCoreDbContext context, EventType eventType, string EventData)
         {
-            PathStats stat = new PathStats
+            PathStat stat = new PathStat
             {
                 PathId = Id,
                 EventType = (int)eventType,
@@ -294,7 +294,7 @@ namespace BiblePathsCore.Models.DB
             {
                 int BookDiversityScore = 0;
                 var BookHash = new HashSet<int>();
-                foreach (PathNodes node in PathNodes)
+                foreach (PathNode node in PathNodes)
                 {
                     BookHash.Add(node.BookNumber);
                 }
@@ -310,10 +310,10 @@ namespace BiblePathsCore.Models.DB
             }
 
             // 4. Average of all UserRatings
-            List<PathStats> UserRatings = PathStats.Where(s => s.EventType == (int)EventType.UserRating).ToList();
+            List<PathStat> UserRatings = PathStats.Where(s => s.EventType == (int)EventType.UserRating).ToList();
             int SumRatings = 0;
             int NumRatings = 0; 
-            foreach (PathStats UserRating in UserRatings)
+            foreach (PathStat UserRating in UserRatings)
             {
                 int Rating = 0;
                 try

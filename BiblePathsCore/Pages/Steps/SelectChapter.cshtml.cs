@@ -19,9 +19,9 @@ namespace BiblePathsCore
             _context = context;
         }
 
-        public IList<BibleBooks> BibleBooks { get; set; }
-        public Bibles Bible { get; set;  }
-        public Paths Path { get; set; }
+        public IList<BibleBook> BibleBooks { get; set; }
+        public Bible Bible { get; set;  }
+        public Path Path { get; set; }
         public int StepId { get; set; }
         public int StepPosition { get; set; }
         public string TargetPage { get; set; }
@@ -43,7 +43,7 @@ namespace BiblePathsCore
         {
             if (string.IsNullOrEmpty(BibleId) || !(await _context.Bibles.AnyAsync(B => B.Id == BibleId)))
             {
-                BibleId = Bibles.DefaultBibleId;
+                BibleId = Bible.DefaultBibleId;
             }
             return BibleId;
         }

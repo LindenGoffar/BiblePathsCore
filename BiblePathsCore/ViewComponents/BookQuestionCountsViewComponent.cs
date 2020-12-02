@@ -18,8 +18,8 @@ namespace BiblePathsCore.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync(string BibleId)
         {
-            BibleId = await QuizQuestions.GetValidBibleIdAsync(_context, BibleId);
-            List<BibleBooks> ReturnBooks = await BibleBooks.GetPBEBooksWithQuestionsAsync(_context, BibleId);
+            BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
+            List<BibleBook> ReturnBooks = await BibleBook.GetPBEBooksWithQuestionsAsync(_context, BibleId);
 
             return View(ReturnBooks);
         }
