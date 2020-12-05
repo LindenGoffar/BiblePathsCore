@@ -21,7 +21,7 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <small>
+            <small class="bg-light">
                 <a asp-page="Index" asp-route-SearchString="@Model.SearchString" asp-route-SortOrder="@BiblePathsCore.Models.SortBy.HighestRated" id="HighestRated">
                     Highest Rated
                 </a>
@@ -56,8 +56,7 @@
             </small>
         </div>
     </div>
-    <hr />
-    
+    <br />
     @foreach (var item in Model.Paths)
     {
     <div class="row">

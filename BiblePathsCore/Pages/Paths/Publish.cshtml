@@ -9,7 +9,7 @@
 
 <div class="container-fluid">
     <div class="row">
-        <span class="text-muted">
+        <span class="text-info">
             Publishing a Bible Path makes it visible to others who visit this site. In keeping with our promise to feature only the biblical text we require that;
             <b>Path Name may contain only words or phrases taken from the passages below, </b> and that
             <b>Topics may contain only comma seperated words or phrases taken from the passages below.</b>
@@ -44,22 +44,28 @@
         <hr />
     </div>
     <div class="row">
-        <h6>Bible passages in this Path</h6>
-        <div class="text-muted">
-            @if (Model.BibleVerses != null)
-            {
-                @foreach (var Verse in Model.BibleVerses)
-                {
-                    <span>@Verse.Text </span>
-                }
-            }
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Bible passages in this Path</span>
+            </div>
+            <div class="card-body">
+                <div class="card-text">
+                    @if (Model.BibleVerses != null)
+                    {
+                        @foreach (var Verse in Model.BibleVerses)
+                        {
+                            <span>@Verse.Text </span>
+                        }
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <div>
     <hr />
-    <a asp-page="./Steps" asp-route-id="@Model.Path.Id">Add or Remove Steps</a><br />
+    <a asp-page="./Steps" asp-route-PathId="@Model.Path.Id">Add or Remove Steps</a><br />
     <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
     <a asp-page="./MyPaths">Back to My Paths</a>
 </div>

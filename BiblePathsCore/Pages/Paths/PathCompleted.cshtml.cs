@@ -36,7 +36,7 @@ namespace BiblePathsCore
             }
             _ = await Path.AddCalculatedPropertiesAsync(_context);
 
-            // We have a 15 min back off timer on rating a given path, to try and avoid rating abuse
+            // We have a 48 hour back off timer on rating a given path, to try and avoid rating abuse
             // To calculate this we need to find time of the the latest userRating
             RatingAccepted = false;
             DateTimeOffset? LatestUserRating = null;
@@ -55,7 +55,7 @@ namespace BiblePathsCore
             if (LatestUserRating.HasValue)
             {
                 TimeSpan TimeSinceLastRated = (TimeSpan)(DateTime.Now - LatestUserRating);
-                if (TimeSinceLastRated.TotalMinutes > 15)
+                if (TimeSinceLastRated.TotalHours > 48)
                 {
                     RatingAccepted = true;
                 }
