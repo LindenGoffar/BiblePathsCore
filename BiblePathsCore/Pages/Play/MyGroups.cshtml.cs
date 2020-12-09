@@ -10,7 +10,7 @@ using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
-namespace BiblePathsCore.Pages.PBE
+namespace BiblePathsCore.Pages.Play
 {
     [Authorize]
     public class MyGroupsModel : PageModel
@@ -24,36 +24,17 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
 
-        public List<PredefinedQuiz> Templates { get;set; }
-        public QuizUser PBEUser { get; set; }
-        public string BibleId { get; set; }
-        public string UserMessage { get; set;  }
+        public List<GameGroup> Groups { get;set; }
 
-        public async Task<IActionResult> OnGetAsync(string BibleId, string Message)
+        public async Task<IActionResult> OnGetAsync()
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            Templates = await _context.PredefinedQuizzes.Include(T => T.PredefinedQuizQuestions)
-                                                    .Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
+            Groups = await _context.GameGroups.Include(G => G.GameTeams)
+                                                    .Where(G => G.Owner == user.Email)
                                                     .ToListAsync();
-
-            UserMessage = GetUserMessage(Message);
             return Page();
         }
 
-        public string GetUserMessage(string Message)
-        {
-            if (Message != null)
-            {
-                // Arbitrarily limiting User Message length. 
-                if (Message.Length > 0 && Message.Length < 128)
-                {
-                    return Message;
-                }
-            }
-            return null;
-        }
     }
 }

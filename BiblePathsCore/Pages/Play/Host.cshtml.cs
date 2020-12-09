@@ -25,92 +25,84 @@ namespace BiblePathsCore.Pages.Play
             _context = context;
         }
         public GameGroup Group { get; set; }
-
         public PathNode CurrentStep { get; set; }
         public Path Path { get; set; }
-
+        
         [BindProperty]
         public GameTeam Team { get; set; }
+
+        //[PageRemote(
+        //    ErrorMessage = "Plese select a word that is NOT found in the text below",
+        //    AdditionalFields = "__RequestVerificationToken",
+        //    HttpMethod = "post",
+        //    PageHandler = "CheckGuideWord"
+        //)]
+        //[BindProperty]
+        //public string UserGuideWord { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int GroupId, int TeamId)
         {
-            int StepId = 0;
             Group = await _context.GameGroups.FindAsync(GroupId);
             if (Group == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find that Group" }); }
             Team = await _context.GameTeams.FindAsync(TeamId);
             if (Team == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were not able to find that Team" }); }
             if (Team.GroupId != Group.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! The Team and Group do not match" }); }
+            string BibleId = await GameTeam.GetValidBibleIdAsync(_context, null);
 
             Path = await _context.Paths.FindAsync(Group.PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Very Odd! We were not able to find the Path for this Group" }); }
-            // We likely need that first step. 
-            _ = await Path.AddCalculatedPropertiesAsync(_context);
-            
-            if (Team.CurrentStepId == 0)
-            {
-                StepId = Path.FirstStepId;
-            }
-            else
-            {
-                StepId = Team.CurrentStepId;
-            }
 
-            CurrentStep = await _context.PathNodes.FindAsync(StepId);
+            CurrentStep = await _context.PathNodes.FindAsync(Team.CurrentStepId);
+
+            _ = await CurrentStep.AddGenericStepPropertiesAsync(_context, BibleId);
+            _ = await CurrentStep.AddPathStepPropertiesAsync(_context);
+            CurrentStep.Verses = await CurrentStep.GetBibleVersesAsync(_context, BibleId, true, false);
+
+            ViewData["KeyWordSelectList"] = await Team.GetKeyWordSelectListAsync(_context, CurrentStep);
+
             return Page();
         }
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
-        //public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+            {
+                return RedirectToPage("Host", new
+                {
+                    GroupId = Team.GroupId,
+                    TeamId = Team.Id
+                });
+            }
+
+            // Now let's go grab our Team
+            GameTeam UpdateTeam = await _context.GameTeams.FindAsync(Team.Id);
+            if (UpdateTeam == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were not able to find that Team" }); }
+
+            if (await TryUpdateModelAsync<GameTeam>(
+                UpdateTeam,
+                "Team",   // Prefix for form value.
+                t => t.KeyWord, t => t.GuideWord))
+            {
+                UpdateTeam.BoardState = (int)GameTeam.GameBoardState.StepSelect;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage("Host", new
+            {
+                GroupId = UpdateTeam.GroupId,
+                TeamId = UpdateTeam.Id
+            });
+        }
+
+        //public async Task<JsonResult> OnPostCheckGuideWordAsync()
         //{
-        //    if (!ModelState.IsValid)
+        //    if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
         //    {
-        //        ViewData["PathSelectList"] = await GameGroup.GetPathSelectListAsync(_context);
-        //        return Page();
+        //        return new JsonResult("Sorry, this Name is already in use.");
         //    }
-
-        //    // Now let's create an empty group
-        //    var emptyGroup = new GameGroup
-        //    {
-        //        Created = DateTime.Now,
-        //        Modified = DateTime.Now,
-        //        GroupState = (int)GameGroup.GameGroupState.Open,
-        //        Owner = user.Email
-        //    };
-
-        //    if (await TryUpdateModelAsync<GameGroup>(
-        //        emptyGroup,
-        //        "Group",   // Prefix for form value.
-        //        g => g.Name, g => g.PathId))
-        //    {
-        //        _context.GameGroups.Add(emptyGroup);
-        //        await _context.SaveChangesAsync();
-
-        //        // Now we need to parse our Teams and add/remove
-        //        foreach (GameTeam Team in Teams)
-        //        {
-        //            if (Team.Name != null)
-        //            {
-        //                if (Team.Name.Length > 0)
-        //                {
-        //                    var emptyTeam = new GameTeam
-        //                    {
-        //                        CurrentStepId = 0,
-        //                        TeamType = 0,
-        //                        BoardState = (int)GameTeam.GameBoardState.Initialize,
-        //                        Created = DateTime.Now,
-        //                        Modified = DateTime.Now,
-        //                    };
-        //                    emptyTeam.Name = Team.Name;
-        //                    emptyTeam.Group = emptyGroup;
-        //                    _context.GameTeams.Add(emptyTeam);
-        //                }
-        //            }
-        //        }
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToPage("Group", new { Id = emptyGroup.Id, Message = String.Format("Group {0} successfully created...", emptyGroup.Name) });
-        //    }
-
-        //    return Page();
+        //    return new JsonResult(true);
         //}
 
     }

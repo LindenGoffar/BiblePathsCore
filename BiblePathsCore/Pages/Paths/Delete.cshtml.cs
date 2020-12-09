@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BiblePathsCore
 {
+    [Authorize]
     public class DeleteModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;

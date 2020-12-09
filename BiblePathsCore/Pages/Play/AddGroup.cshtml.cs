@@ -68,6 +68,11 @@ namespace BiblePathsCore.Pages.Play
                 _context.GameGroups.Add(emptyGroup);
                 await _context.SaveChangesAsync();
 
+                // go get the Path so we can set first step
+                Path path = await _context.Paths.FindAsync(emptyGroup.PathId);
+                if (path == null) { return RedirectToPage("/error", new { errorMessage = "That's Very Odd! We were not able to find the Path for this Group" }); }
+                // We will need that first step. 
+                _ = await path.AddCalculatedPropertiesAsync(_context);
                 // Now we need to parse our Teams and add/remove
                 foreach (GameTeam Team in Teams)
                 {
@@ -77,9 +82,9 @@ namespace BiblePathsCore.Pages.Play
                         {
                             var emptyTeam = new GameTeam
                             {
-                                CurrentStepId = 0,
+                                CurrentStepId = path.FirstStepId,
                                 TeamType = 0,
-                                BoardState = (int)GameTeam.GameBoardState.Initialize,
+                                BoardState = (int)GameTeam.GameBoardState.WordSelect,
                                 Created = DateTime.Now,
                                 Modified = DateTime.Now,
                             };

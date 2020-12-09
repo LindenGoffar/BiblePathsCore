@@ -104,6 +104,24 @@ namespace BiblePathsCore.Models.DB
             return false;
         }
 
+        public async Task<int> GetChapterLengthAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            int retVal = 0;
+            try
+            {
+                retVal = (int)await context.BibleChapters.Where(C => C.BibleId == BibleId
+                                                           && C.BookNumber == BookNumber
+                                                           && C.ChapterNumber == Chapter)
+                                                    .Select(C => C.Verses)
+                                                    .SingleAsync();
+            }
+            catch
+            {
+                // Don't need to do anything here. 
+            }
+            return retVal;
+        }
+
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bible.DefaultBibleId;

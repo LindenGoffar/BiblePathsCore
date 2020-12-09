@@ -37,8 +37,16 @@
                         @team.Name
                     </div>
                     <div class="Card-Body">
-                        <span class="card-title">Player Link: </span>
-                        <span class="card-text">Host Link: </span>
+                        <span class="card-link">
+                            <a asp-page="Team" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
+                                Team Link
+                            </a>
+                        </span>
+                        <span class="card-link">
+                            <a asp-page="Host" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
+                                Guide Link
+                            </a>
+                        </span>
                     </div>
                 </div>
             </div>
