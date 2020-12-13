@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Collections;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BiblePathsCore.Pages.Play
 {
@@ -19,11 +20,13 @@ namespace BiblePathsCore.Pages.Play
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
+        private readonly IHubContext<Hubs.GameTeamHub> _hubContext;
 
-        public CheckResponseModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public CheckResponseModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context, IHubContext<Hubs.GameTeamHub> hubContext)
         {
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
         }
         public GameGroup Group { get; set; }
         public GameTeam Team { get; set;  }
@@ -63,6 +66,9 @@ namespace BiblePathsCore.Pages.Play
                 }
                 await _context.SaveChangesAsync();
 
+                string GroupName = Team.Id.ToString();
+                await _hubContext.Clients.Group(GroupName).SendAsync("StateChange");
+
                 return RedirectToPage("Team", new { GroupId = Team.GroupId, TeamId = Team.Id, Message = "Good Job! You're on the right Path" });
             }
             else
@@ -70,6 +76,8 @@ namespace BiblePathsCore.Pages.Play
                 _context.Attach(Team);
                 Team.Modified = DateTime.Now;
                 Team.BoardState = (int)GameTeam.GameBoardState.WordSelect;
+                await _context.SaveChangesAsync();
+
                 return RedirectToPage("Team", new { GroupId = Team.GroupId, TeamId = Team.Id, Message = "Uh Oh! You've drifted off the Path" });
             }
         }

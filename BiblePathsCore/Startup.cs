@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using BiblePathsCore.Services;
 using BiblePathsCore.Models;
+using BiblePathsCore.Hubs;
 
 namespace BiblePathsCore
 {
@@ -78,6 +79,7 @@ namespace BiblePathsCore
                      options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
                      options.Conventions.AddPageRoute("/Search", "/Search/{SearchString?}");
                  });
+            services.AddSignalR();
             services.AddApplicationInsightsTelemetry();
         }
 
@@ -110,6 +112,7 @@ namespace BiblePathsCore
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapHub<GameTeamHub>("/GameTeamHub");
             });
         }
     }

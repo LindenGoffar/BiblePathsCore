@@ -14,32 +14,33 @@
     <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
     <hr />
 }
+<div id="ServerMesage"></div>
 
 <div class="container-fluid">
     @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.StepSelect)
     {
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Guide Word</span>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Guide Word</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2>@Model.Team.GuideWord</h2>
                 </div>
             </div>
-            <div class="card-body">
-                <h2>@Model.Team.GuideWord</h2>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">@Model.Path.Name</span>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">@Model.Path.Name</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <span class="card-text">@Model.Path.Topics</span>
                 </div>
             </div>
-            <div class="card-body">
-                <span class="card-text">@Model.Path.Topics</span>
-            </div>
         </div>
-    </div>
         @foreach (var Step in Model.Steps)
         {
             <div class="row">
@@ -64,7 +65,7 @@
             </div>
         }
     }
-    }
+
     @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect)
     {
         <div class="row">
@@ -83,6 +84,6 @@
 </div>
 
 @section Scripts {
-    <partial name="_AddEditMultiple-Name" />
+    <partial name="_TheGameHelpers" model="@Model.Team" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

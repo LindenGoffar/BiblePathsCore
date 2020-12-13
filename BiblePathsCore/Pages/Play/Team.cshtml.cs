@@ -29,7 +29,6 @@ namespace BiblePathsCore.Pages.Play
         public GameTeam Team { get; set;  }
         public List<PathNode> Steps { get; set; }
         public Path Path { get; set; }
-
         public string UserMessage { get; set; }
         public async Task<IActionResult> OnGetAsync(int GroupId, int TeamId, string Message)
         {
