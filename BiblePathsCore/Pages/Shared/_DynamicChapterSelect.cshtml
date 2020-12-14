@@ -9,7 +9,7 @@
         {"BibleId":"NKJV-EN","Testament":"Old","TestamentNumber":1,"BookNumber":3,"Name":"Leviticus","Chapters":27,"HasCommentary":false}];*@
 
     function UpdateOptions(index) {
-        // Get our JSON Book list. 
+        // Get our JSON Book list.
         const JSONBooks = @Html.Raw(Model.JSONBooks);
 
         // Get our book Select List
@@ -18,18 +18,18 @@
         var SelectedBookName = bookSelect.options[bookSelect.selectedIndex].text;
         var SelectedBookLength = 150;
         var SelectedBookHasCommentary = false;
-        // Find our Selected Books chapter count. 
+        // Find our Selected Books chapter count.
         for (var i = 0; i < JSONBooks.length; i++) {
             if (JSONBooks[i].BookNumber == SelectedBookNumber) {
                 SelectedBookLength = JSONBooks[i].Chapters;
                 SelectedBookHasCommentary = JSONBooks[i].HasCommentary;
             }
         }
-        // Now let's setup up the chapter select list. 
+        // Now let's setup up the chapter select list.
         var chapterSelect = document.getElementById("ChapterSelect-" + index);
-        // First clear the current options. 
+        // First clear the current options.
         chapterSelect.options.length = 0;
-        // Setup the Random Chapter option. 
+        // Setup the Random Chapter option.
         option = document.createElement('option');
         option.value = 0;
         option.text = "Random Chapter";
@@ -48,6 +48,85 @@
             chapterSelect.add(option);
         }
     }
+
+    function ApplyJSON(){
+        // const JSONBlob = [{"BookName":"Hebrews","Chapter":3},{"BookName":"1 Peter", "Chapter":2}]
+        console.log("Entering ApplyJSON")
+        const JSONBooks = @Html.Raw(Model.JSONBooks);
+        const QLimit = @Model.Template.NumQuestions;
+        var JSONBlob = document.getElementById('JSONText').value;
+        var DebugDiv = document.getElementById("DebugDiv");
+        DebugDiv.innerHTML = "Updating Template <br />"
+
+        try {
+            var QuestionList = JSON.parse(JSONBlob);
+        }
+        catch (e) {
+            console.log("Failed to Parse JSON");
+            DebugDiv.innerHTML += "Failed to Parse JSON <br />"
+        }
+        var QuestionCount = QuestionList.length;
+        if (QuestionCount > QLimit) { QuestionCount = QLimit; }
+
+        console.log("Processing: " + QuestionCount + " Questions");
+        DebugDiv.innerHTML = "Processing: " + QuestionCount + " Questions <br />"
+        for (var qI = 0; qI < QuestionCount; qI++) {
+            var qNum = qI + 1;
+            var bookName = QuestionList[qI].BookName;
+            var bookSelect = document.getElementById("BookSelect-" + qI);
+            var chapterSelect = document.getElementById("ChapterSelect-" + qI);
+            var chapter = QuestionList[qI].Chapter;
+            // Find our Selected Book 
+            console.log("looking for: " + bookName);
+            for (var i = 0; i < JSONBooks.length; i++) {
+                var JSONBookName = JSONBooks[i].Name;
+                var FoundBook = false;
+                var ChapterCount = 0;
+                try { var JSONBookUpper = JSONBookName.toUpperCase() }
+                catch (e) {
+                    console.log("Failed to load Book from Book List");
+                    DebugDiv.innerHTML += qNum + " - Failed to load Book from Book List <br />"
+                }
+                try { var bookNameUpper = bookName.toUpperCase() }
+                catch (e) {
+                    console.log("Failed to load Book from Input");
+                    DebugDiv.innerHTML += qNum + " - Failed to load Book from Input <br />"
+                    break;
+                }
+                if (JSONBookUpper === bookNameUpper) {
+                    console.log("Found Book");
+                    console.log(JSONBooks[i].BookNumber);
+                    bookSelect.value = JSONBooks[i].BookNumber;
+                    ChapterCount = JSONBooks[i].Chapters;
+                    UpdateOptions(qI);
+                    bookSelect.style.backgroundColor = "PaleGreen";
+                    FoundBook = true;
+                    break;
+                }
+            }
+            console.log("FoundBook = " + FoundBook);
+            if (FoundBook == true) {
+                console.log("Trying to Set Chapter: " + chapter);
+                if (chapter >= 0 && (chapter <= ChapterCount || chapter === 1000)) {
+                    console.log("Setting Chapter: " + chapter);
+                    chapterSelect.value = chapter;
+                    chapterSelect.style.backgroundColor = "PaleGreen";
+                }
+                else {
+                    console.log("Unable to Set Chapter: " + chapter);
+                    DebugDiv.innerHTML += qNum + " - Unable to set Chapter: " + chapter + "<br />"
+                    chapterSelect.style.backgroundColor = "LightPink";
+                }
+            }
+            else {
+                console.log("Unable to match Book: " + bookName);
+                DebugDiv.innerHTML += qNum + " - Unable to match Book: " + bookName + "<br />"
+                bookSelect.style.backgroundColor = "LightPink";
+            }
+        }
+        DebugDiv.innerHTML += "Template Update Complete <br />"
+    }
+
 
     //// Let's expand any select elements with Value > 0
     //$(document).ready(function () {
