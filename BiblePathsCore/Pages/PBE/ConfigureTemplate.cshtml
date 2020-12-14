@@ -41,6 +41,30 @@
             </form>
         </div>
     </div>
+    <div class="row">
+        <a href="#AdvancedEdit" data-toggle="collapse">Advanced Editor</a>
+    </div>
+    <div id="AdvancedEdit" class="row collapse">
+        <div class="col-8">
+            <textarea id="JSONText" rows="5" cols="50"></textarea>
+            <br />
+            <span>
+                Format: <code>[{"BookName":"&lt;Book Name&gt;","Chapter":3},...]</code>
+                <br />
+                Example: <code>[
+                {"BookName":"Hebrews","Chapter":3},<br />
+                {"BookName":"1 Peter", "Chapter":2}
+                ]</code>
+                <br />
+                Note: <code>0 = "Random Chapter", 1000 = "SDA Bible Commentary"</code>
+            </span>
+        </div>
+        <div class="col-4">
+            <input type="button" value="Apply Question Changes" onclick="ApplyJSON()" />
+            <br />
+            <div id="DebugDiv"></div>
+        </div>
+    </div>
 </div>
 
 <div>
