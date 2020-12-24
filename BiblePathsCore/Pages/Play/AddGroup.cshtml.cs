@@ -85,6 +85,7 @@ namespace BiblePathsCore.Pages.Play
                                 CurrentStepId = path.FirstStepId,
                                 TeamType = 0,
                                 BoardState = (int)GameTeam.GameBoardState.WordSelect,
+                                StepNumber = 1, 
                                 Created = DateTime.Now,
                                 Modified = DateTime.Now,
                             };

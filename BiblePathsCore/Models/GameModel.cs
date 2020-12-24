@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +44,10 @@ namespace BiblePathsCore.Models.DB
 
     public partial class GameTeam
     {
-        public enum GameBoardState { Initialize, WordSelect, StepSelect, Completed, Closed }
+        public enum GameBoardState { Initialize, WordSelect, WordSelectOffPath, StepSelect, StepSelectOffPath, Completed, Closed }
+
+        [NotMapped]
+        public List<PathNode> Steps { get; set; }
 
         public async Task<List<SelectListItem>> GetKeyWordSelectListAsync(BiblePathsCoreDbContext context, PathNode CurrentStep)
         {

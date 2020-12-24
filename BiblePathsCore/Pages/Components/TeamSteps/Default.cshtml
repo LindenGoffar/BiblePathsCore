@@ -1,0 +1,27 @@
+﻿@model BiblePathsCore.Models.DB.GameTeam
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@foreach (var Step in Model.Steps)
+{
+    <div class="row">
+        @{string VerseRef = Step.BookName + " " + Step.Chapter + ": " + Step.StartVerse;
+            if (Step.EndVerse > Step.StartVerse) { VerseRef += " - " + Step.EndVerse; }
+        }
+        <div class="card">
+            <div class="card-header">
+                <a asp-page="CheckResponse" asp-route-GroupId="@Model.GroupId" asp-route-TeamId="@Model.Id" asp-route-StepId="@Step.Id">
+                    <span class="card-title">@VerseRef</span>
+                </a>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    @foreach (var Verse in Step.Verses)
+                    {
+                        <sup>@Verse.Verse</sup>@Verse.Text<br />
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+}

@@ -63,6 +63,11 @@ namespace BiblePathsCore.Pages.Play
             CurrentStep.Verses = await CurrentStep.GetBibleVersesAsync(_context, BibleId, true, false);
 
             ViewData["KeyWordSelectList"] = await Team.GetKeyWordSelectListAsync(_context, CurrentStep);
+            if (Team.BoardState == (int)GameTeam.GameBoardState.WordSelectOffPath)
+            {
+                Message = "Your Team seems to have fallen off the path, try to get them back on";
+            }
+
             UserMessage = GetUserMessage(Message);
             return Page();
         }
@@ -92,7 +97,7 @@ namespace BiblePathsCore.Pages.Play
                 UpdateTeam.BoardState = (int)GameTeam.GameBoardState.StepSelect;
                 await _context.SaveChangesAsync();
                 // Let's signal the StateChange to Clients using SignalR
-                string GroupName = "\"" + UpdateTeam.Id.ToString() + "\"";
+                string GroupName = "\"" + Team.Id.ToString() + "\"";
                 await _hubContext.Clients.Group(GroupName).SendAsync("StateChange");
 
             }

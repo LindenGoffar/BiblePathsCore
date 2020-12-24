@@ -406,6 +406,7 @@ If ($CreateGameTables){
 			GroupID int FOREIGN KEY References GameGroups(ID),
 			Name nvarchar(256), 
 			CurrentStepID int NOT NULL,
+			StepNumber int NOT NULL, 
 			TeamType int NOT NULL,
 			BoardState int NOT NULL,
 			KeyWord nvarchar(256), 

@@ -93,6 +93,7 @@ namespace BiblePathsCore.Pages.Play
                     Team.CurrentStepId = path.FirstStepId;
                     Team.TeamType = 0;
                     Team.BoardState = (int)GameTeam.GameBoardState.WordSelect;
+                    Team.StepNumber = 1;
                     Team.Modified = DateTime.Now;
                 }
                 await _context.SaveChangesAsync();

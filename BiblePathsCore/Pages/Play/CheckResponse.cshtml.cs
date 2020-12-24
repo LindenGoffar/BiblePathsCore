@@ -58,6 +58,7 @@ namespace BiblePathsCore.Pages.Play
                 if (CurrentStep.FWStepId > 0)
                 {
                     Team.CurrentStepId = CurrentStep.FWStepId;
+                    Team.StepNumber = Team.StepNumber + 1;
                     Team.BoardState = (int)GameTeam.GameBoardState.WordSelect;
                 }
                 else
@@ -66,7 +67,8 @@ namespace BiblePathsCore.Pages.Play
                 }
                 await _context.SaveChangesAsync();
 
-                string GroupName = Team.Id.ToString();
+                // We need to add the Quotes around the TeamID, then signal the StateChange 
+                string GroupName = "\"" + Team.Id.ToString() + "\"";
                 await _hubContext.Clients.Group(GroupName).SendAsync("StateChange");
 
                 return RedirectToPage("Team", new { GroupId = Team.GroupId, TeamId = Team.Id, Message = "Good Job! You're on the right Path" });
@@ -75,10 +77,14 @@ namespace BiblePathsCore.Pages.Play
             {
                 _context.Attach(Team);
                 Team.Modified = DateTime.Now;
-                Team.BoardState = (int)GameTeam.GameBoardState.WordSelect;
+                Team.BoardState = (int)GameTeam.GameBoardState.WordSelectOffPath;
                 await _context.SaveChangesAsync();
 
-                return RedirectToPage("Team", new { GroupId = Team.GroupId, TeamId = Team.Id, Message = "Uh Oh! You've drifted off the Path" });
+                // We need to add the Quotes around the TeamID, then signal the StateChange
+                string GroupName = "\"" + Team.Id.ToString() + "\"";
+                await _hubContext.Clients.Group(GroupName).SendAsync("StateChange");
+
+                return RedirectToPage("Team", new { GroupId = Team.GroupId, TeamId = Team.Id, Message = "Uh Oh! You've drifted off Path" });
             }
         }
     }

@@ -19,7 +19,8 @@
     });;
 
     connection.on("StateChange", function () {
-        document.getElementById("ServerMessage").innerHTML = "<H1>State has Changed</H1>"
+        console.log("StateChange Recieved");
+        window.location.reload(true);
     });
 
 </script>
