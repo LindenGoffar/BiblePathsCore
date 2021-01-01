@@ -56,6 +56,11 @@ namespace BiblePathsCore
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsPathOwner(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Path Owner is allowed to publish a Path" }); }
 
+            if (string.IsNullOrEmpty(ReqBibleId))
+            {
+                ReqBibleId = Path.OwnerBibleId;
+            }
+
             BibleId = await Path.GetValidBibleIdAsync(_context, ReqBibleId);
             BibleVerses = await Path.GetPathVersesAsync(_context, BibleId);
             Name = Path.Name;

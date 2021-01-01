@@ -75,7 +75,9 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&
         $JsonString = ConvertTo-Json -InputObject $QuestionObj
         Invoke-RestMethod -Method Post -Uri "$BaseURI/API/QuizQuestions" -Body $JsonString -ContentType "application/json"
 
-        
+
+# Generate Fill in The Blank Questions
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/FitBQuestion/?BibleId=NKJV-EN&BookName=Genesis&Chapter=1&Verse=1"  
 
 
 # NOT YET IMPLIMENTED

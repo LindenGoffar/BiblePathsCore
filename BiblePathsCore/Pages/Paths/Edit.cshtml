@@ -77,8 +77,8 @@
                     <div class="card-body">
                         @Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)<br />
                         @Html.DisplayNameFor(model => model.Path.ComputedRating): @String.Format("{0:0.00}", Model.Path.ComputedRating)<br />
-                        @Html.DisplayNameFor(model => model.Path.Created): @String.Format("{0:d/M/yyyy HH:mm:ss}", Model.Path.Created)<br />
-                        @Html.DisplayNameFor(model => model.Path.Modified): @String.Format("{0:d/M/yyyy HH:mm:ss}", Model.Path.Modified)<br />
+                        @Html.DisplayNameFor(model => model.Path.Created): @String.Format("{0:M/d/yyyy HH:mm}", Model.Path.Created)<br />
+                        @Html.DisplayNameFor(model => model.Path.Modified): @String.Format("{0:M/d/yyyy HH:mm}", Model.Path.Modified)<br />
                         @Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)<br />
                         @Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)<br />
                         @Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)<br />

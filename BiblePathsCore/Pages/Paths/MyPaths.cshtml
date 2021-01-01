@@ -38,8 +38,8 @@
                         <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
                         <small>Reads: @item.Reads</small><br />
                         <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
-                        <small>Created: @String.Format("{0:d/M/yyyy HH:mm:ss}", item.Created)</small><br />
-                        <small>Modified: @String.Format("{0:d/M/yyyy HH:mm:ss}", item.Modified)</small>
+                        <small>Created: @String.Format("{0:M/d/yyyy HH:mm}", item.Created)</small><br />
+                        <small>Modified: @String.Format("{0:M/d/yyyy HH:mm}", item.Modified)</small>
                     </div>
                 </div>
                 <div class="col">
