@@ -185,9 +185,9 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<QuizQuestion> BuildQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, int MaxPoints, string BibleId)
         {
-            int BlankWordProbability = 3; // read as 1 in every 3 valid words may get blanked 
+            int BlankWordProbability = 3; // read as 1 in every 3 valid words may get blanked rnd is 0 based
             int MinPoints = 3;
-            int Iteration = 1;
+            int Iteration = 0;
             int MaxIterations = 3;
             string BlankWordSring = "_____";
             string FitBPrepend = "fill in the blanks: ";
@@ -199,7 +199,7 @@ namespace BiblePathsCore.Models.DB
             Random rnd = new Random();
 
             // We'll make at most MaxIteratons at this, increasing BlankWordProbability each time. 
-            while (Iteration <= MaxIterations && BlankedWordCount < MinPoints)
+            while (Iteration < MaxIterations && BlankedWordCount < MinPoints)
             {
                 QuestionString = verse.Text;
                 BlankedWords.Clear();
@@ -235,7 +235,7 @@ namespace BiblePathsCore.Models.DB
                         {
                             // Ok now we don't want to simply replace every valid word so let's get random
                             int dice = rnd.Next(BlankWordProbability);
-                            if (dice == 1)
+                            if (dice == 0) // 0 will always turn up on the 3rd iteration. 
                             {
                                 // Blank out our word in the QuestionString 
                                 StringBuilder VerseWithBlanksSB = new StringBuilder();

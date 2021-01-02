@@ -45,7 +45,6 @@ if ($Database.Length -lt 1){
 }
 
 # Open a SQL Connection 
-# We'll do this even on validate to grab the KJV data. 
 
 $SQLConnection = Open-SqlConnection -ServerInstance $Server -Database $Database -Username $User -Password $Password 
 
@@ -120,7 +119,9 @@ ForEach ($BibleTestament in $BibleFile.bible.testament) {
                     $VerseWord = ($VerseWord -replace $RegExRemovingTrailingPunc,'')
 
                     # we ignore words < 1 char in length, for obvious reasons.
-                    if ($VerseWord.Length -ge 1){
+                    # The string "--" is used often to seperate two words i.e. it should be a space
+                    # we will ignore these words for now as well since they just throw off question generation. 
+                    if ($VerseWord.Length -ge 1 -and !($VerseWord.Contains("--"))){
                         #Write-Host $VerseWord
                         if ($WordHash.ContainsKey($VerseWord)){
                             
@@ -164,6 +165,8 @@ $StopWordHash = @{}
 Foreach ($StopWord in $StopWords){
     $StopWordHash.Add($StopWord,1)
 }
+
+$WordsAdded = 0
 foreach($word in $WordObjs){
     if ($StopWordhash.ContainsKey($word.NoiseWord)){
         $Word.isNoise = $true
@@ -180,7 +183,12 @@ foreach($word in $WordObjs){
             INSERT INTO BibleNoiseWords (BibleID, NoiseWord, Occurs, isNoise, WordType)
                 VALUES ('$BibleID', @NoiseWord, '$Occurs', '$isNoise', 0)
 "@
-            Invoke-SqlOnConnection -Connection $SQLConnection -Query $InsertNoiseWord -ParameterHash $ParameterHash
+        Invoke-SqlOnConnection -Connection $SQLConnection -Query $InsertNoiseWord -ParameterHash $ParameterHash
+
+        $WordsAdded++
+        If ($WordsAdded % 1000 -eq 0){
+            write-host "$WordsAdded - Words added to DB"
+        }
     }
 }
 
