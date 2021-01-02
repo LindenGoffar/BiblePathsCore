@@ -1,4 +1,4 @@
-﻿
+﻿@model BiblePathsCore.Models.DB.QuizQuestion;
 
 <script>
     // Let's go ahead and scroll to the hightlighted text on page ready.
@@ -15,6 +15,11 @@
         $("#Question_StartVerse").change();
         $("#Question_EndVerse").val(VerseNum);
         $("#Question_EndVerse").change();
+        UpdateGenerateQuestionLink(VerseNum);
+    }
+
+    function UpdateGenerateQuestionLink(VerseNum) {
+        document.getElementById("GenerateQuestionLink").href ="/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildQuestion=True"
     }
 
      // Highlights Start -> End Verses
@@ -45,6 +50,7 @@
         $('html, body').animate({
             scrollTop: $('#text-' + i).offset().top - 300
         }, 300);
+        UpdateGenerateQuestionLink($("#Question_StartVerse").val());
     });
     $("#Question_EndVerse").change(function () {
         if (parseInt($("#Question_StartVerse").val()) > parseInt($("#Question_EndVerse").val()))

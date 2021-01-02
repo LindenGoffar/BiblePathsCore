@@ -33,21 +33,38 @@ namespace BiblePathsCore.Pages.PBE
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum)
+        public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
+            bool generateQuestion = false;
+            if (BuildQuestion.HasValue)
+            {
+                generateQuestion = (bool)BuildQuestion;
+            }
             Question = new QuizQuestion();
-            Question.BookNumber = BookNumber;
-            Question.Chapter = Chapter;
-            Question.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
-            Question.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
-            Question.Points = 0;
-
             // Setup our PBEBook Object
             Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
+
+            if (generateQuestion)
+            {
+                BibleVerse verse = await BibleVerse.GetVerseAsync(_context, Question.BibleId, BookNumber, Chapter, (int)VerseNum);
+                Question = await Question.BuildQuestionForVerseAsync(_context, verse, 10, Question.BibleId);
+                foreach (QuizAnswer Answer in Question.QuizAnswers)
+                {
+                    AnswerText += Answer.Answer;
+                }
+            }
+            else
+            {
+                Question.BookNumber = BookNumber;
+                Question.Chapter = Chapter;
+                Question.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
+                Question.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
+                Question.Points = 0;
+            }
 
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }

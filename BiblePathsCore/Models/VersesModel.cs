@@ -44,6 +44,24 @@ namespace BiblePathsCore.Models.DB
                         .Count();
         }
 
+        public static async Task<BibleVerse> GetVerseAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int Verse)
+        {
+            BibleVerse bibleVerse = new BibleVerse();
+            try
+            {
+                bibleVerse = await context.BibleVerses.Where(v => v.BibleId == BibleId
+                                                                && v.BookNumber == BookNumber
+                                                                && v.Chapter == Chapter
+                                                                && v.Verse == Verse)
+                                                            .SingleAsync();
+            }
+            catch
+            {
+                return null;
+            }
+            return bibleVerse;
+        }
+
         public async Task<bool> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
         {
             InRelatedPaths = false;
