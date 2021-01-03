@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "mssql1": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/biblepathstaging/databases/BiblePathStagingDB",
-      "type": "mssql.azure",
-      "connectionId": "AppConnection",
+    "appInsights1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/BiblePathsCorePPE",
+      "type": "appInsights.azure",
+      "connectionId": "APPINSIGHTS_CONNECTIONSTRING",
       "secretStore": "AzureAppSettings"
     },
     "mssql2": {
@@ -12,10 +12,10 @@
       "connectionId": "AuthConnection",
       "secretStore": "AzureAppSettings"
     },
-    "appInsights1": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/BiblePathsCorePPE",
-      "type": "appInsights.azure",
-      "connectionId": "APPINSIGHTS_CONNECTIONSTRING",
+    "mssql1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/biblepathstaging/databases/BiblePathStagingDB",
+      "type": "mssql.azure",
+      "connectionId": "AppConnection",
       "secretStore": "AzureAppSettings"
     }
   }

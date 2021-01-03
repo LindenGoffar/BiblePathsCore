@@ -61,6 +61,7 @@
             }
         </div>
         <div class="col-5">
+            <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="container-fluid follow-scroll">
@@ -117,7 +118,7 @@
                             <input type="hidden" asp-for="Question.BookNumber" />
                             <input type="hidden" asp-for="Question.Chapter" />
                             <input type="hidden" asp-for="Question.BibleId" />
-                            <input type="submit" value="Add Question" class="btn btn-primary" />
+                            <input type="submit" value="Add Question" class="btn btn-primary" /> 
                         </div>
                     </div>
                 </div>
@@ -135,7 +136,7 @@
 
 @section Scripts {
     <partial name="_FollowScrollHelpers" />
-    <partial name="_PBEVerseSelectionHelpers" />
+    <partial name="_PBEVerseSelectionHelpers" model="Model.Question" />
     <partial name="_PBEQuestionHelper" model="Model.Question" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

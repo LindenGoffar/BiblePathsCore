@@ -48,11 +48,18 @@ namespace BiblePathsCore.Models.DB
         }
         public static async Task<BibleBook> GetBookAndChapterByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName, int ChapterNum)
         {
-            BibleBook PBEBook = await context.BibleBooks
-                                                  .Where(B => B.BibleId == BibleId && B.Name.ToLower().Contains(BookName.ToLower()))
+            BibleBook PBEBook = new BibleBook();
+            try
+            {
+                PBEBook = await context.BibleBooks.Where(B => B.BibleId == BibleId 
+                                                        && B.Name == BookName)
                                                   .SingleAsync();
-            if (PBEBook == null) { return null; }
-
+            }
+            catch
+            {
+                return null; 
+            }
+            
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
             List<QuizBookList> BookLists = await context.QuizBookLists

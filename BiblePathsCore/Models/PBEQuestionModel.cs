@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
@@ -13,6 +14,7 @@ namespace BiblePathsCore.Models.DB
         public enum QuestionEventType { CorrectAnswer, WrongAnswer, QuestionAdd, QuestionPointsAwarded, QuestionAPIToken }
 
         public const int MaxPoints = 15;
+        public const int MinBlankWordLength = 3;
 
         [NotMapped]
         public string BookName { get; set; }
@@ -179,6 +181,136 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             return RetVal;
+        }
+
+        public async Task<QuizQuestion> BuildQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, int MaxPoints, string BibleId)
+        {
+            int BlankWordProbability = 3; // read as 1 in every 3 valid words may get blanked rnd is 0 based
+            int MinPoints = 3;
+            int Iteration = 0;
+            int MaxIterations = 3;
+            string BlankWordSring = "_____";
+            string FitBPrepend = "fill in the blanks: ";
+            int BlankedWordCount = 0;
+            List<string> BlankedWords = new List<string>();
+            string QuestionString = String.Empty;
+
+            BibleId = await QuizQuestion.GetValidBibleIdAsync(context, BibleId);
+            Random rnd = new Random();
+
+            // We'll make at most MaxIteratons at this, increasing BlankWordProbability each time. 
+            while (Iteration < MaxIterations && BlankedWordCount < MinPoints)
+            {
+                QuestionString = verse.Text;
+                BlankedWords.Clear();
+                BlankedWordCount = 0;
+
+                // Read the verse "word" by "word" i.e. stop at each Space till we hit the end. 
+                int i = 0;
+                while (i < QuestionString.Length && BlankedWordCount < MaxPoints)
+                {
+                    int WordStart = i;
+                    int WordEnd = QuestionString.IndexOf(" ", i);
+                    if (WordEnd == -1) { WordEnd = QuestionString.Length - 1; }
+
+                    // Now we should have a rough "word" to work with,
+                    // but let's progressively shrink our Word Selction until it's starts/ends with a letter.
+                    if (WordStart < WordEnd && WordEnd < QuestionString.Length)
+                    {
+                        // find the first letter
+                        while (WordStart < WordEnd && !char.IsLetter(QuestionString, WordStart))
+                        {
+                            WordStart++;
+                        }
+                        // find the last letter
+                        while (WordEnd > WordStart && !char.IsLetter(QuestionString, WordEnd))
+                        {
+                            WordEnd--;
+                        }
+
+                        // Now we should have a true "word" at least as far as we are concerned. 
+                        string Word = QuestionString.Substring(WordStart, (WordEnd + 1) - WordStart);
+
+                        if (await IsWordGoodForBlankAsync(context, Word, BibleId))
+                        {
+                            // Ok now we don't want to simply replace every valid word so let's get random
+                            int dice = rnd.Next(BlankWordProbability);
+                            if (dice == 0) // 0 will always turn up on the 3rd iteration. 
+                            {
+                                // Blank out our word in the QuestionString 
+                                StringBuilder VerseWithBlanksSB = new StringBuilder();
+                                VerseWithBlanksSB.Append(QuestionString.Substring(0, WordStart));
+                                VerseWithBlanksSB.Append(BlankWordSring);
+                                VerseWithBlanksSB.Append(QuestionString.Substring(WordEnd + 1));
+                                QuestionString = VerseWithBlanksSB.ToString();
+                                // Add our word to the blanked words list 
+                                BlankedWords.Add(Word);
+                                BlankedWordCount++;
+                                // Set our index to the latest instance of BlankWordString
+                                i = QuestionString.LastIndexOf(BlankWordSring) + BlankWordSring.Length;
+                            }
+                            else
+                            {
+                                i = WordEnd + 1;
+                            }
+                        }
+                        else
+                        {
+                            i = WordEnd + 1;
+                        }
+                    }
+                    else
+                    {
+                        // Why would we ever be here? 
+                        i = WordEnd + 1;
+                    }
+                }
+                Iteration++;
+                BlankWordProbability--; // Reducing this increases the probability of any word being selected.
+            }
+            
+            QuizQuestion NewQuestion = new QuizQuestion();
+            QuizAnswer FitBAnswer = new QuizAnswer();
+            NewQuestion.BibleId = BibleId;
+            NewQuestion.Points = BlankedWordCount;
+            NewQuestion.Question = FitBPrepend + QuestionString;
+            NewQuestion.BookNumber = verse.BookNumber;
+            NewQuestion.Chapter = verse.Chapter;
+            NewQuestion.StartVerse = verse.Verse;
+            NewQuestion.EndVerse = verse.Verse;
+            NewQuestion.Source = "BiblePaths.Net Question Generator - Iteration: " + Iteration.ToString();
+            // Build the Answer
+            FitBAnswer.Answer = string.Join(", ", BlankedWords);
+            NewQuestion.QuizAnswers.Add(FitBAnswer);
+
+            if (NewQuestion.QuizAnswers.Count > 0) { NewQuestion.IsAnswered = true; }
+            else { NewQuestion.IsAnswered = false; }
+
+            return NewQuestion;
+        }
+
+        public async Task<bool> IsWordGoodForBlankAsync(BiblePathsCoreDbContext context, string CheckWord, string BibleId)
+        {
+            if (!string.IsNullOrEmpty(CheckWord))
+            {
+                if (CheckWord.Length >= QuizQuestion.MinBlankWordLength)
+                {
+                    // See if we can find this word in our NoiseWord DB, and make sure it's not flagged as noise.
+                    try
+                    {
+                        bool retVal = await context.BibleNoiseWords.Where(W => W.NoiseWord == CheckWord
+                                                                   && W.IsNoise == false
+                                                                   && W.BibleId == BibleId)
+                                                            .AnyAsync();
+                        return retVal;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+            }
+            return false;
         }
 
         public async Task<bool> RegisterEventAsync(BiblePathsCoreDbContext context, QuestionEventType questionEventType, int QuizUserId, string EventData, int? QuizId, int? Points)
