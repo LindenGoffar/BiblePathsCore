@@ -44,6 +44,8 @@ namespace BiblePathsCore.Pages.Play
 
             Path = await _context.Paths.FindAsync(Group.PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Very Odd! We were not able to find the Path for this Group" }); }
+
+            // This has bee moved to an View Component, as an attempt to address perf issues... no luck. 
             //_ = await Path.AddCalculatedPropertiesAsync(_context);
 
             //if (Team.BoardState == (int)GameTeam.GameBoardState.StepSelect)

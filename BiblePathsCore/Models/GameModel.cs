@@ -59,7 +59,7 @@ namespace BiblePathsCore.Models.DB
             {
                 StepText.Append(Verse.Text + " ");
             }
-            String text = StepText.ToString().ToLower();
+            String text = StepText.ToString();
             var punctuation = text.Where(Char.IsPunctuation).Distinct().ToArray();
             var words = text.Split().Select(x => x.Trim(punctuation));
             foreach (string word in words)
