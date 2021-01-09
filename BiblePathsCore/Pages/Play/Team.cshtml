@@ -16,6 +16,15 @@
 }
 
 <div class="container-fluid">
+    <div class="row">
+        <ul class="list-group list-group-horizontal">
+            @foreach (var team in Model.Group.GameTeams)
+            {
+                <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> step @team.StepNumber</li>
+            }
+        </ul>
+    </div>
+
     @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.StepSelect)
     {
         <div class="row">
@@ -41,11 +50,21 @@
             </div>
         </div>
         <hr />
-        @await Component.InvokeAsync("TeamSteps", new { GroupId = Model.Team.GroupId, TeamId = Model.Team.Id})
+        @await Component.InvokeAsync("TeamSteps", new { GroupId = Model.Team.GroupId, TeamId = Model.Team.Id })
+    }
+
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
+    {
+        <div class="row">
+            <div class="col">
+                <h4 class="bg-info">Good Job! You've finished this Path... </h4>
+                <small>BoardState: @Model.Team.BoardState  </small>
+            </div>
+        </div>
     }
 
     @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect
-         || Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelectOffPath)
+        || Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelectOffPath)
     {
         <div class="row">
             <div class="col">

@@ -18,6 +18,15 @@
 
 <div class="container-fluid">
     <div class="row">
+        <ul class="list-group list-group-horizontal">
+            @foreach (var team in Model.Group.GameTeams)
+            {
+                <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> step @team.StepNumber</li>
+            }
+        </ul>
+    </div>
+
+    <div class="row">
         @{string VerseRef = Model.CurrentStep.BookName + " " + Model.CurrentStep.Chapter + ": " + Model.CurrentStep.StartVerse;
             if (Model.CurrentStep.EndVerse > Model.CurrentStep.StartVerse) { VerseRef += " - " + Model.CurrentStep.EndVerse; }
         }
@@ -29,47 +38,68 @@
                 <p class="card-text">
                     @foreach (var Verse in Model.CurrentStep.Verses)
                     {
-                    <sup>@Verse.Verse</sup>@Verse.Text<br />
+                        <sup>@Verse.Verse</sup>@Verse.Text<br />
                     }
                 </p>
             </div>
         </div>
     </div>
-    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect)
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect
+      || Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelectOffPath)
     {
-    <div class="row">
-        <div class="col">
-            <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Guide Word</span>
+        <div class="row">
+            <div class="col">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div>
+                        <span class="text-info">
+                            The Guide Word is any <span class="font-weight-bold">single word</span> that <span class="font-weight-bold">does not appear</span> in the text above.
+                        </span>
                     </div>
-                    <input asp-for="Team.GuideWord" class="form-control" />
-                    <span asp-validation-for="Team.GuideWord" class="text-danger"></span>
-                </div>
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Key Word</span>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Guide Word</span>
+                        </div>
+                        <input id="GuideWord" asp-for="Team.GuideWord" class="form-control" oninput="CheckGuideWord()" />
+                        <span asp-validation-for="Team.GuideWord" class="text-danger"></span>
                     </div>
-                    <select asp-for="Team.KeyWord" asp-items="ViewBag.KeyWordSelectList" class="form-control"></select>
-                </div>
-                <div class="form-group input-group">
-                    <input type="hidden" asp-for="Team.Id" />
-                    <input type="submit" value="Go!" class="btn btn-primary" />
-                </div>
-            </form>
+                    <div>
+                        <span class="text-info">
+                            The Key Word is used in selecting additional verse for display to your team.
+                        </span>
+                    </div>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Key Word</span>
+                        </div>
+                        <select asp-for="Team.KeyWord" asp-items="ViewBag.KeyWordSelectList" class="form-control"></select>
+                    </div>
+                    <div class="form-group input-group">
+                        <input type="hidden" asp-for="Team.Id" />
+                        <input id="GoButton" type="submit" value="Go!" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     }
-    else
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
     {
-    <div class="row">
-        <div class="col">
-            <h4>Waiting on your TEAM!</h4>
-            <small>BoardState: @Model.Team.BoardState  </small>
+        <div class="row">
+            <div class="col">
+                <h4 class="bg-info">Good Job! You've finished this Path... </h4>
+                <small>BoardState: @Model.Team.BoardState  </small>
+            </div>
         </div>
-    </div>
+    }
+
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.StepSelect)
+    {
+        <div class="row">
+            <div class="col">
+                <h4 class="bg-warning">Waiting on your TEAM!</h4>
+                <small>BoardState: @Model.Team.BoardState  </small>
+            </div>
+        </div>
     }
 
 </div>
@@ -81,5 +111,6 @@
 
 @section Scripts {
     <partial name="_TheGameHelpers" model="@Model.Team" />
+    <partial name="_TheGameVerseHelpers" model="@Model.CurrentStep" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

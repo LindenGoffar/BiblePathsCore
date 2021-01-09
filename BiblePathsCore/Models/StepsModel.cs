@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
@@ -17,6 +18,8 @@ namespace BiblePathsCore.Models.DB
         public int StepNumber { get; set; }
         [NotMapped]
         public List<BibleVerse> Verses { get; set; }
+        [NotMapped]
+        public string VerseText { get; set; }
         [NotMapped]
         public string BookName { get; set; }
         [NotMapped]
@@ -182,7 +185,18 @@ namespace BiblePathsCore.Models.DB
             }
             return bibleVerses;
         }
-
+        public bool AddVerseText()
+        {
+            bool RetVal = true;
+            StringBuilder sb = new StringBuilder();
+            foreach (BibleVerse Verse in Verses)
+            {
+                sb.Append(Verse.Text);
+                sb.Append(' ');
+            }
+            VerseText = sb.ToString();
+            return RetVal;
+        }
         public async Task<bool> RegisterReadEventsAsync(BiblePathsCoreDbContext context, bool FullPathRead = false)
         {
             // there are two scenarios we should register events for 

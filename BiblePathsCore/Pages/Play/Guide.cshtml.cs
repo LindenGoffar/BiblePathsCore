@@ -46,11 +46,17 @@ namespace BiblePathsCore.Pages.Play
 
         public async Task<IActionResult> OnGetAsync(int GroupId, int TeamId, string Message)
         {
-            Group = await _context.GameGroups.FindAsync(GroupId);
-            if (Group == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find that Group" }); }
-            Team = await _context.GameTeams.FindAsync(TeamId);
-            if (Team == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were not able to find that Team" }); }
-            if (Team.GroupId != Group.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! The Team and Group do not match" }); }
+            try
+            {
+                Group = await _context.GameGroups.Include(g => g.GameTeams).Where(g => g.Id == GroupId).SingleAsync();
+            }
+            catch
+            {
+                return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find that Group" });
+            }
+            try { Team = Group.GameTeams.Single(t => t.Id == TeamId); }
+            catch { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were not able to find that Team" }); }
+
             string BibleId = await GameTeam.GetValidBibleIdAsync(_context, null);
 
             Path = await _context.Paths.FindAsync(Group.PathId);
@@ -61,6 +67,8 @@ namespace BiblePathsCore.Pages.Play
             _ = await CurrentStep.AddGenericStepPropertiesAsync(_context, BibleId);
             _ = await CurrentStep.AddPathStepPropertiesAsync(_context);
             CurrentStep.Verses = await CurrentStep.GetBibleVersesAsync(_context, BibleId, true, false);
+            // Now let's add VerseText to our Step
+            _ = CurrentStep.AddVerseText();
 
             ViewData["KeyWordSelectList"] = await Team.GetKeyWordSelectListAsync(_context, CurrentStep);
             if (Team.BoardState == (int)GameTeam.GameBoardState.WordSelectOffPath)
