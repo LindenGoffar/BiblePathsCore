@@ -34,9 +34,9 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
 		[switch] $CreateGameTables,
-		[switch] $LocalDB
-        #[switch] $ProductionDB,
-        #[switch] $StagingDB
+		[switch] $LocalDB,
+        #[switch] $ProductionDB
+        [switch] $StagingDB
       )
 
 . .\InvokeSQLRemote.ps1

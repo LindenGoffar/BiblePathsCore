@@ -20,7 +20,14 @@
         <ul class="list-group list-group-horizontal">
             @foreach (var team in Model.Group.GameTeams)
             {
-                <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> step @team.StepNumber</li>
+                @if (team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
+                {
+                    <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> Finished!</li>
+                }
+                else
+                {
+                    <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> step @team.StepNumber</li>
+                }
             }
         </ul>
     </div>

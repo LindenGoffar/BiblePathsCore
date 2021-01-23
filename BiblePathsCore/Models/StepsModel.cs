@@ -189,6 +189,9 @@ namespace BiblePathsCore.Models.DB
         {
             bool RetVal = true;
             StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("{0} {1}: ", BookName, Chapter.ToString());
+            if (EndVerse > StartVerse) { sb.AppendFormat("{0}-{1}", StartVerse.ToString(), EndVerse.ToString()); }
+            if (EndVerse > StartVerse) { sb.AppendFormat("{0}", StartVerse.ToString()); }
             foreach (BibleVerse Verse in Verses)
             {
                 sb.Append(Verse.Text);
