@@ -14,6 +14,12 @@ ALTER TABLE BibleNoiseWords
 ALTER TABLE BibleNoiseWords
 		ADD	WordType int NOT NULL
 
+ALTER TABLE GameTeams
+		Add GameStarted datetimeoffset,
+			
+ALTER TABLE GameTeams
+		Add GameCompleted datetimeoffset
+
 UPDATE dbo.QuizQuestions
 SET BibleID = 'NKJV-EN'
 WHERE BibleID is null
@@ -25,6 +31,7 @@ Param(  #[switch] $SetupSecurity,
         [switch] $CreateBiblesTable,
         [switch] $CreateBibleBooksTable,
 		[switch] $CreateBibleNoiseWordsTable,
+		[switch] $CreateBibleWordIndexTable,
         [switch] $CreateBibleChaptersTable,
         [switch] $CreateBibleVersesTable,
 		[switch] $CreatePathsTable,
@@ -35,7 +42,7 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreatePreDefinedQuizTables,
 		[switch] $CreateGameTables,
 		[switch] $LocalDB,
-        #[switch] $ProductionDB
+        [switch] $ProductionDB,
         [switch] $StagingDB
       )
 
@@ -412,12 +419,28 @@ If ($CreateGameTables){
 			KeyWord nvarchar(256), 
 			GuideWord nvarchar(256), 
 			Created datetimeoffset,
-			Modified datetimeoffset
+			Modified datetimeoffset,
+			GameStarted datetimeoffset,
+			GameCompleted datetimeoffset
 		) 
 "@
 	Write-Host "Creating GameGroups Quiz Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameGroupsTableQuery -Username $User -Password $Password
 	Write-Host "Creating GameTeams Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameTeamsTableQuery -Username $User -Password $Password
-
+}
+If ($CreateBibleWordIndexTable){
+	$CreateBibleWordIndexQuery = @"
+		CREATE TABLE BibleWordIndex
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
+			Word nvarchar(32) NOT NULL,
+			BookNumber int NOT NULL,
+			Chapter int NOT NULL,
+			Verse int NOT NULL
+		) 
+"@
+	Write-Host "Creating BibleWordIndex Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleWordIndexQuery -Username $User -Password $Password
 }

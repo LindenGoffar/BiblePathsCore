@@ -118,11 +118,13 @@ namespace BiblePathsCore.Models.DB
             {
                 CurrentVerses.Add(currentVerse.Id, null);
             }
-
+            // Performance change: Instead of searching Text we'll reference the BibleWordIndex Table
             // Find all verses with associated with KeyWord, not in our Current Step verses
-            List<BibleVerse> FoundVerses = await context.BibleVerses.Where(V => V.BibleId == BibleId
-                                                                            && V.Text.Contains(KeyWord))
-                                                                        .ToListAsync();
+            //List<BibleVerse> FoundVerses = await context.BibleVerses.Where(V => V.BibleId == BibleId
+            //                                                                && V.Text.Contains(KeyWord))
+            //                                                            .ToListAsync();
+
+            List<BibleWordIndex> FoundVerses = await GetVerseIndicesByWordAsync(context, BibleId, KeyWord);
             var rand = new Random();
 
             // now select 6 from this set randomly using a HashTable to ensure Uniqueness
@@ -134,6 +136,8 @@ namespace BiblePathsCore.Models.DB
                 if (!UniqueVerses.ContainsKey(FoundVerses[VerseIndex].Id))
                 {
                     // We don't want any of our CurrentVerses either. 
+
+                    // BUG THIS WON'T Work, need to store verseID on WordIndex... needs rework. 
                     if (!CurrentVerses.ContainsKey(FoundVerses[VerseIndex].Id))
                     {
                         UniqueVerses.Add(FoundVerses[VerseIndex].Id, null);
@@ -194,6 +198,39 @@ namespace BiblePathsCore.Models.DB
             return ReturnSteps.OrderBy(S => S.Id).ToList();
         }
 
+        public async Task<List<BibleWordIndex>> GetVerseIndicesByWordAsync(BiblePathsCoreDbContext context, string BibleId, string KeyWord)
+        {
+            List<BibleWordIndex> WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId
+                                                                                        && W.Word.Contains(KeyWord))
+                                                                                .ToListAsync();
+            return WordReferences;
+        }
+
+        // Older method, performs very poorly
+        //public async Task<List<BibleVerse>> GetVersesByWordAsync(BiblePathsCoreDbContext context, string BibleId, string KeyWord)
+        //{
+        //    List<BibleWordIndex> WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId 
+        //                                                                                && W.Word.Contains(KeyWord))
+        //                                                                        .ToListAsync();
+        //    List<BibleVerse> ReturnVerses = new List<BibleVerse>();
+        //    foreach(BibleWordIndex WordRefernce in WordReferences)
+        //    {
+        //        BibleVerse Verse = new BibleVerse();
+        //        try
+        //        {
+        //            Verse = await context.BibleVerses.Where(V => V.BibleId == BibleId
+        //                                            && V.BookNumber == WordRefernce.BookNumber
+        //                                            && V.Chapter == WordRefernce.Chapter
+        //                                            && V.Verse == WordRefernce.Verse)
+        //                                    .SingleAsync();
+        //        }
+        //        catch {
+        //            continue; // Go to next iteration we'll skip this one. 
+        //        }
+        //        ReturnVerses.Add(Verse);
+        //    }
+        //    return ReturnVerses;
+        //}
         public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bible.DefaultPBEBibleId;
