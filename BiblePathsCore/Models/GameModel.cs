@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +44,10 @@ namespace BiblePathsCore.Models.DB
 
     public partial class GameTeam
     {
-        public enum GameBoardState { Initialize, WordSelect, StepSelect, Completed, Closed }
+        public enum GameBoardState { Initialize, WordSelect, WordSelectOffPath, StepSelect, StepSelectOffPath, Completed, Closed }
+
+        [NotMapped]
+        public List<PathNode> Steps { get; set; }
 
         public async Task<List<SelectListItem>> GetKeyWordSelectListAsync(BiblePathsCoreDbContext context, PathNode CurrentStep)
         {
@@ -55,7 +59,7 @@ namespace BiblePathsCore.Models.DB
             {
                 StepText.Append(Verse.Text + " ");
             }
-            String text = StepText.ToString().ToLower();
+            String text = StepText.ToString();
             var punctuation = text.Where(Char.IsPunctuation).Distinct().ToArray();
             var words = text.Split().Select(x => x.Trim(punctuation));
             foreach (string word in words)
@@ -114,11 +118,13 @@ namespace BiblePathsCore.Models.DB
             {
                 CurrentVerses.Add(currentVerse.Id, null);
             }
-
+            // Performance change: Instead of searching Text we'll reference the BibleWordIndex Table
             // Find all verses with associated with KeyWord, not in our Current Step verses
-            List<BibleVerse> FoundVerses = await context.BibleVerses.Where(V => V.BibleId == BibleId
-                                                                            && V.Text.Contains(KeyWord))
-                                                                        .ToListAsync();
+            //List<BibleVerse> FoundVerses = await context.BibleVerses.Where(V => V.BibleId == BibleId
+            //                                                                && V.Text.Contains(KeyWord))
+            //                                                            .ToListAsync();
+
+            List<BibleWordIndex> FoundVerses = await GetVerseIndicesByWordAsync(context, BibleId, KeyWord);
             var rand = new Random();
 
             // now select 6 from this set randomly using a HashTable to ensure Uniqueness
@@ -126,13 +132,13 @@ namespace BiblePathsCore.Models.DB
             Hashtable UniqueVerses = new Hashtable();
             for (int i = 0; i < 6; i++)
             {
-                int VerseIndex = rand.Next(FoundVerses.Count);
-                if (!UniqueVerses.ContainsKey(FoundVerses[VerseIndex].Id))
+                int VerseIndex = rand.Next(FoundVerses.Count - 1);
+                if (!UniqueVerses.ContainsKey(FoundVerses[VerseIndex].VerseId))
                 {
                     // We don't want any of our CurrentVerses either. 
-                    if (!CurrentVerses.ContainsKey(FoundVerses[VerseIndex].Id))
+                    if (!CurrentVerses.ContainsKey(FoundVerses[VerseIndex].VerseId))
                     {
-                        UniqueVerses.Add(FoundVerses[VerseIndex].Id, null);
+                        UniqueVerses.Add(FoundVerses[VerseIndex].VerseId, null);
                     }
                 }
             }
@@ -147,8 +153,12 @@ namespace BiblePathsCore.Models.DB
             // now we've got a selected set of unique verses let's build appropriate sized Steps out of them. 
             foreach (int VerseId in UniqueVerses.Keys)
             {
-                BibleVerse FoundVerse = FoundVerses.Where(V => V.Id == VerseId).First();
-
+                // Now we go grab or actual verse object. 
+                BibleVerse FoundVerse = await context.BibleVerses.FindAsync(VerseId);
+                if(FoundVerse == null)
+                {
+                    continue;
+                }
                 // Pick a Random ID 
                 int RandomID = rand.Next(LowRange, HighRange);
                 if (!UniqueIds.ContainsKey(RandomID) && RandomID != CurrentStep.Id)
@@ -173,7 +183,6 @@ namespace BiblePathsCore.Models.DB
                     int Increment = (int)VerseCount / 2;
                     bodgedStep.StartVerse = (FoundVerse.Verse - Increment + 1 > 0) ? (FoundVerse.Verse - Increment + 1) : FoundVerse.Verse;
                     bodgedStep.EndVerse = (FoundVerse.Verse + Increment <= ChapterLen) ? (FoundVerse.Verse + Increment) : FoundVerse.Verse;
-
                 }
                 else
                 {
@@ -190,6 +199,39 @@ namespace BiblePathsCore.Models.DB
             return ReturnSteps.OrderBy(S => S.Id).ToList();
         }
 
+        public async Task<List<BibleWordIndex>> GetVerseIndicesByWordAsync(BiblePathsCoreDbContext context, string BibleId, string KeyWord)
+        {
+            List<BibleWordIndex> WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId
+                                                                                        && W.Word.Contains(KeyWord))
+                                                                                .ToListAsync();
+            return WordReferences;
+        }
+
+        // Older method, performs very poorly
+        //public async Task<List<BibleVerse>> GetVersesByWordAsync(BiblePathsCoreDbContext context, string BibleId, string KeyWord)
+        //{
+        //    List<BibleWordIndex> WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId 
+        //                                                                                && W.Word.Contains(KeyWord))
+        //                                                                        .ToListAsync();
+        //    List<BibleVerse> ReturnVerses = new List<BibleVerse>();
+        //    foreach(BibleWordIndex WordRefernce in WordReferences)
+        //    {
+        //        BibleVerse Verse = new BibleVerse();
+        //        try
+        //        {
+        //            Verse = await context.BibleVerses.Where(V => V.BibleId == BibleId
+        //                                            && V.BookNumber == WordRefernce.BookNumber
+        //                                            && V.Chapter == WordRefernce.Chapter
+        //                                            && V.Verse == WordRefernce.Verse)
+        //                                    .SingleAsync();
+        //        }
+        //        catch {
+        //            continue; // Go to next iteration we'll skip this one. 
+        //        }
+        //        ReturnVerses.Add(Verse);
+        //    }
+        //    return ReturnVerses;
+        //}
         public static async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bible.DefaultPBEBibleId;

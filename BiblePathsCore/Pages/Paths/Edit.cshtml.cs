@@ -116,11 +116,14 @@ namespace BiblePathsCore
         public async Task<JsonResult> OnPostCheckNameAsync()
         {
             // Is this an attempted name change... for reals? 
-            if (Name.ToLower() != Path.Name.ToLower())
+            if(Path.Name != null)
             {
-                if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
+                if (Name.ToLower() != Path.Name.ToLower())
                 {
-                    return new JsonResult("Sorry, this Name is already in use.");
+                    if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
+                    {
+                        return new JsonResult("Sorry, this Name is already in use.");
+                    }
                 }
             }
             return new JsonResult(true);

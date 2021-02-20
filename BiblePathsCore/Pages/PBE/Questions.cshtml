@@ -59,7 +59,15 @@
                         {
                             <div class="card">
                                 <div class="card-header bg-danger">
-                                    <span class="card-title">Question Challenged</span>
+                                    @if (question.ChallengedBy == null)
+                                    {
+                                        <span class="card-title">Question Challenged</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="card-title">Question Challenged by @question.ChallengedBy</span>
+                                    }
+
                                 </div>
                                 <div class="card-body">
                                     <span class="card-text">@question.ChallengeComment</span><br />
@@ -83,7 +91,34 @@
                 </div>
             </div>
             <div class="col-2">
-                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" >Edit</a>
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id">Edit</a>
+                <br />
+                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
+                    Delete
+                </button>
+                <div class="modal fade" id="DeleteModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Question?</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="font-italic">Are you sure?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form asp-page="/PBE/DeleteQuestion" method="post">
+                                    <input type="hidden" name="id" value="@question.Id" />
+                                    <input type="submit" value="Confirm" class="btn btn-danger" />
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     }

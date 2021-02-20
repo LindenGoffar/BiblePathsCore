@@ -11,7 +11,11 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-6">
-                <h4>@ViewData["Title"]</h4>
+                <span>
+                    <strong>@ViewData["Title"]</strong>
+                    <a asp-page="/Shared/SelectChapter" asp-route-TargetPage="/Steps/Step" class="small">  Change Book/Chapter  </a>
+                    <br />
+                </span>
             </div>
             <div class="col-6">
                 @if (Model.Scenario != StepModel.StepScenarios.Study)

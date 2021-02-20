@@ -16,60 +16,66 @@
 }
 
 <div class="container-fluid">
-    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.StepSelect)
-    {
     <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Guide Word</span>
-                </div>
-            </div>
-            <div class="card-body">
-                <h2>@Model.Team.GuideWord</h2>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">@Model.Path.Name</span>
-                </div>
-            </div>
-            <div class="card-body">
-                <span class="card-text">@Model.Path.Topics</span>
-            </div>
-        </div>
-    </div>
-        @foreach (var Step in Model.Steps)
-        {
-            <div class="row">
-                @{string VerseRef = Step.BookName + " " + Step.Chapter + ": " + Step.StartVerse;
-                    if (Step.EndVerse > Step.StartVerse) { VerseRef += " - " + Step.EndVerse; }
+        <ul class="list-group list-group-horizontal">
+            @foreach (var team in Model.Group.GameTeams)
+            {
+                @if (team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
+                {
+                    <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> Finished!</li>
                 }
-                <div class="card">
-                    <div class="card-header">
-                        <a asp-page="CheckResponse" asp-route-GroupId="@Model.Team.GroupId" asp-route-TeamId="@Model.Team.Id" asp-route-StepId="@Step.Id">
-                            <span class="card-title">@VerseRef</span>
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">
-                            @foreach (var Verse in Step.Verses)
-                            {
-                                <sup>@Verse.Verse</sup>@Verse.Text<br />
-                            }
-                        </p>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-    }
-    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect)
+                else
+                {
+                    <li class="list-group-item"><span class="font-weight-bold">@team.Name</span> step @team.StepNumber</li>
+                }
+            }
+        </ul>
+    </div>
+
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.StepSelect)
     {
         <div class="row">
             <div class="col">
-                <h4>Waiting on your Guide!</h4>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Guide Word</span>
+                    </div>
+                    <div class="card-body">
+                        <h2>@Model.Team.GuideWord</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">@Model.Path.Name</span>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-text">@Model.Path.Topics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        @await Component.InvokeAsync("TeamSteps", new { GroupId = Model.Team.GroupId, TeamId = Model.Team.Id })
+    }
+
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
+    {
+        <div class="row">
+            <div class="col">
+                <h4 class="bg-info">Good Job! You've finished this Path... </h4>
+                <small>BoardState: @Model.Team.BoardState  </small>
+            </div>
+        </div>
+    }
+
+    @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelect
+        || Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.WordSelectOffPath)
+    {
+        <div class="row">
+            <div class="col">
+                <h4 class="bg-warning">Waiting on your Guide!</h4>
                 <small>BoardState: @Model.Team.BoardState  </small>
             </div>
         </div>
@@ -83,6 +89,6 @@
 </div>
 
 @section Scripts {
-    <partial name="_AddEditMultiple-Name" />
+    <partial name="_TheGameHelpers" model="@Model.Team" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

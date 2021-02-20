@@ -1,0 +1,26 @@
+﻿@model BiblePathsCore.Models.DB.GameTeam
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+
+<script>
+    "use strict";
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/GameTeamHub").build();
+    var TeamIdString = "\"" + @Model.Id.ToString() + "\"";
+
+    connection.start().then(res => {
+        console.log("Calling JoinGroup with String: " + TeamIdString)
+        connection.invoke("JoinGroup", TeamIdString)
+            .catch(err => {
+                console.log(err);
+            });
+    }).catch(err => {
+        console.log(err);
+    });;
+
+    connection.on("StateChange", function () {
+        console.log("StateChange Recieved");
+        window.location.reload(true);
+    });
+
+</script>

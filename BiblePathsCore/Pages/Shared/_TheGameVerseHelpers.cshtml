@@ -1,0 +1,16 @@
+﻿@model BiblePathsCore.Models.DB.PathNode
+
+<script>
+    function CheckGuideWord(){
+        var word = document.getElementById('GuideWord').value;
+        var scripture = "@Model.VerseText".toLowerCase();
+        if (!(scripture.includes(word.toLowerCase().trim())) && !(word.trim().includes(" ")) ) {
+            $('#GoButton').prop('disabled', false);
+            document.getElementById('GuideWord').style.backgroundColor = "PaleGreen"
+        }
+        else {
+            document.getElementById('GuideWord').style.backgroundColor = "Pink"
+            $('#GoButton').prop('disabled', true);
+        }
+    }
+</script>

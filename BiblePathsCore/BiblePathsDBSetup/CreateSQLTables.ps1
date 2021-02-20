@@ -14,6 +14,12 @@ ALTER TABLE BibleNoiseWords
 ALTER TABLE BibleNoiseWords
 		ADD	WordType int NOT NULL
 
+ALTER TABLE GameTeams
+		Add GameStarted datetimeoffset,
+			
+ALTER TABLE GameTeams
+		Add GameCompleted datetimeoffset
+
 UPDATE dbo.QuizQuestions
 SET BibleID = 'NKJV-EN'
 WHERE BibleID is null
@@ -25,6 +31,7 @@ Param(  #[switch] $SetupSecurity,
         [switch] $CreateBiblesTable,
         [switch] $CreateBibleBooksTable,
 		[switch] $CreateBibleNoiseWordsTable,
+		[switch] $CreateBibleWordIndexTable,
         [switch] $CreateBibleChaptersTable,
         [switch] $CreateBibleVersesTable,
 		[switch] $CreatePathsTable,
@@ -34,9 +41,9 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
 		[switch] $CreateGameTables,
-		[switch] $LocalDB
-        #[switch] $ProductionDB,
-        #[switch] $StagingDB
+		[switch] $LocalDB,
+        [switch] $ProductionDB,
+        [switch] $StagingDB
       )
 
 . .\InvokeSQLRemote.ps1
@@ -69,19 +76,6 @@ if ($LocalDB) {
 if ($Database.Length -lt 1){
     Write-Host "You must specify a target DB using -LocalDB, -StagingDB or -ProductionDB"
     break
-}
-
-
-If ($SetupSecurity){
-	Write-Host "Setting Up Security" 
-	$SetupSecurityQuery = @"
-		CREATE USER RWACC WITH password='B!bleP@thsStr0ngP@ssw0rd'
-		EXEC sp_addrolemember 'db_datawriter', 'RWACC';
-		EXEC sp_addrolemember 'db_datawriter', 'RWACC';
-		Grant select to RWACC
-		Grant CONNECT to RWACC
-"@
-    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $SetupSecurityQuery -Username $User -Password $Password.
 }
 
 If ($CreateBiblesTable){
@@ -406,17 +400,32 @@ If ($CreateGameTables){
 			GroupID int FOREIGN KEY References GameGroups(ID),
 			Name nvarchar(256), 
 			CurrentStepID int NOT NULL,
+			StepNumber int NOT NULL, 
 			TeamType int NOT NULL,
 			BoardState int NOT NULL,
 			KeyWord nvarchar(256), 
 			GuideWord nvarchar(256), 
 			Created datetimeoffset,
-			Modified datetimeoffset
+			Modified datetimeoffset,
+			GameStarted datetimeoffset,
+			GameCompleted datetimeoffset
 		) 
 "@
 	Write-Host "Creating GameGroups Quiz Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameGroupsTableQuery -Username $User -Password $Password
 	Write-Host "Creating GameTeams Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameTeamsTableQuery -Username $User -Password $Password
-
+}
+If ($CreateBibleWordIndexTable){
+	$CreateBibleWordIndexQuery = @"
+		CREATE TABLE BibleWordIndex
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
+			Word nvarchar(32) NOT NULL,
+			VerseID int NOT NULL
+		) 
+"@
+	Write-Host "Creating BibleWordIndex Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleWordIndexQuery -Username $User -Password $Password
 }

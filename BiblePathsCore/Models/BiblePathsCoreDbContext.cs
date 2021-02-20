@@ -23,6 +23,7 @@ namespace BiblePathsCore.Models
         public virtual DbSet<BibleChapter> BibleChapters { get; set; }
         public virtual DbSet<BibleNoiseWord> BibleNoiseWords { get; set; }
         public virtual DbSet<BibleVerse> BibleVerses { get; set; }
+        public virtual DbSet<BibleWordIndex> BibleWordIndices { get; set; }
         public virtual DbSet<CommentaryBook> CommentaryBooks { get; set; }
         public virtual DbSet<GameGroup> GameGroups { get; set; }
         public virtual DbSet<GameTeam> GameTeams { get; set; }
@@ -49,6 +50,8 @@ namespace BiblePathsCore.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
+
             modelBuilder.Entity<Bible>(entity =>
             {
                 entity.Property(e => e.Id)
@@ -119,7 +122,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleNoiseWords)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleNois__Bible__19DFD96B");
+                    .HasConstraintName("FK__BibleNois__Bible__531856C7");
             });
 
             modelBuilder.Entity<BibleVerse>(entity =>
@@ -140,6 +143,30 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleVerses)
                     .HasForeignKey(d => d.BibleId)
                     .HasConstraintName("FK__BibleVers__Bible__1B0907CE");
+            });
+
+            modelBuilder.Entity<BibleWordIndex>(entity =>
+            {
+                entity.ToTable("BibleWordIndex");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.BibleId)
+                    .IsRequired()
+                    .HasMaxLength(64)
+                    .HasColumnName("BibleID");
+
+                entity.Property(e => e.VerseId).HasColumnName("VerseID");
+
+                entity.Property(e => e.Word)
+                    .IsRequired()
+                    .HasMaxLength(32);
+
+                entity.HasOne(d => d.Bible)
+                    .WithMany(p => p.BibleWordIndices)
+                    .HasForeignKey(d => d.BibleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__BibleWord__Bible__7E02B4CC");
             });
 
             modelBuilder.Entity<CommentaryBook>(entity =>

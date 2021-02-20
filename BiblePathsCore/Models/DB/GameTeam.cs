@@ -17,6 +17,7 @@ namespace BiblePathsCore.Models.DB
         public string GuideWord { get; set; }
         public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Modified { get; set; }
+        public int StepNumber { get; set; }
 
         public virtual GameGroup Group { get; set; }
     }

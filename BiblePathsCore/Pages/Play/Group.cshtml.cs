@@ -53,41 +53,54 @@ namespace BiblePathsCore.Pages.Play
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
-        //public async Task<IActionResult> OnPostAsync()
-        //{
-            //if (!ModelState.IsValid)
-            //{
-            //    ViewData["BookSelectList"] = await BibleBooks.GetBookAndBookListSelectListAsync(_context, BibleId);
-            //    return Page();
-            //}
+        public async Task<IActionResult> OnPostAsync()
+        {
+            IdentityUser user = await _userManager.GetUserAsync(User);
 
-            //// confirm our user is a valid PBE User. 
-            //IdentityUser user = await _userManager.GetUserAsync(User);
-            //PBEUser = await QuizUsers.GetOrAddPBEUserAsync(_context, user.Email);
-            //if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz Template" }); }
+            if (!ModelState.IsValid)
+            {
 
-            //// Now let's create an empty template
-            //var emptyTemplate = new PredefinedQuizzes
-            //{
-            //    Created = DateTime.Now,
-            //    Modified = DateTime.Now,
-            //    QuizUser = PBEUser
+                return RedirectToPage("Group", new { Id = Group.Id });
+            }
 
-            //};
-            //if (await TryUpdateModelAsync<PredefinedQuizzes>(
-            //    emptyTemplate,
-            //    "Template",   // Prefix for form value.
-            //    t => t.QuizName, t => t.BookNumber, t => t.NumQuestions))
-            //{
-            //    emptyTemplate.IsDeleted = false;
-            //    _context.PredefinedQuizzes.Add(emptyTemplate);
-            //    await _context.SaveChangesAsync();
+            GameGroup UpdateGroup = await _context.GameGroups.FindAsync(Group.Id);
 
-            //    return RedirectToPage("./ConfigureTemplate", new { Id = emptyTemplate.Id, BibleId = this.BibleId });
-            //}
+            if (UpdateGroup == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find that Group" }); }
+            if (UpdateGroup.Owner != user.Email) { return RedirectToPage("/error", new { errorMessage = "Sorry, Only the owner can manage a Group" }); }
+            _context.Entry(UpdateGroup)
+                    .Collection(g => g.GameTeams)
+                    .Load();
 
-        //    return Page();
-        //}
+            if (await TryUpdateModelAsync<GameGroup>(
+                UpdateGroup,
+                "Group",   // Prefix for form value.
+                t => t.PathId))
+            {
+                UpdateGroup.GroupState = (int)GameGroup.GameGroupState.InPlay;
+                UpdateGroup.Modified = DateTime.Now;
+
+                // go get the Path so we can set first step
+                Path path = await _context.Paths.FindAsync(UpdateGroup.PathId);
+                if (path == null) { return RedirectToPage("/error", new { errorMessage = "That's Very Odd! We were not able to find the Path for this Group" }); }
+
+                // We will need that first step. 
+                _ = await path.AddCalculatedPropertiesAsync(_context);
+
+                // Now we need to iterate through each Team and reset it. 
+
+                foreach (GameTeam Team in UpdateGroup.GameTeams)
+                {
+                    Team.CurrentStepId = path.FirstStepId;
+                    Team.TeamType = 0;
+                    Team.BoardState = (int)GameTeam.GameBoardState.WordSelect;
+                    Team.StepNumber = 1;
+                    Team.Modified = DateTime.Now;
+                }
+                await _context.SaveChangesAsync();
+                return RedirectToPage("Group", new { Id = UpdateGroup.Id, Message = String.Format("Group {0} has been Restarted!", UpdateGroup.Name) });
+            }
+            return Page();
+        }
 
         public string GetUserMessage(string Message)
         {
