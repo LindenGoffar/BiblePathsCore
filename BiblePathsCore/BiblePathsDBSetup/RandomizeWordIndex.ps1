@@ -1,5 +1,11 @@
 ﻿<# 
 Description: Pulls all words in Word Index > 230,000 words, and adds a Random Integer as a means of randomizing but still limiting results required for the Game. 
+
+THIS IS A VERY EXPENSIVE WAY... do this instead
+
+UPDATE BibleWordIndex
+SET    RandomInt = abs(checksum(NewId()) % 50)
+
 #>
 
 Param(

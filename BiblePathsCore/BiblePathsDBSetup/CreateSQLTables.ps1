@@ -26,6 +26,11 @@ ALTER TABLE BibleWordIndex
 UPDATE dbo.QuizQuestions
 SET BibleID = 'NKJV-EN'
 WHERE BibleID is null
+
+Do this to randomize the WordIndex. 
+UPDATE BibleWordIndex
+	SET    RandomInt = abs(checksum(NewId()) % 50)
+
 ---------------------------------------
 
 #>

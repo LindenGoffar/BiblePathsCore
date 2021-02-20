@@ -201,9 +201,26 @@ namespace BiblePathsCore.Models.DB
 
         public async Task<List<BibleWordIndex>> GetVerseIndicesByWordAsync(BiblePathsCoreDbContext context, string BibleId, string KeyWord)
         {
-            List<BibleWordIndex> WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId
+            // To add a bit more random to this we'll randomize between ascending and descending. 
+            Random random = new Random();
+            int RandOrder = random.Next(0, 2);
+            List<BibleWordIndex> WordReferences = new List<BibleWordIndex>();
+            if (RandOrder == 1)
+            {
+                WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId
                                                                                         && W.Word.Contains(KeyWord))
+                                                                                .OrderBy(W => W.RandomInt)
+                                                                                .Take(25)
                                                                                 .ToListAsync();
+            }
+            else
+            {
+                WordReferences = await context.BibleWordIndices.Where(W => W.BibleId == BibleId
+                                                                                        && W.Word.Contains(KeyWord))
+                                                                                .OrderByDescending(W => W.RandomInt)
+                                                                                .Take(25)
+                                                                                .ToListAsync();
+            }
             return WordReferences;
         }
 

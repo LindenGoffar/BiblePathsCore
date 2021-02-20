@@ -57,7 +57,9 @@
             </div>
         </div>
         <hr />
-        @await Component.InvokeAsync("TeamSteps", new { GroupId = Model.Team.GroupId, TeamId = Model.Team.Id })
+        <div id="TeamStepsList">
+            @await Component.InvokeAsync("TeamSteps", new { GroupId = Model.Team.GroupId, TeamId = Model.Team.Id })
+        </div>
     }
 
     @if (Model.Team.BoardState == (int)BiblePathsCore.Models.DB.GameTeam.GameBoardState.Completed)
