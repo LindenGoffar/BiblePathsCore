@@ -1,12 +1,12 @@
 ﻿<# 
-Description: Provided a Bible XML file in a defined format, this script pulls the content and creates an index of Word to BibleVerse mapping 
+Description: This script retrieves all verses for a given BibleId along with the existing NoiseWords from the NoiseWords Table and builds an index of all 
+Non-Noise words in the given Bible 
 
 This script also uses the contents of stopwords-en.txt to skip Stop/Noise words.
 #>
 
 Param(
-        [ValidateScript({Test-Path $_})] 
-        [string] $File,
+        [string] $BibleId,
         [switch] $AddWords,
         [switch] $LocalDB,
         [switch] $ProductionDB,
@@ -54,32 +54,17 @@ $RegExRemovingLeadingPunc = "^[^a-zA-Z]+"
 $RegExRemovingTrailingPunc = "[^a-zA-Z]+$"
 $WordIndex = 0
 
-[XML]$BibleFile = Get-Content $File
+# We need to Grab all of the Verses for supplied BibleId
+$QueryBibleContentsbyID = @"
+            Select * From dbo.BibleVerses
+            Where BibleID = '$BibleId'
+"@
+$BibleContents = Invoke-SqlOnConnection -Connection $SQLConnection -Query $QueryBibleContentsbyID
+$VerseCount = $BibleContents.Count
 
-$BibleLanguage = $BibleFile.bible.language
-$BibleVersion = $BibleFile.Bible.translation
-$BibleID = $Biblefile.bible.id
-
-If ($BibleLanguage.Length -gt 1){
-    # $BibleObJ | Add-Member -NotePropertyName "Language" -NotePropertyValue $BibleLanguage -Force
-}
-Else {
-    Write-Host "Failure to obtain Bible Language" -ForegroundColor Red
+If ($BibleContents.Count -lt 30000 -or $BibleContents.Count -gt 31105){
+    Write-Host "BibleContents query returned an incorrect verse count of $VerseCount " -ForegroundColor Red
     Exit 
-}
-If ($BibleVersion.Length -gt 1){
-    # $BibleObJ | Add-Member -NotePropertyName "Version" -NotePropertyValue $BibleVersion -Force
-}
-Else {
-    Write-Host "Failure to obtain Bible Version" -ForegroundColor Red
-    Exit
-}
-If ($BibleID.Length -gt 1){
-    # $BibleObJ | Add-Member -NotePropertyName "ID" -NotePropertyValue $BibleID -Force
-}
-Else {
-    Write-Host "Failure to obtain Bible ID" -ForegroundColor Red
-    Exit
 }
 
 # We need to build a Hash of all of our non-noise words
@@ -97,74 +82,44 @@ Foreach ($NonNoiseWord in $NonNoiseWords){
 $WordsAdded = 0
 $BookNumber = 1
 $TestamentNumber = 1
-ForEach ($BibleTestament in $BibleFile.bible.testament) {
-    $Testament = $BibleTestament.name
-    $TestamentBookCount = $BibleTestament.book.count
-    Write-host "Proccessing $TestamentBookCount books in $Testament"
 
-    ForEach ($BibleBook in $BibleTestament.book) {
-        $BookName = $BibleBook.name 
-        # Need to handle 1 chapter books so we use measure-object
-        $BookChapterCount = ($BibleBook.chapter | Measure-Object).count
-        Write-Host "Inspecting ($BookNumber) $BookName"
+foreach ($BibleVerse in $BibleContents){
+    $BibleVerseNumber = $BibleVerse.Verse
+    $BibleVerseText = $BibleVerse.Text
+    $VerseWords = $BibleVerseText.Split(" ")
+    foreach ($VerseWord in $VerseWords){
+        # strip punctuation
+        $VerseWord = $VerseWord.Trim()
+        $VerseWord = ($VerseWord -replace $RegExRemovingLeadingPunc,'')
+        $VerseWord = ($VerseWord -replace $RegExRemovingTrailingPunc,'')
 
-        $ChapterIndex = 1
-        Foreach ($BibleChapter in $BibleBook.chapter) {
-            $BibleChapterNumber = $BibleChapter.number
-            $BibleChapterVerseCount = $BibleChapter.verse.Count
-            #Write-Host "   Processing Chapter: $BibleChapterNumber" 
+        # we ignore words < 1 char in length, for obvious reasons.
+        # The string "--" is used often to seperate two words i.e. it should be a space
+        # we will ignore these words for now as well since they just throw off question generation. 
+        if ($VerseWord.Length -ge 1 -and !($VerseWord.Contains("--"))){
+        
+            if ($NonNoiseWordHash.ContainsKey($VerseWord)){
 
-            If ($BookChapterCount > 1){    
-                Write-Progress -activity "Inspecting $BookName " -status "Percent processed: " -PercentComplete (($ChapterIndex / $BookChapterCount)  * 100)
-            }
+                if ($AddWords){
+                    $TheWord = $VerseWord
+                    $VerseID = $BibleVerse.ID
+                    $ParameterHash = @{"@Word" = $TheWord}
 
-            foreach ($BibleVerse in $BibleChapter.verse) {
-                $BibleVerseNumber = $BibleVerse.number
-                $BibleVerseText = $BibleVerse.InnerText
-
-                $VerseWords = $BibleVerseText.Split(" ")
-                foreach ($VerseWord in $VerseWords){
-                    # strip punctuation
-                    $VerseWord = $VerseWord.Trim()
-                    $VerseWord = ($VerseWord -replace $RegExRemovingLeadingPunc,'')
-                    $VerseWord = ($VerseWord -replace $RegExRemovingTrailingPunc,'')
-
-                    # we ignore words < 1 char in length, for obvious reasons.
-                    # The string "--" is used often to seperate two words i.e. it should be a space
-                    # we will ignore these words for now as well since they just throw off question generation. 
-                    if ($VerseWord.Length -ge 1 -and !($VerseWord.Contains("--"))){
-                        #Write-Host $VerseWord
-                        if ($NonNoiseWordHash.ContainsKey($VerseWord)){
-
-                            if ($AddWords){
-                                $TheWord = $VerseWord
-                                $Chapter = $word.Chapter
-                                $Verse = $word.Verse
-
-                                $ParameterHash = @{"@Word" = $TheWord}
-
-                                $InsertWord = @"
-                                    INSERT INTO BibleWordIndex (BibleID, Word, BookNumber, Chapter, Verse)
-                                        VALUES ('$BibleID', @Word, '$BookNumber', '$BibleChapterNumber', '$BibleVerseNumber')
+                    $InsertWord = @"
+                                    INSERT INTO BibleWordIndex (BibleID, Word, VerseID)
+                                    VALUES ('$BibleID', @Word, '$VerseID')
 "@
-                                Invoke-SqlOnConnection -Connection $SQLConnection -Query $InsertWord -ParameterHash $ParameterHash
+                    Invoke-SqlOnConnection -Connection $SQLConnection -Query $InsertWord -ParameterHash $ParameterHash
 
-                                $WordsAdded++
-                                If ($WordsAdded % 1000 -eq 0){
-                                    write-host "$WordsAdded - Words added to DB"
-                                }
-                            }
-                        }
+                    $WordsAdded++
+                    If ($WordsAdded % 1000 -eq 0){
+                        write-host "$WordsAdded - Words added to DB"
                     }
                 }
             }
-            $ChapterIndex++
         }
-        $BookNumber++   
     }
-    $TestamentNumber++
 }
-
 
 
 # Close the SQL Connection... very important not to skip in debugging. 

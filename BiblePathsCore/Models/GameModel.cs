@@ -132,15 +132,13 @@ namespace BiblePathsCore.Models.DB
             Hashtable UniqueVerses = new Hashtable();
             for (int i = 0; i < 6; i++)
             {
-                int VerseIndex = rand.Next(FoundVerses.Count);
-                if (!UniqueVerses.ContainsKey(FoundVerses[VerseIndex].Id))
+                int VerseIndex = rand.Next(FoundVerses.Count - 1);
+                if (!UniqueVerses.ContainsKey(FoundVerses[VerseIndex].VerseId))
                 {
                     // We don't want any of our CurrentVerses either. 
-
-                    // BUG THIS WON'T Work, need to store verseID on WordIndex... needs rework. 
-                    if (!CurrentVerses.ContainsKey(FoundVerses[VerseIndex].Id))
+                    if (!CurrentVerses.ContainsKey(FoundVerses[VerseIndex].VerseId))
                     {
-                        UniqueVerses.Add(FoundVerses[VerseIndex].Id, null);
+                        UniqueVerses.Add(FoundVerses[VerseIndex].VerseId, null);
                     }
                 }
             }
@@ -155,8 +153,12 @@ namespace BiblePathsCore.Models.DB
             // now we've got a selected set of unique verses let's build appropriate sized Steps out of them. 
             foreach (int VerseId in UniqueVerses.Keys)
             {
-                BibleVerse FoundVerse = FoundVerses.Where(V => V.Id == VerseId).First();
-
+                // Now we go grab or actual verse object. 
+                BibleVerse FoundVerse = await context.BibleVerses.FindAsync(VerseId);
+                if(FoundVerse == null)
+                {
+                    continue;
+                }
                 // Pick a Random ID 
                 int RandomID = rand.Next(LowRange, HighRange);
                 if (!UniqueIds.ContainsKey(RandomID) && RandomID != CurrentStep.Id)
@@ -181,7 +183,6 @@ namespace BiblePathsCore.Models.DB
                     int Increment = (int)VerseCount / 2;
                     bodgedStep.StartVerse = (FoundVerse.Verse - Increment + 1 > 0) ? (FoundVerse.Verse - Increment + 1) : FoundVerse.Verse;
                     bodgedStep.EndVerse = (FoundVerse.Verse + Increment <= ChapterLen) ? (FoundVerse.Verse + Increment) : FoundVerse.Verse;
-
                 }
                 else
                 {

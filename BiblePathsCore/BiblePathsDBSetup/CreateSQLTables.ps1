@@ -436,9 +436,7 @@ If ($CreateBibleWordIndexTable){
 			ID int IDENTITY(1,1) PRIMARY KEY,
 			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
 			Word nvarchar(32) NOT NULL,
-			BookNumber int NOT NULL,
-			Chapter int NOT NULL,
-			Verse int NOT NULL
+			VerseID int NOT NULL
 		) 
 "@
 	Write-Host "Creating BibleWordIndex Table" 

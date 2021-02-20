@@ -156,6 +156,8 @@ namespace BiblePathsCore.Models
                     .HasMaxLength(64)
                     .HasColumnName("BibleID");
 
+                entity.Property(e => e.VerseId).HasColumnName("VerseID");
+
                 entity.Property(e => e.Word)
                     .IsRequired()
                     .HasMaxLength(32);
@@ -164,7 +166,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleWordIndices)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleWord__Bible__7849DB76");
+                    .HasConstraintName("FK__BibleWord__Bible__7E02B4CC");
             });
 
             modelBuilder.Entity<CommentaryBook>(entity =>
