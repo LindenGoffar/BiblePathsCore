@@ -59,7 +59,15 @@
                         {
                             <div class="card">
                                 <div class="card-header bg-danger">
-                                    <span class="card-title">Question Challenged</span>
+                                    @if (question.ChallengedBy == null)
+                                    {
+                                        <span class="card-title">Question Challenged</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="card-title">Question Challenged by @question.ChallengedBy</span>
+                                    }
+
                                 </div>
                                 <div class="card-body">
                                     <span class="card-text">@question.ChallengeComment</span><br />

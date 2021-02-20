@@ -128,6 +128,7 @@ namespace BiblePathsCore.Pages.PBE
             {
                 QuestionToUpdate.Challenged = true;
                 QuestionToUpdate.ChallengeComment = Question.ChallengeComment;
+                QuestionToUpdate.ChallengedBy = PBEUser.Email;
             }
 
             // Save both of these changes. 
