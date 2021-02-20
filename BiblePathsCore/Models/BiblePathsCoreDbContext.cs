@@ -166,7 +166,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleWordIndices)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleWord__Bible__7E02B4CC");
+                    .HasConstraintName("FK__BibleWord__Bible__00DF2177");
             });
 
             modelBuilder.Entity<CommentaryBook>(entity =>

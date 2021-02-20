@@ -20,6 +20,9 @@ ALTER TABLE GameTeams
 ALTER TABLE GameTeams
 		Add GameCompleted datetimeoffset
 
+ALTER TABLE BibleWordIndex
+		Add RandomInt int NOT NULL DEFAULT(0)
+
 UPDATE dbo.QuizQuestions
 SET BibleID = 'NKJV-EN'
 WHERE BibleID is null
@@ -423,7 +426,8 @@ If ($CreateBibleWordIndexTable){
 			ID int IDENTITY(1,1) PRIMARY KEY,
 			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
 			Word nvarchar(32) NOT NULL,
-			VerseID int NOT NULL
+			VerseID int NOT NULL,
+			RandomInt int NOT NULL DEFAULT(0)
 		) 
 "@
 	Write-Host "Creating BibleWordIndex Table" 
