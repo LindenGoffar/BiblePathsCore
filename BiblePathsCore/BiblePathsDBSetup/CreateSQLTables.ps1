@@ -78,19 +78,6 @@ if ($Database.Length -lt 1){
     break
 }
 
-
-If ($SetupSecurity){
-	Write-Host "Setting Up Security" 
-	$SetupSecurityQuery = @"
-		CREATE USER RWACC WITH password='B!bleP@thsStr0ngP@ssw0rd'
-		EXEC sp_addrolemember 'db_datawriter', 'RWACC';
-		EXEC sp_addrolemember 'db_datawriter', 'RWACC';
-		Grant select to RWACC
-		Grant CONNECT to RWACC
-"@
-    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $SetupSecurityQuery -Username $User -Password $Password.
-}
-
 If ($CreateBiblesTable){
 	Write-Host "Creating Bibles Table" 
 	$CreateBiblesTableQuery = @"
