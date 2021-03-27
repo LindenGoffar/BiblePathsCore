@@ -37,10 +37,20 @@
         </div>
         <br />
         <div class="row">
-            @if (Model.Step.PrevChapter > 0)
-            {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.PrevChapter">Previous Chapter</a> }
+            @if (Model.Scenario == StepModel.StepScenarios.Study)
+            {
+                @if (Model.Step.PrevChapter > 0)
+                {<a asp-page="Step" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.PrevChapter">Previous Chapter</a> }
+                else
+                { <a class="disabled">Previous Chapter</a>}
+            }
             else
-            { <a class="disabled">Previous Chapter</a>}
+            {
+                @if (Model.Step.PrevChapter > 0)
+                {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.PrevChapter">Previous Chapter</a> }
+                else
+                { <a class="disabled">Previous Chapter</a>}
+            }
         </div>
         @if (Model.Scenario == StepModel.StepScenarios.Step || Model.Scenario == StepModel.StepScenarios.Context)
         {
@@ -177,10 +187,20 @@
         </div>
         <div class="row">
             <div class="col-6">
-                @if (Model.Step.NextChapter > 0)
-                {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.NextChapter">Next Chapter</a> }
+                @if (Model.Scenario == StepModel.StepScenarios.Study)
+                {
+                    @if (Model.Step.NextChapter > 0)
+                    {<a asp-page="Step" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.NextChapter">Next Chapter</a> }
+                    else
+                    { <a class="disabled">Next Chapter</a>}
+                }
                 else
-                { <a class="disabled">Next Chapter</a>}
+                {
+                    @if (Model.Step.NextChapter > 0)
+                    {<a asp-page="Step" asp-route-id="@Model.Step.Id" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.Step.BookNumber" asp-route-Chapter="@Model.Step.NextChapter">Next Chapter</a> }
+                    else
+                    { <a class="disabled">Next Chapter</a>}
+                }
             </div>
             <div class="col-6">
                 @if (Model.Scenario != StepModel.StepScenarios.Study)
