@@ -17,9 +17,9 @@ Param(
         [Switch] $VersesExist, #Need to port to Zefania
         [Switch] $Validate,
         [Switch] $SkipRefCheck,
-        [switch] $LocalDB
+        [switch] $LocalDB,
         #[switch] $ProductionDB,
-        #[switch] $StagingDB
+        [switch] $StagingDB
       )
 
 . .\InvokeSQLRemote.ps1
@@ -34,11 +34,11 @@ if ($ProductionDB){
 }
 
 if ($StagingDB){
-    # Staging... 
-    $Server = "biblepathstaging.database.windows.net"
-    $Database = "BiblePathStagingDB"
-    $User = "StagingDBA"
-    $Password = Read-Host "Please Enter the DB Password for User: $User"
+    # Staging...
+    $Server = "biblepathsppe.database.windows.net"
+    $Database = "BiblePathsPPEDB"
+    $User = "BiblePathsPPEDBA"
+    $Password = Read-Host "Please Enter the DB Password for User: $User" 
 }
 
 if ($LocalDB){

@@ -20,14 +20,14 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-9">
+        <div class="col-xs-12 col-sm-9">
             <div class="card shadow">
                 <div class="card-body">
                     <h2>@Model.Question.PBEQuestion</h2>
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-xs-12 col-sm-3">
             <div class="mb-4">
                 <button class="btn btn-outline-dark" onclick="StartTimer(@Model.Question.TimeLimit)" id="StartTimerButton">Start Timer (@Model.Question.TimeLimit)</button>
             </div>
@@ -39,7 +39,7 @@
 </div>
 <div class="container-fluid collapse" id="ShowAnswers">
     <div class="row">
-        <div class="col-9">
+        <div class="col-xs-12 col-9">
             <div class="card shadow">
                 <div class="card-body">
                     @foreach (var answer in Model.Question.QuizAnswers)
@@ -49,7 +49,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-xs-12 col-3">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group input-group">
@@ -85,7 +85,7 @@
         @{string VerseRef = Model.Question.BookName + " " + Model.Question.Chapter + ": " + Model.Question.StartVerse;
             if (Model.Question.EndVerse > Model.Question.StartVerse) { VerseRef += " - " + Model.Question.EndVerse; }
         }
-        <div class="col-9">
+        <div class="col-xs-12 col-9">
             @if (Model.Question.IsCommentaryQuestion) { }
             else
             {
@@ -108,7 +108,7 @@
                 </div>
             }
         </div>
-        <div class="col-3">
+        <div class="col-xs-12 col-3">
             <span class="font-weight-bold">Quiz Stats</span><br />
             <span class="pl-2">Points Awarded - @Model.Quiz.PointsAwarded</span><br />
             <span class="pl-2">Points Possible - @Model.Quiz.PointsPossible</span><br />

@@ -1,11 +1,17 @@
 ﻿# load for Local Debug
-$TargetURI = "https://localhost:44387"
-#$TargetURI = "https://biblepathstaging.azurewebsites.net"
+#$TargetURI = "https://localhost:44387"
+$TargetURI = "https://biblepathsppe.azurewebsites.net"
 
 $SourceURI = "https://biblepaths.net"
 #$SourceURI = "https://biblepathstaging.azurewebsites.net"
 
-$SelectedBooks = @("Ezra","Nehemiah","Hosea","Jonah","Amos","Micah","Hebrews","James","1 Peter", "2 Peter")
+$SelectedBooks = @("Hebrews","James","1 Peter","2 Peter","Ruth","1 Kings")
+# $SelectedBooks = @("James")
+
+# Add QuizQuestion
+# To obtain a valid Token browse to ../howto/apitoken
+    $APIToken = "bGluZGVuQG91dGxvb2suY29tNjgxMTY="
+    $OwnerEmail = "linden@outlook.com"
 
 
 $Questions = @()
@@ -30,32 +36,33 @@ Foreach ($Book in $SelectedBooks){
 
     Write-host "Processing $BookName with $ChapterCount Chapters"
     For ($i=1; $i -le $ChapterCount; $i++){
-        $Questions += Invoke-RestMethod -Method Get -Uri "$SourceURI/API/PBEQuestions/GetQuestions/?BookName=$Book&Chapter=$i"
+        $Questions += Invoke-RestMethod -Method Get -Uri "$SourceURI/API/QuizQuestions/?BibleId=NKJV-EN&BookName=$BookName&Chapter=$i"
     }
 }
 
 Write-Host "Adding questions for import" 
 Foreach ($Question in $Questions)
 {
-    if (($Question.QuizAnswers.Count -gt 0) -and ($Question.Question.Length -gt 3))
+    if (($Question.answers.Count -gt 0) -and ($Question.question.Length -gt 3))
     {
         $QuestionObj = New-Object -TypeName psobject
         $QuestionObj | Add-Member -MemberType NoteProperty -Name BibleId -value "NKJV-EN"
-        $QuestionObj | Add-Member -MemberType NoteProperty -Name question -value $Question.Question
-        $QuestionObj | Add-Member -MemberType NoteProperty -Name points -value $Question.Points
-        $QuestionObj | Add-Member -MemberType NoteProperty -Name booknumber -value $Question.BookNumber
-        $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value $Question.Chapter
-        $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value $Question.Start_Verse
-        $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value $Question.End_Verse
-        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value "linden@Goffar.com"
-        $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "API Test"
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name question -value $Question.question
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name points -value $Question.points
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name booknumber -value $Question.bookNumber
+        $QuestionObj | Add-Member -MemberType NoteProperty -name chapter -value $Question.chapter
+        $QuestionObj | Add-Member -MemberType NoteProperty -name startverse -value $Question.startVerse
+        $QuestionObj | Add-Member -MemberType NoteProperty -name endverse -value $Question.endVerse
+        $QuestionObj | Add-member -MemberType NoteProperty -Name owner -value $OwnerEmail
+        $QuestionObj | Add-member -MemberType NoteProperty -Name token -value $APIToken
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name source -value "LoadQuestions Script"
 
         $AcceptedAnswers = @() # each question can have multiple answers.
-        foreach ($Answer in $Question.QuizAnswers)
+        foreach ($Answer in $Question.answers)
         {
             $AcceptedAnswers += $Answer
         }
-        $QuestionObj | Add-Member -MemberType NoteProperty -Name Answers -value $AcceptedAnswers 
+        $QuestionObj | Add-Member -MemberType NoteProperty -Name answers -value $AcceptedAnswers 
 
         # Finally add our question object
         $QuestionsforImport += $QuestionObj

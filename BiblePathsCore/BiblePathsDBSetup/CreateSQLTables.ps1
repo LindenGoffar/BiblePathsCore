@@ -67,9 +67,9 @@ if ($ProductionDB){
 
 if ($StagingDB){
     # Staging...
-    $Server = "biblepathstaging.database.windows.net"
-    $Database = "BiblePathStagingDB"
-    $User = "StagingDBA"
+    $Server = "biblepathsppe.database.windows.net"
+    $Database = "BiblePathsPPEDB"
+    $User = "BiblePathsPPEDBA"
     $Password = Read-Host "Please Enter the DB Password for User: $User" 
 }
 
