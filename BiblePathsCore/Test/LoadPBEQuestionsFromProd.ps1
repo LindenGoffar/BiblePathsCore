@@ -5,7 +5,7 @@ $TargetURI = "https://localhost:44387"
 $SourceURI = "https://biblepaths.net"
 #$SourceURI = "https://biblepathstaging.azurewebsites.net"
 
-$SelectedBooks = @("Hebrews","James","1 Peter","2 Peter","Ruth","1 Kings")
+$SelectedBooks = @("Hebrews","1 Peter","2 Peter","Ruth","1 Kings")
 # $SelectedBooks = @("James")
 
 # Add QuizQuestion
