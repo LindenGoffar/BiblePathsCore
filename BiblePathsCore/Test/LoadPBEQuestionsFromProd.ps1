@@ -1,6 +1,6 @@
 ﻿# load for Local Debug
-#$TargetURI = "https://localhost:44387"
-$TargetURI = "https://biblepathsppe.azurewebsites.net"
+$TargetURI = "https://localhost:44387"
+#$TargetURI = "https://biblepathsppe.azurewebsites.net"
 
 $SourceURI = "https://biblepaths.net"
 #$SourceURI = "https://biblepathstaging.azurewebsites.net"
