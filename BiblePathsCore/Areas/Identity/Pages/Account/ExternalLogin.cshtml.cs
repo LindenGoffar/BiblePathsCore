@@ -138,19 +138,27 @@ namespace BiblePathsCore.Areas.Identity.Pages.Account
 
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                        var callbackUrl = Url.Page(
-                            "/Account/ConfirmEmail",
-                            pageHandler: null,
-                            values: new { area = "Identity", userId = userId, code = code },
-                            protocol: Request.Scheme);
 
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        // DEBUG 9/20/22: Added this if statement because these were executed with every new login even thouhg we 
+                        // don't required confirmation email to be sent. 
+                        if (_userManager.Options.SignIn.RequireConfirmedEmail == true)
+                        {
+                            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                            var callbackUrl = Url.Page(
+                                "/Account/ConfirmEmail",
+                                pageHandler: null,
+                                values: new { area = "Identity", userId = userId, code = code },
+                                protocol: Request.Scheme);
+
+                            await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        }
 
                         return LocalRedirect(returnUrl);
                     }
+                    // DEBUG: Added to debug login errors that can't be repro'd in dev
+                    else { return RedirectToPage("/error", new { errorMessage = "Oops! We failed to create a Login, please try logging in one more time." }); }
                 }
                 foreach (var error in result.Errors)
                 {

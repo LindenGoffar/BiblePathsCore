@@ -116,8 +116,12 @@ namespace BiblePathsCore.Pages.PBE
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
+            if (User != null)
+            {
+                PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
+                if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
+            }
+            else { return RedirectToPage("/error", new { errorMessage = "Oops! We were unable to get our User Object from the UserManager, this question cannot be added!" }); }
 
             // Now let's create an empty question and put only our validated properties onto it. 
             var emptyQuestion = new QuizQuestion
@@ -154,8 +158,8 @@ namespace BiblePathsCore.Pages.PBE
 
                 return RedirectToPage("AddQuestion", new { BibleId = emptyQuestion.BibleId, BookNumber = emptyQuestion.BookNumber, Chapter = emptyQuestion.Chapter, VerseNum = emptyQuestion.EndVerse });
             }
-
-            return RedirectToPage("Index");
+            else { return RedirectToPage("/error", new { errorMessage = "Oops! We failed to update the question model, this question cannot be added!" }); }
+            // return RedirectToPage("Index");
         }
     }
 }
