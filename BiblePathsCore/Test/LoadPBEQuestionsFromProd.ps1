@@ -5,13 +5,13 @@ $TargetURI = "https://localhost:44387"
 $SourceURI = "https://biblepaths.net"
 #$SourceURI = "https://biblepathstaging.azurewebsites.net"
 
-$SelectedBooks = @("Hebrews","1 Peter","2 Peter","Ruth","1 Kings")
+$SelectedBooks = @("Ruth","1 Kings")
 # $SelectedBooks = @("James")
 
 # Add QuizQuestion
 # To obtain a valid Token browse to ../howto/apitoken
-    $APIToken = "bGluZGVuQG91dGxvb2suY29tNjgxMTY="
-    $OwnerEmail = "linden@outlook.com"
+    $APIToken = "bGdvZmZhckBnbWFpbC5jb20zNjUzNg=="
+    $OwnerEmail = "lgoffar@gmail.com"
 
 
 $Questions = @()
