@@ -115,6 +115,20 @@ namespace BiblePathsCore.Models.DB
             }
             return TemplateSelectList;
         }
+
+        public static async Task<bool> CheckNameStaticAsync(BiblePathsCoreDbContext context, string CheckName)
+        {
+            var knownTerms = new[] { "create", "delete", "edit", "index", "mypaths", "path", "pathcomplete", "publish", "steps", "unpublish" };
+            if (knownTerms.Contains(CheckName.ToLower()))
+            {
+                return true;
+            }
+            if (await context.Paths.Where(p => p.Name.ToLower() == CheckName.ToLower()).AnyAsync())
+            {
+                return true;
+            }
+            return false;
+        }
     }
 
     public partial class PredefinedQuizQuestion

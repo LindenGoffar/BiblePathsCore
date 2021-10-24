@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace BiblePathsCore.Pages.PBE
 {
@@ -32,6 +33,16 @@ namespace BiblePathsCore.Pages.PBE
         [BindProperty] 
         public String BibleId { get; set; }
         public QuizUser PBEUser { get; set; }
+
+        //[PageRemote(
+        //    ErrorMessage = "Sorry, this is not a valid Template Name",
+        //    AdditionalFields = "__RequestVerificationToken, Template.QuizName",
+        //    HttpMethod = "post",
+        //    PageHandler = "CheckName"
+        //)]
+        [BindProperty]
+        [Required]
+        public string Name { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId)
         {
@@ -74,6 +85,7 @@ namespace BiblePathsCore.Pages.PBE
                 "Template",   // Prefix for form value.
                 t => t.QuizName, t => t.BookNumber, t => t.NumQuestions))
             {
+                emptyTemplate.QuizName = Name; // Name is handled seperately for remote validation to work. 
                 emptyTemplate.IsDeleted = false;
                 _context.PredefinedQuizzes.Add(emptyTemplate);
                 await _context.SaveChangesAsync();
@@ -83,6 +95,13 @@ namespace BiblePathsCore.Pages.PBE
 
             return RedirectToPage("./Templates", new { Message = String.Format("Quiz Template {0} successfully created...", emptyTemplate.QuizName) });
         }
-
+        //public async Task<JsonResult> OnPostCheckNameAsync()
+        //{
+        //    if (await Path.PathNameAlreadyExistsStaticAsync(_context, Name))
+        //    {
+        //        return new JsonResult("Sorry, this Name is already in use.");
+        //    }
+        //    return new JsonResult(true);
+        //}
     }
 }

@@ -151,7 +151,7 @@ namespace BiblePathsCore.Pages.PBE
                 await _context.SaveChangesAsync();
 
             }
-            return RedirectToPage("./Templates", new { BibleId = this.BibleId, Message = String.Format("Quiz Template {0} successfully updated...", TemplateToUpdate.QuizName) });
+            return RedirectToPage("./Quizzes", "", new { BibleId = this.BibleId, Message = String.Format("Quiz Template {0} configured successfuly.", TemplateToUpdate.QuizName) }, "Templates");
         }
     }
 }

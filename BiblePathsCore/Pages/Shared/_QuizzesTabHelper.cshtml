@@ -1,0 +1,18 @@
+﻿@model BiblePathsCore.Pages.PBE.QuizzesModel;
+
+<!-- This function sets the requested tab Active on page load -->
+<!-- TODO: NOTE THIS FUNCTION DOES NOT WORK YET forEach is not a function.... -->
+<script>
+    $(document).ready(function () {
+        const Tabs = document.getElementsByClassName('tab-pane');
+        Tabs.forEach(element => {
+            if (element.id === @Model.InitialTab) {
+                console.log("Found our TAB")
+                console.log(element.id)
+            }
+            console.log(element.id)
+        }
+        )
+    });
+</script>
+

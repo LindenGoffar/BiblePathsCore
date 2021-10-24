@@ -30,25 +30,39 @@ namespace BiblePathsCore.Pages.PBE
         public QuizUser PBEUser { get; set; }
         public string BibleId { get; set; }
         public string UserMessage { get; set;  }
-
-        public async Task<IActionResult> OnGetAsync(string BibleId, string Message)
+        public string InitialTab { get; set; }
+        
+        //TODO: Tab targeting is not working this requires work on Shared _QuizzesTabHelper. 
+        public async Task<IActionResult> OnGetAsync(string BibleId, string Message, string Tab = "Quizzes")
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
-                                                    .ToListAsync();
+                                                         .OrderByDescending(T => T.Created)
+                                                         .ToListAsync();
 
-            BookLists = await _context.QuizBookLists.Where(L => L.IsDeleted == false)
+            BookLists = await _context.QuizBookLists.Include(L => L.QuizBookListBookMaps)
+                                                    .Where(L => L.IsDeleted == false)
                                                     .OrderByDescending(L => L.Created)
                                                     .ToListAsync();
+
+            foreach (QuizBookList BookList in BookLists)
+            {
+                foreach (QuizBookListBookMap BookMap in BookList.QuizBookListBookMaps)
+                {
+                    _ = await BookMap.AddBookNameAsync(_context, this.BibleId);
+                }
+            }
 
             Quizzes = await _context.QuizGroupStats.Where(G => G.QuizUser == PBEUser
                                                            && G.IsDeleted == false)
                                                    .OrderByDescending(Q => Q.Modified)
                                                    .ToListAsync();
 
+            //TODO: Tab targeting is not working this requires work on Shared _QuizzesTabHelper. 
+            InitialTab = Tab;
             // Populate Quiz Info 
             foreach (QuizGroupStat quiz in Quizzes)
             {

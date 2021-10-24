@@ -17,8 +17,8 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text">Name</span>
                     </div>
-                    <input asp-for="Template.QuizName" class="form-control" />
-                    <span asp-validation-for="Template.QuizName" class="text-danger"></span>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
                 <div class="form-group input-group">
                     <div class="input-group-prepend">
@@ -43,7 +43,7 @@
 
 <div>
     <hr />
-    <a asp-page="./Templates" asp-route-BibleId="@Model.BibleId">Back to Templates</a>
+    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" asp-route-Tab="Templates">Back to My Quizzes</a>
     <br />
     <a asp-page="Index">PBE Home</a>
 </div>

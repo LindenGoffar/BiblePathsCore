@@ -29,7 +29,16 @@
         <div id="Quizzes" class="container tab-pane active">
             <br />
             <h4>@ViewData["Title"]</h4>
-            <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+            <span class="text-info">
+                Quizzes can be single-use or span multiple sessions, Quizzes are configured with a Book, Book List or Template that
+                determine where questions will be randomly selected from. Hosts determine the number of points
+                awarded for each question and per book/chapter statistics are maintained alongside of the Quiz.
+            </span>
+            <div class="row">
+                <div class="col-12">
+                    <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                </div>
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -88,23 +97,73 @@
                     }
                 </tbody>
             </table>
+            <div class="row">
+                <div class="col-12">
+                    <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                </div>
+            </div>
         </div>
         <div id="Templates" class="container tab-pane fade">
             <br />
             <h4>My Quiz Templates</h4>
             <span class="text-info">
-                Quiz Templates allow a host greater control over the books and chapters that questions will be taken from for a quiz. 
-                A template serves as a pattern that is repeated throughout the quiz, the more times a book/chapter appear in the template the 
-                more times they will appear in a quiz. 
+                Quiz Templates allow a host greater control over the books and chapters that questions will be taken from for a quiz.
+                A template serves as a pattern that is repeated throughout the quiz, the more times a book/chapter appear in the template the
+                more times they will appear in a quiz.
             </span>
+            <div class="row">
+                <div class="col-12">
+                    <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                </div>
+            </div>
             <hr />
-            @foreach (var template in Model.Templates)
+            @foreach (var Template in Model.Templates)
             {
-                <span> @template.QuizName </span><br />
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <span><strong>@Template.QuizName</strong></span>
+                            </div>
+                            <div class="col-4">
+                                <a class="btn btn-outline-primary btn-sm" asp-page="ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@Template.Id">
+                                    Delete
+                                </button>
+                                <div class="modal fade" id="DeleteModal-@Template.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Template?</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="font-weight-bold">@Template.QuizName</p>
+                                                <br />
+                                                <p class="font-italic">By deleting this template any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form asp-page="/PBE/DeleteTemplate" method="post">
+                                                    <input type="hidden" name="id" value="@Template.Id" />
+                                                    <input type="submit" value="Confirm" class="btn btn-danger" />
+                                                </form>
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
-            <hr />
-            <a class="btn btn-outline-primary" asp-page="Templates" asp-route-BibleId="@Model.BibleId">Manage Quiz Templates</a>
-
+            <div class="row">
+                <div class="col-12">
+                    <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                </div>
+            </div>
         </div>
         <div id="BookLists" class="container tab-pane fade">
             <br />
@@ -116,7 +175,23 @@
             <hr />
             @foreach (var BookList in Model.BookLists)
             {
-                <span> @BookList.BookListName </span><br />
+                <div class="row">
+                    <div class="col-10">
+                        <div class="card">
+                            <div class="card-body">
+                                <span><strong>@BookList.BookListName</strong></span>
+                                @foreach (var BookMap in BookList.QuizBookListBookMaps)
+                                {
+                                    <br />
+                                    <span><em>@BookMap.BookName</em></span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id">Edit</a>
+                    </div>
+                </div>
             }
             <hr />
             @if (Model.PBEUser.IsModerator)
@@ -130,3 +205,7 @@
     <hr />
     <a asp-page="/PBE/Index">Back to PBE Home</a>
 </div>
+
+@*@section Scripts {
+    <partial name="_QuizzesTabHelper" model="Model" />
+}*@
