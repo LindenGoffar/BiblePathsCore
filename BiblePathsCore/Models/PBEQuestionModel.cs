@@ -393,7 +393,7 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> APIUserTokenCheckAsync(BiblePathsCoreDbContext context)
         {
             // Do we have a valid Owner value:
-            if (await QuizUser.IsValidPBEUserAsync(context, this.Owner) == false)
+            if (await QuizUser.IsValidPBEQuestionOwnerAsync(context, this.Owner) == false)
             {
                 return false;
             }

@@ -43,7 +43,7 @@ namespace BiblePathsCore.Models.DB
             return ReturnUser;
         }
 
-        public static async Task<bool> IsValidPBEUserAsync(BiblePathsCoreDbContext context, string UserName)
+        public static async Task<bool> IsValidPBEQuestionOwnerAsync(BiblePathsCoreDbContext context, string UserName)
         {
             return await context.QuizUsers.Where(U => U.Email.ToLower() == UserName.ToLower() && U.IsQuestionBuilderLocked == false).AnyAsync();
         }
@@ -51,6 +51,11 @@ namespace BiblePathsCore.Models.DB
         public bool IsValidPBEQuestionBuilder()
         {
             return !IsQuestionBuilderLocked;
+        }
+
+        public bool IsValidPBEQuizHost()
+        {
+            return !IsQuizTakerLocked;
         }
 
         public bool IsQuizModerator()

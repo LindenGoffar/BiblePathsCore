@@ -28,17 +28,21 @@
     <br />
     @foreach (var PBEUser in Model.PBEUsers)
     {
-        <a class="btn btn-outline-primary btn-sm" asp-page="EditPBEUser" asp-route-Id="@PBEUser.Id">
-            @PBEUser.Email
-            @if (PBEUser.IsModerator)
-            {
-                <span class="badge badge-primary">Moderator</span>
-            }
-            @if (PBEUser.IsQuestionBuilderLocked)
-            {
-                <span class="badge badge-danger"> Question Builder Locked </span>
-            }
-        </a>
+<a class="btn btn-outline-primary btn-sm" asp-page="EditPBEUser" asp-route-Id="@PBEUser.Id">
+    @PBEUser.Email
+    @if (PBEUser.IsModerator)
+    {
+        <span class="badge badge-primary">Moderator</span>
+    }
+    @if (PBEUser.IsQuestionBuilderLocked)
+    {
+        <span class="badge badge-danger"> Question Builder Locked </span>
+    }
+    @if (PBEUser.IsQuizTakerLocked)
+    {
+        <span class="badge badge-danger"> Quiz Host Locked </span>
+    }
+</a>
         <br />
     }
 </div>

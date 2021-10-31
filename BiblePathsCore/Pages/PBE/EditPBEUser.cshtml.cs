@@ -63,7 +63,7 @@ namespace BiblePathsCore.Pages.PBE
             if (await TryUpdateModelAsync<QuizUser>(
                 UserToUpdate,
                  "EditUser",
-                 U => U.IsModerator, U => U.IsQuestionBuilderLocked))
+                 U => U.IsModerator, U => U.IsQuestionBuilderLocked, U => U.IsQuizTakerLocked))
             {
                 await _context.SaveChangesAsync();
                 return RedirectToPage("./PBEUsers", new { Message = String.Format("PBE User:  {0} successfully updated...", UserToUpdate.Email) } );

@@ -36,6 +36,7 @@ namespace BiblePathsCore.Pages.PBE
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            if (!PBEUser.IsValidPBEQuizHost()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to host a PBE Quiz" }); }
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object
@@ -89,6 +90,7 @@ namespace BiblePathsCore.Pages.PBE
 
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
+            if (!PBEUser.IsValidPBEQuizHost()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to host a PBE Quiz" }); }
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object in order to update it. 
@@ -124,7 +126,10 @@ namespace BiblePathsCore.Pages.PBE
             _context.Attach(QuestionToUpdate);
             QuestionToUpdate.LastAsked = DateTime.Now;
 
-            if (Question.Challenged)
+            // We've had some challenges with users challenging many questions often with no comment.
+            // We will do a user check and make sure our user isn't blocked, if they are we silently fail the challenge.
+            // TODO: We should revisit the silent fail if it becomes a problem. 
+            if (Question.Challenged && !PBEUser.IsQuestionBuilderLocked)
             {
                 QuestionToUpdate.Challenged = true;
                 QuestionToUpdate.ChallengeComment = Question.ChallengeComment;

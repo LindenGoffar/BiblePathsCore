@@ -15,12 +15,16 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input type="hidden" asp-for="@Model.EditUser.Id" />
                 <div class="form-group input-group">
-                    <input type="checkbox" asp-for="@Model.EditUser.IsModerator" />
+                    <input type="checkbox" asp-for="@Model.EditUser.IsModerator" id="EditUser_IsModerator"/>
                     <label asp-for="@Model.EditUser.IsModerator"> Moderator</label>
                 </div>
                 <div class="form-group input-group">
-                    <input type="checkbox" asp-for="@Model.EditUser.IsQuestionBuilderLocked" />
+                    <input type="checkbox" asp-for="@Model.EditUser.IsQuestionBuilderLocked" id="EditUser_IsQuestionBuilderLocked"/>
                     <label asp-for="@Model.EditUser.IsQuestionBuilderLocked"> User Blocked From Adding Questions</label>
+                </div>
+                <div class="form-group input-group">
+                    <input type="checkbox" asp-for="@Model.EditUser.IsQuizTakerLocked" id="EditUser_IsQuizTakerLocked"/>
+                    <label asp-for="@Model.EditUser.IsQuizTakerLocked"> User Blocked From Hosting a Quiz</label>
                 </div>
                 <div class="form-group input-group">
                     <input type="submit" value="Save Changes" class="btn btn-primary" />
