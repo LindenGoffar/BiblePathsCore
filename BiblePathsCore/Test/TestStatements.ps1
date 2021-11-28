@@ -4,7 +4,7 @@
 
 # $BaseURI = "https://www.biblepaths.net"
 # load for Test
-# $BaseURI = "https://biblepathstaging.azurewebsites.net"
+# $BaseURI = "https://biblepathsppe.azurewebsites.net"
 
 # load for Local Debug
 $BaseURI = "https://localhost:44387"
@@ -14,6 +14,9 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles"
 
 # Get a specific bible
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles/NKJV-EN"
+
+# Get Bible Chapters
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BibleChapters/?BibleId=NKJV-EN&BookName=Genesis"
 
 
 try {

@@ -26,9 +26,9 @@ if ($ProductionDB){
 
 if ($StagingDB){
     # Staging... 
-    $Server = "biblepathstaging.database.windows.net"
-    $Database = "BiblePathStagingDB"
-    $User = "StagingDBA"
+    $Server = "biblepathsppe.database.windows.net"
+    $Database = "BiblePathsPPEDB"
+    $User = "BiblePathsPPEDBA"
     $Password = Read-Host "Please Enter the DB Password for User: $User"
 }
 
@@ -193,7 +193,7 @@ foreach($word in $WordObjs){
 }
 
 # Close the SQL Connection... very important not to skip in debugging. 
-# close-SqlConnection -Connection $SQLConnection
+close-SqlConnection -Connection $SQLConnection
 
         
 

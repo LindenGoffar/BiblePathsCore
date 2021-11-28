@@ -46,6 +46,23 @@ namespace BiblePathsCore.Models.DB
                 return await BibleBook.GetBookNameAsync(context, bibleId, BookNumber);
             }
         }
+
+        public static async Task<BibleBook> GetBookByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName)
+        {
+            BibleBook Book = new BibleBook();
+            try
+            {
+                Book = await context.BibleBooks.Include(B => B.BibleChapters)
+                                                .Where(B => B.BibleId == BibleId
+                                                        && B.Name == BookName)
+                                                .SingleAsync();
+            }
+            catch
+            {
+                return null;
+            }
+            return Book;
+        }
         public static async Task<BibleBook> GetBookAndChapterByNameAsync(BiblePathsCoreDbContext context, string BibleId, string BookName, int ChapterNum)
         {
             BibleBook PBEBook = new BibleBook();

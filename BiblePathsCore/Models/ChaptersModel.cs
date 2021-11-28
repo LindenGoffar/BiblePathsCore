@@ -58,6 +58,26 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
-    }  
+    }
+    public class MinChapter
+    {
+        public string BibleId { get; set; }
+        public int BookNumber { get; set; }
+        public string Name { get; set; }
+        public int ChapterNumber { get; set; }
+        public int? Verses { get; set; }
 
+        public MinChapter()
+        {
+
+        }
+        public MinChapter(BibleChapter Chapter)
+        {
+            BibleId = Chapter.BibleId;
+            BookNumber = Chapter.BookNumber;
+            Name = Chapter.Name;
+            ChapterNumber = Chapter.ChapterNumber;
+            Verses = Chapter.Verses ?? 0;
+        }
+    }
 }
