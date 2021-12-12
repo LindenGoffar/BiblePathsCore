@@ -1,22 +1,22 @@
 {
   "dependencies": {
     "appInsights1": {
+      "secretStore": "AzureAppSettings",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/BiblePathsPPEAI",
       "type": "appInsights.azure",
-      "connectionId": "APPINSIGHTS_CONNECTIONSTRING",
-      "secretStore": "AzureAppSettings"
+      "connectionId": "APPINSIGHTS_CONNECTIONSTRING"
     },
     "mssql2": {
+      "secretStore": "AzureAppSettings",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/biblepathsppe/databases/BiblePathsAuthPPEDB",
       "type": "mssql.azure",
-      "connectionId": "AuthConnection",
-      "secretStore": "AzureAppSettings"
+      "connectionId": "AuthConnection"
     },
     "mssql1": {
+      "secretStore": "AzureAppSettings",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/biblepathsppe/databases/BiblePathsPPEDB",
       "type": "mssql.azure",
-      "connectionId": "AppConnection",
-      "secretStore": "AzureAppSettings"
+      "connectionId": "AppConnection"
     }
   }
 }
