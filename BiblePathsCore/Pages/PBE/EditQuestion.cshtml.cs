@@ -33,8 +33,12 @@ namespace BiblePathsCore.Pages.PBE
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int QuestionId)
+        [BindProperty]
+        public string ReturnPath { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int QuestionId, string Caller)
         {
+            ReturnPath = Caller;
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); 
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit a PBE question" }); }
@@ -139,7 +143,22 @@ namespace BiblePathsCore.Pages.PBE
                     }
                 }
                 await _context.SaveChangesAsync();
-                return RedirectToPage("AddQuestion", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter, VerseNum = QuestionToUpdate.EndVerse });
+
+                switch (ReturnPath)
+                {
+                    case "Questions":
+                        return RedirectToPage("Questions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter});
+                        // break; not needed unreachable
+
+                    case "ChallengedQuestions":
+                        return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId });
+                        // break; not needed unreachable
+
+                    default:
+                        return RedirectToPage("AddQuestion", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter, VerseNum = QuestionToUpdate.EndVerse });
+                        // break; not needed unreachable
+                }
+
             }
             return RedirectToPage("Index");
         }
