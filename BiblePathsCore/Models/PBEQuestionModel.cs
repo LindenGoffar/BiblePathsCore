@@ -53,6 +53,7 @@ namespace BiblePathsCore.Models.DB
             if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
 
             TimeLimit = (Points * 5) + 20;
+            LegalNote = GetBibleLegalNote();
         }
 
         // PopulatePBEQuestionAndBookInfoAsync is expensive as it builds a new PBE Book everytime, we don't want to call this often. 

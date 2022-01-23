@@ -59,6 +59,9 @@
                     }
                 </div>
             }
+            <div class="row text-muted">
+                @Model.Question.LegalNote
+            </div>
         </div>
         <div class="col-5">
             <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
