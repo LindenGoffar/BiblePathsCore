@@ -32,7 +32,7 @@ namespace BiblePathsCore
 
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id, string ReturnPath)
         {
             if (id == null)
             {
@@ -60,7 +60,20 @@ namespace BiblePathsCore
                 Question.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
-            return RedirectToPage("./Questions", new { BibleId = Question.BibleId, BookNumber = Question.BookNumber, Chapter = Question.Chapter});
+            switch (ReturnPath)
+            {
+                case "Questions":
+                    return RedirectToPage("./Questions", new { BibleId = Question.BibleId, BookNumber = Question.BookNumber, Chapter = Question.Chapter });
+                // break; not needed unreachable
+
+                case "ChallengedQuestions":
+                    return RedirectToPage("ChallengedQuestions", new { BibleId = Question.BibleId });
+                // break; not needed unreachable
+
+                default:
+                    return RedirectToPage("./Questions", new { BibleId = Question.BibleId, BookNumber = Question.BookNumber, Chapter = Question.Chapter });
+                    // break; not needed unreachable
+            }
         }
     }
 }

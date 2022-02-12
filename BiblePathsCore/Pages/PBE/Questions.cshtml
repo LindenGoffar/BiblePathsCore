@@ -114,6 +114,7 @@
                             <div class="modal-footer">
                                 <form asp-page="/PBE/DeleteQuestion" method="post">
                                     <input type="hidden" name="id" value="@question.Id" />
+                                    <input type="hidden" name="ReturnPath" value="Questions" />
                                     <input type="submit" value="Confirm" class="btn btn-danger" />
                                 </form>
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
