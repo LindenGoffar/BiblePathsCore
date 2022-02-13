@@ -4,6 +4,26 @@ Description: Create individual or all BiblePaths Core tables.
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
+--2/12/2022-- In support of CommentNodes
+ALTER TABLE Paths
+		Add Type int NOT NULL DEFAULT(0)
+
+ALTER TABLE PathNodes
+		Add	Text nvarchar (2048)
+
+ALTER TABLE PathNodes
+		Add Owner nvarchar(256) 
+
+ALTER TABLE PathNodes
+		Add Type int NOT NULL DEFAULT(0)
+
+ALTER TABLE Bibles 
+		Add Type int NOT NULL DEFAULT(0)
+
+ALTER TABLE QuizQuestions 
+		Add Type int NOT NULL DEFAULT(0)
+
+---OLDER UPDATES---- In Support of Game
 
 ALTER TABLE BibleNoiseWords
 		ADD	Occurs int NOT NULL
@@ -93,7 +113,8 @@ If ($CreateBiblesTable){
 		(
 			ID nvarchar(64) PRIMARY KEY,
 			Language nvarchar(64) NOT NULL,
-			Version nvarchar(64) NOT NULL
+			Version nvarchar(64) NOT NULL,
+			Type int NOT NULL DEFAULT(0)
 		) 
 "@
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBiblesTableQuery -Username $User -Password $Password
@@ -186,7 +207,8 @@ If ($CreatePathsTable){
 			isPublicEditable BIT NOT NULL DEFAULT 0,
 			isDeleted BIT NOT NULL DEFAULT 0,
 			StepCount int NOT NULL DEFAULT 0,
-			Reads int NOT NULL DEFAULT 0
+			Reads int NOT NULL DEFAULT 0,
+			Type int NOT NULL DEFAULT(0)
 		) 
 "@
 	<# adding the Reads column manually 
@@ -208,6 +230,9 @@ If ($CreatePathNodesTable){
 			Chapter int NOT NULL,
 			Start_Verse int NOT NULL,
 			End_Verse int NOT NULL,
+			Text nvarchar(2048),
+			Owner nvarchar(256), 
+			Type int NOT NULL DEFAULT(0),
 			Created datetimeoffset,
 			Modified datetimeoffset
 		) 
@@ -263,7 +288,8 @@ If ($CreateQuizTables){
 			Created datetimeoffset,
 			Modified datetimeoffset,
 			Source nvarchar(256),
-			LastAsked datetimeoffset NOT NULL DEFAULT ('2001-01-01')
+			LastAsked datetimeoffset NOT NULL DEFAULT ('2001-01-01'),
+			Type int NOT NULL DEFAULT(0)
 		) 
 "@
 	$CreateQuizAnswersTableQuery = @"
