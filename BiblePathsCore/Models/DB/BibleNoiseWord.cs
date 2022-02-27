@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
-
 namespace BiblePathsCore.Models.DB
 {
     public partial class BibleNoiseWord

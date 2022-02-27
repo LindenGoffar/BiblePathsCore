@@ -1,0 +1,181 @@
+﻿@page
+@model BiblePathsCore.CPStepsModel
+
+@{
+    ViewData["Title"] = Model.Path.Name;
+    ViewBag.NoIndex = true;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6"><h4>@ViewData["Title"]</h4></div>
+            <div class="col-6">
+                <form method="get" class="float-right">
+                    <input type="hidden" name="PathId" value="@Model.Path.Id" />
+                    @if (Model.IsPathReader)
+                    {
+                        <input type="hidden" name="Scenario" value="ReadPath" />
+                    }
+                    <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+            {
+                <p>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add Commentary</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Search for Verses</a>
+                </p>
+            }
+        </div>
+        @foreach (var Node in Model.PathNodes)
+        {
+        <div class="row">
+            <div class="col-10">
+                    <div class="card">
+                        <div class="card-body">
+                            @{string VerseRef = "";}
+                            @if (Node.Type == (int)Models.StepType.Standard)
+                                {
+                                    {VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
+                                    if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
+                                    }
+                                }
+                            else
+                            {
+                                VerseRef = "Owner Comment";
+                            }
+
+                            @if (!Model.IsPathReader)
+                            {
+                                @if (Model.IsPathOwner) // Only owners can delete a step...
+                                {
+                                    <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal-@Node.Id">
+                                        Delete
+                                    </button>
+                                    <div class="modal fade" id="DeleteModal-@Node.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Step" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Step?</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>@VerseRef</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form asp-page="/Steps/DeleteStep" method="post">
+                                                        <input type="hidden" name="id" value="@Node.Id" />
+                                                        <input type="hidden" name="pathId" value="@Model.Path.Id" />
+                                                        <input type="submit" value="Confirm" class="btn btn-danger" />
+                                                    </form>
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+
+                            <p class="card-title">
+                                @if (Node.Type == (int)Models.StepType.Commented)
+                                {
+                                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                                    {
+                                        <a asp-page="/Steps/EditComment" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a>
+                                    }
+                                    else { <b>@VerseRef</b> }
+                                }
+                                else
+                                {
+                                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                                    {
+                                        <a asp-page="/Steps/EditStep" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a>
+                                    }
+                                    else { <b>@VerseRef</b> }
+                                }
+                            </p>
+                            <p class="card-text">
+                                @if (Node.Type == (int)Models.StepType.Commented)
+                                {
+                                    @Node.Text <br />
+                                }
+                                else
+                                {
+                                    @foreach (var Verse in Node.Verses)
+                                    {
+                                        <sup>@Verse.Verse</sup>@Verse.Text<br />
+                                    }
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                    {
+                        <p>
+                            <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Add Commentary</a>
+                            <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
+                            <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Search for Verses</a>
+                        </p>
+                    }
+                </div>
+                @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                {
+                    <div class="col-2">
+                        @if (Node.BWStepId != 0)
+                        {
+                            <form asp-page="/Steps/Move" method="post">
+                                <input type="hidden" name="id" value="@Node.Id" />
+                                <input type="hidden" name="spaces" value="-1" />
+                                <input type="submit" value="Move Up" class="btn btn-sm btn-outline-primary" />
+                            </form>
+                        }
+                        <br />
+                        @if (Node.FWStepId != 0)
+                        {
+                            <form asp-page="/Steps/Move" method="post">
+                                <input type="hidden" name="id" value="@Node.Id" />
+                                <input type="hidden" name="spaces" value="1" />
+                                <input type="submit" value="Move Down" class="btn btn-sm btn-outline-primary" />
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    <div class="row">
+        <div class="text-muted">
+            @Model.Bible.LegalNote
+        </div>
+    </div>
+        @if (!Model.IsPathReader && Model.IsPathOwner)
+        {
+    <div class="row">
+        @if (Model.Path.IsPublished)
+        {
+            <form asp-page="./UnPublish" method="post">
+                <input type="hidden" name="id" value="@Model.Path.Id" />
+                <input type="submit" value="UnPublish this Path" class="btn btn-primary btn-sm" />
+            </form>
+        }
+        else
+        {
+            <a asp-page="./publish" asp-route-id="@Model.Path.Id" class="btn btn-primary btn-sm">Publish this Path</a>
+        }
+    </div>
+        }
+    </div>
+<div>
+    <hr />
+    @if (Model.IsPathOwner || Model.IsPathEditor)
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+        <a asp-page="./MyCommentedPaths">Back to My Commented Paths</a><br />
+    }
+    <a asp-page="./Index">Back to Commented Paths</a>
+</div>

@@ -1,0 +1,80 @@
+﻿@page
+@model BiblePathsCore.IndexModel
+
+@{
+    ViewData["Title"] = "Bible Paths";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <form>
+                <p>
+                    <input type="text" asp-for="SearchString" />
+                    <input type="submit" value="Search Paths by Name/Topic" />
+                </p>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <small class="bg-light">
+                <a asp-page="Index" asp-route-SearchString="@Model.SearchString" asp-route-SortOrder="@BiblePathsCore.Models.SortBy.HighestRated" id="HighestRated">
+                    Highest Rated
+                </a>
+                @if (Model.OrderedBy == BiblePathsCore.Models.SortBy.HighestRated)
+                {
+                    <script>document.getElementById("HighestRated").className = "font-weight-bold"</script>
+                }
+                |
+                <a asp-page="Index" asp-route-SearchString="@Model.SearchString" asp-route-SortOrder="@BiblePathsCore.Models.SortBy.Newest" id="Newest">
+                    Newest
+                </a>
+                @if (Model.OrderedBy == BiblePathsCore.Models.SortBy.Newest)
+                {
+                    <script>document.getElementById("Newest").className = "font-weight-bold"</script>
+                }
+                |
+                <a asp-page="Index" asp-route-SearchString="@Model.SearchString" asp-route-SortOrder="@BiblePathsCore.Models.SortBy.Shortest" id="Shortest">
+                    Shortest
+                </a>
+                @if (Model.OrderedBy == BiblePathsCore.Models.SortBy.Shortest)
+                {
+                    <script>document.getElementById("Shortest").className = "font-weight-bold"</script>
+                }
+                |
+                <a asp-page="Index" asp-route-SearchString="@Model.SearchString" asp-route-SortOrder="@BiblePathsCore.Models.SortBy.Reads" id="MostRead">
+                    Most Read
+                </a>
+                @if (Model.OrderedBy == BiblePathsCore.Models.SortBy.Reads)
+                {
+                    <script>document.getElementById("MostRead").className = "font-weight-bold"</script>
+                }
+            </small>
+        </div>
+    </div>
+    <br />
+    @foreach (var item in Model.Paths)
+    {
+    <div class="row">
+        <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
+            <strong><a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a></strong>
+            <small> @item.Topics</small>
+        </div>
+        <div class="col-md-2 col-4 border border-top-0 border-left-0 border-right-0 mb-3">
+            <small>Length: @item.Length min</small><br />
+            <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
+            <small>Reads: @item.Reads</small>
+        </div>
+    </div>
+    }
+</div>
+
+<div>
+    <hr />
+    <a asp-page="./MyPaths" >Build a Path of your own</a><br />
+    <a asp-page="/Index" >Back to Home</a>
+</div>

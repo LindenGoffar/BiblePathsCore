@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
-
 namespace BiblePathsCore.Models.DB
 {
     public partial class Path
@@ -28,6 +26,7 @@ namespace BiblePathsCore.Models.DB
         public bool IsDeleted { get; set; }
         public int StepCount { get; set; }
         public int Reads { get; set; }
+        public int Type { get; set; }
 
         public virtual ICollection<GameGroup> GameGroups { get; set; }
         public virtual ICollection<PathNode> PathNodes { get; set; }

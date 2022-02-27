@@ -25,7 +25,10 @@ namespace BiblePathsCore.API
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Path>>> GetPaths()
         {
-            return await _context.Paths.Where(P => P.IsDeleted == false && P.IsPublished == true).ToListAsync();
+            return await _context.Paths.Where(P => P.IsDeleted == false
+                                                && P.Type == (int)PathType.Standard
+                                                && P.IsPublished == true)
+                                        .ToListAsync();
         }
 
         // GET: api/Paths/5

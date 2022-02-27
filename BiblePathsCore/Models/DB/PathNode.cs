@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
-
 namespace BiblePathsCore.Models.DB
 {
     public partial class PathNode
@@ -16,6 +14,9 @@ namespace BiblePathsCore.Models.DB
         public int EndVerse { get; set; }
         public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Modified { get; set; }
+        public string Text { get; set; }
+        public string Owner { get; set; }
+        public int Type { get; set; }
 
         public virtual Path Path { get; set; }
     }

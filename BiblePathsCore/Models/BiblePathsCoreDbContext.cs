@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using BiblePathsCore.Models.DB;
-
-#nullable disable
 
 namespace BiblePathsCore.Models
 {
@@ -50,8 +49,6 @@ namespace BiblePathsCore.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
-
             modelBuilder.Entity<Bible>(entity =>
             {
                 entity.Property(e => e.Id)
@@ -84,7 +81,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleBooks)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleBook__Bible__1273C1CD");
+                    .HasConstraintName("FK__BibleBook__Bible__38996AB5");
             });
 
             modelBuilder.Entity<BibleChapter>(entity =>
@@ -122,7 +119,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleNoiseWords)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleNois__Bible__531856C7");
+                    .HasConstraintName("FK__BibleNois__Bible__3B75D760");
             });
 
             modelBuilder.Entity<BibleVerse>(entity =>
@@ -142,7 +139,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Bible)
                     .WithMany(p => p.BibleVerses)
                     .HasForeignKey(d => d.BibleId)
-                    .HasConstraintName("FK__BibleVers__Bible__1B0907CE");
+                    .HasConstraintName("FK__BibleVers__Bible__4222D4EF");
             });
 
             modelBuilder.Entity<BibleWordIndex>(entity =>
@@ -166,7 +163,7 @@ namespace BiblePathsCore.Models
                     .WithMany(p => p.BibleWordIndices)
                     .HasForeignKey(d => d.BibleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__BibleWord__Bible__00DF2177");
+                    .HasConstraintName("FK__BibleWord__Bible__01142BA1");
             });
 
             modelBuilder.Entity<CommentaryBook>(entity =>
@@ -182,7 +179,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Bible)
                     .WithMany(p => p.CommentaryBooks)
                     .HasForeignKey(d => d.BibleId)
-                    .HasConstraintName("FK__Commentar__Bible__49C3F6B7");
+                    .HasConstraintName("FK__Commentar__Bible__71D1E811");
             });
 
             modelBuilder.Entity<GameGroup>(entity =>
@@ -198,7 +195,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Path)
                     .WithMany(p => p.GameGroups)
                     .HasForeignKey(d => d.PathId)
-                    .HasConstraintName("FK__GameGroup__PathI__02FC7413");
+                    .HasConstraintName("FK__GameGroup__PathI__7B5B524B");
             });
 
             modelBuilder.Entity<GameTeam>(entity =>
@@ -218,7 +215,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Group)
                     .WithMany(p => p.GameTeams)
                     .HasForeignKey(d => d.GroupId)
-                    .HasConstraintName("FK__GameTeams__Group__09A971A2");
+                    .HasConstraintName("FK__GameTeams__Group__7E37BEF6");
             });
 
             modelBuilder.Entity<Path>(entity =>
@@ -253,14 +250,18 @@ namespace BiblePathsCore.Models
 
                 entity.Property(e => e.EndVerse).HasColumnName("End_Verse");
 
+                entity.Property(e => e.Owner).HasMaxLength(256);
+
                 entity.Property(e => e.PathId).HasColumnName("PathID");
 
                 entity.Property(e => e.StartVerse).HasColumnName("Start_Verse");
 
+                entity.Property(e => e.Text).HasMaxLength(2048);
+
                 entity.HasOne(d => d.Path)
                     .WithMany(p => p.PathNodes)
                     .HasForeignKey(d => d.PathId)
-                    .HasConstraintName("FK__PathNodes__PathI__25869641");
+                    .HasConstraintName("FK__PathNodes__PathI__4CA06362");
             });
 
             modelBuilder.Entity<PathStat>(entity =>
@@ -274,7 +275,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Path)
                     .WithMany(p => p.PathStats)
                     .HasForeignKey(d => d.PathId)
-                    .HasConstraintName("FK__PathStats__PathI__286302EC");
+                    .HasConstraintName("FK__PathStats__PathI__4F7CD00D");
             });
 
             modelBuilder.Entity<PredefinedQuiz>(entity =>
@@ -290,7 +291,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.QuizUser)
                     .WithMany(p => p.PredefinedQuizzes)
                     .HasForeignKey(d => d.QuizUserId)
-                    .HasConstraintName("FK__Predefine__QuizU__4CA06362");
+                    .HasConstraintName("FK__Predefine__QuizU__74AE54BC");
             });
 
             modelBuilder.Entity<PredefinedQuizQuestion>(entity =>
@@ -302,7 +303,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.PredefinedQuiz)
                     .WithMany(p => p.PredefinedQuizQuestions)
                     .HasForeignKey(d => d.PredefinedQuizId)
-                    .HasConstraintName("FK__Predefine__Prede__5070F446");
+                    .HasConstraintName("FK__Predefine__Prede__787EE5A0");
             });
 
             modelBuilder.Entity<QuizAnswer>(entity =>
@@ -318,7 +319,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Question)
                     .WithMany(p => p.QuizAnswers)
                     .HasForeignKey(d => d.QuestionId)
-                    .HasConstraintName("FK__QuizAnswe__Quest__36B12243");
+                    .HasConstraintName("FK__QuizAnswe__Quest__5EBF139D");
             });
 
             modelBuilder.Entity<QuizBookList>(entity =>
@@ -343,7 +344,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.BookList)
                     .WithMany(p => p.QuizBookListBookMaps)
                     .HasForeignKey(d => d.BookListId)
-                    .HasConstraintName("FK__QuizBookL__BookL__45F365D3");
+                    .HasConstraintName("FK__QuizBookL__BookL__6E01572D");
             });
 
             modelBuilder.Entity<QuizGroupStat>(entity =>
@@ -359,7 +360,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.QuizUser)
                     .WithMany(p => p.QuizGroupStats)
                     .HasForeignKey(d => d.QuizUserId)
-                    .HasConstraintName("FK__QuizGroup__QuizU__3E52440B");
+                    .HasConstraintName("FK__QuizGroup__QuizU__66603565");
             });
 
             modelBuilder.Entity<QuizQuestion>(entity =>
@@ -395,7 +396,7 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Bible)
                     .WithMany(p => p.QuizQuestions)
                     .HasForeignKey(d => d.BibleId)
-                    .HasConstraintName("FK__QuizQuest__Bible__5AEE82B9");
+                    .HasConstraintName("FK__QuizQuest__Bible__571DF1D5");
             });
 
             modelBuilder.Entity<QuizQuestionStat>(entity =>
@@ -413,12 +414,12 @@ namespace BiblePathsCore.Models
                 entity.HasOne(d => d.Question)
                     .WithMany(p => p.QuizQuestionStats)
                     .HasForeignKey(d => d.QuestionId)
-                    .HasConstraintName("FK__QuizQuest__Quest__3A81B327");
+                    .HasConstraintName("FK__QuizQuest__Quest__628FA481");
 
                 entity.HasOne(d => d.QuizUser)
                     .WithMany(p => p.QuizQuestionStats)
                     .HasForeignKey(d => d.QuizUserId)
-                    .HasConstraintName("FK__QuizQuest__QuizU__3B75D760");
+                    .HasConstraintName("FK__QuizQuest__QuizU__6383C8BA");
             });
 
             modelBuilder.Entity<QuizUser>(entity =>

@@ -13,6 +13,7 @@ namespace BiblePathsCore.Models
 {
     // Enums generally used in the Paths class
     public enum EventType { PathStarted, PathCompleted, NonOwnerEdit, DirectReference, PathDeleted, UserRating }
+    public enum PathType { Standard, Commented  }
     public enum SortBy { HighestRated, Newest, Shortest, Reads }
 
 }
@@ -113,7 +114,11 @@ namespace BiblePathsCore.Models.DB
             List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).ToListAsync();
             foreach (PathNode node in pathNodes)
             {
-                retVal += (node.EndVerse - node.StartVerse + 1);
+                if(node.Type == (int)StepType.Standard)
+                {
+                    retVal += (node.EndVerse - node.StartVerse + 1);
+                }
+                else { retVal++; } // Comment Nodes count as 1
             }
             return retVal;
         }
@@ -143,14 +148,16 @@ namespace BiblePathsCore.Models.DB
             }
             return returnVerses;
         }
-        // Note this is a static class it is not called with an instance of a path object. 
+        // Note this is a static method it is not called with an instance of a path object. 
+        // This method will remain PathType agnostic it wil work on any Path 
         public static async Task<bool> PathNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
         {
-            var knownTerms = new[] { "create", "delete", "edit", "index", "mypaths", "path", "pathcomplete", "publish", "steps", "unpublish" };
+            var knownTerms = new[] { "create", "delete", "edit", "index", "mypaths", "MyCommentedPaths", "path", "pathcomplete", "publish", "steps", "unpublish" };
             if (knownTerms.Contains(CheckName.ToLower()))
             {
                 return true;
             }
+            // This is a PathType Agnostic query becuase we want uniqueness across the set of paths, this may be revisited.
             if (await context.Paths.Where(p => p.Name.ToLower() == CheckName.ToLower()).AnyAsync())
             {
                 return true; 

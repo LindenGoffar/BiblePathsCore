@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
-
 namespace BiblePathsCore.Models.DB
 {
     public partial class QuizQuestion
@@ -14,6 +12,7 @@ namespace BiblePathsCore.Models.DB
         }
 
         public int Id { get; set; }
+        public string BibleId { get; set; }
         public string Question { get; set; }
         public string Owner { get; set; }
         public bool Challenged { get; set; }
@@ -30,7 +29,7 @@ namespace BiblePathsCore.Models.DB
         public DateTimeOffset? Modified { get; set; }
         public string Source { get; set; }
         public DateTimeOffset LastAsked { get; set; }
-        public string BibleId { get; set; }
+        public int Type { get; set; }
 
         public virtual Bible Bible { get; set; }
         public virtual ICollection<QuizAnswer> QuizAnswers { get; set; }

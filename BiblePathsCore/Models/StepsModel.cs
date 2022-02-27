@@ -6,6 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+namespace BiblePathsCore.Models
+{
+    // Enums generally used in the Steps classes
+    public enum StepType { Standard, Commented }
+}
+
 namespace BiblePathsCore.Models.DB
 {
     public partial class PathNode

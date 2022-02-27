@@ -17,8 +17,8 @@ namespace BiblePathsCore.Models.DB
         {
             List<SelectListItem> PathSelectList = new List<SelectListItem>();
 
-            List<Path> Paths = await context.Paths
-                                                .Where(P => P.IsDeleted == false
+            List<Path> Paths = await context.Paths.Where(P => P.IsDeleted == false
+                                                        && P.Type == (int)PathType.Standard
                                                         && P.IsPublished == true)
                                                 .OrderBy(P => P.StepCount)
                                                 .ToListAsync();

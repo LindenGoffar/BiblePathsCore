@@ -13,12 +13,12 @@ using Microsoft.AspNetCore.Authorization;
 namespace BiblePathsCore
 {
     [Authorize]
-    public class MyPathsModel : PageModel
+    public class MyCommentedPathsModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public MyPathsModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public MyCommentedPathsModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _userManager = userManager;
             _context = context;
@@ -29,8 +29,8 @@ namespace BiblePathsCore
         public async Task OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            Paths = await _context.Paths.Where(P => P.Owner.ToLower() == user.Email.ToLower() 
-                                                && P.Type == (int)PathType.Standard
+            Paths = await _context.Paths.Where(P => P.Owner.ToLower() == user.Email.ToLower()
+                                                && P.Type == (int)PathType.Commented
                                                 && P.IsDeleted == false)
                                         .ToListAsync();
         }

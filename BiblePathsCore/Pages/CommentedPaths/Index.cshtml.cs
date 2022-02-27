@@ -11,11 +11,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace BiblePathsCore
 {
-    public class IndexModel : PageModel
+    public class IndexCPModel : PageModel
     {
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public IndexModel(BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public IndexCPModel(BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _context = context;
         }
@@ -32,14 +32,14 @@ namespace BiblePathsCore
             if (!string.IsNullOrEmpty(SearchString))
             {
                 paths = paths.Where(s => (s.Name.Contains(SearchString) || s.Topics.Contains(SearchString))
-                                            && s.Type == (int)PathType.Standard
-                                            && s.IsPublished == true 
+                                            && s.Type == (int)PathType.Commented
+                                            && s.IsPublished == true
                                             && s.IsDeleted == false);
             }
-            else 
+            else
             {
-                paths = paths.Where(s => s.Type == (int)PathType.Standard
-                                    && s.IsPublished == true 
+                paths = paths.Where(s => s.Type == (int)PathType.Commented
+                                    && s.IsPublished == true
                                     && s.IsDeleted == false);
             }
 
