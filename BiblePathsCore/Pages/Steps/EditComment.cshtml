@@ -11,58 +11,29 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-8">
-            <span>
-                <strong>@Model.Step.BookName @Model.Step.Chapter</strong>
-                <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-StepId="@Model.Step.Id" asp-route-Position="@Model.Step.Position" asp-route-TargetPage="/Steps/EditStep">  Change Book/Chapter  </a>
-                <br />
-            </span>
-            @foreach (var Verse in Model.Step.Verses)
-            {
-                <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
-                    <sup>@Verse.Verse </sup>@Verse.Text
-                </div>
-            }
-        </div>
-        <div class="col-4">
-            @*@await Html.PartialAsync("_StepBuilderView", Model.Step)*@
-            <div class="card follow-scroll">
-                <div class="card-body">
-                    <p class="card-title">@Model.Step.BookName @Model.Step.Chapter</p>
-                    <form method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        <div class="form-group">
-                            Verse
-                            <select asp-for="Step.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control small"></select>
-                            <span asp-validation-for="Step.StartVerse" class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            to
-                            <select asp-for="Step.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control small"></select>
-                            <span asp-validation-for="Step.EndVerse" class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <input type="hidden" asp-for="Step.PathId" />
-                            <input type="hidden" asp-for="Step.BookNumber" />
-                            <input type="hidden" asp-for="Step.Chapter" />
-                            <input type="hidden" asp-for="Step.Position" />
-                            <input type="hidden" asp-for="BibleId" />
-                            <input type="submit" value="Save Step" class="btn btn-primary" />
-                        </div>
-                    </form>
-                </div>
+        <div class="col-12">
+            <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="form-group">
+                        <textarea asp-for="Step.Text" rows="8" placeholder="Owner Commentary" class="scroll-box"> </textarea>
+                        <span asp-validation-for="Step.Text" class="text-danger"></span>
+                        <input type="hidden" asp-for="Step.PathId" />
+                        <input type="hidden" asp-for="Step.Position" />
+                        <input type="submit" value="Add Step" class="btn btn-primary" />
+                    </div>
+                </form>
             </div>
+        </div>
         </div>
     </div>
 </div>
 
 <div>
     <hr />
-    <a asp-page="/Paths/Steps" asp-route-PathId="@Model.Path.Id">Back to Path</a>
+    <a asp-page="/CommentedPaths/Steps" asp-route-PathId="@Model.Path.Id">Back to Commented Path</a>
 </div>
 
 @section Scripts {
-    <partial name="_FollowScrollHelpers" />
-    <partial name="_VerseSelectionHelpers" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
