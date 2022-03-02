@@ -52,7 +52,7 @@ namespace BiblePathsCore
             // confirm Path Owner
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to delete a PBE BookList" }); }
+            if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to delete a PBE BookList" }); }
 
             // We only ever soft delete a BookList but we do delete the maps. 
 
