@@ -123,13 +123,16 @@ namespace BiblePathsCore
                 // Finally we need to re-position each node in the path to ensure safe ordering
                 _ = await Path.RedistributeStepsAsync(_context);
                 
-                return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+                if (Path.Type == (int)PathType.Commented)
+                {
+                    return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+                }
+                else
+                {
+                    return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+                }
             }
-
-                //_context.PathNodes.Add(PathNodes);
-                //await _context.SaveChangesAsync();
-
-                return RedirectToPage("./Index");
+            return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
         }
     }
 }

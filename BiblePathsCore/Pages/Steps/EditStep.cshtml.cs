@@ -112,7 +112,14 @@ namespace BiblePathsCore
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+            if (Path.Type == (int)PathType.Commented)
+            {
+                return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+            }
+            else
+            {
+                return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+            }
         }
 
         //private bool PathNodesExists(int id)

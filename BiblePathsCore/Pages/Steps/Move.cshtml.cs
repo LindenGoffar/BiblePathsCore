@@ -75,7 +75,14 @@ namespace BiblePathsCore
             // Finally we need to re-position each node in the path to ensure safe ordering
             _ = await Path.RedistributeStepsAsync(_context);
 
-            return RedirectToPage("/Paths/Steps", new { PathId = Step.PathId });
+            if (Path.Type == (int)PathType.Commented)
+            {
+                return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+            }
+            else
+            {
+                return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+            }
         }
     }
 }

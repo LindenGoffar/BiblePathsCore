@@ -52,10 +52,24 @@ namespace BiblePathsCore
                 _context.PathNodes.Remove(Step);
                 await _context.SaveChangesAsync();
 
-                // Finally we need to re-position each node in the path to ensure safe ordering
+                // We need to re-position each node in the path to ensure safe ordering
                 _ = await Path.RedistributeStepsAsync(_context);
+
+                // We also need to update the Path Object. 
+                _context.Attach(Path);
+                Path.Modified = DateTime.Now;
+                // Save our now updated Path Object. 
+                await _context.SaveChangesAsync();
             }
-            return RedirectToPage("/Paths/Steps", new { PathId = pathId });
+
+            if (Path.Type == (int)PathType.Commented)
+            {
+                return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+            }
+            else
+            {
+                return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+            }
         }
     }
 }

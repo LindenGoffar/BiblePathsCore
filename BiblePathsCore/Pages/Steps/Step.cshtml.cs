@@ -56,6 +56,9 @@ namespace BiblePathsCore
             {
                 Step = await _context.PathNodes.FindAsync(id);
                 if (Step == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
+                
+                // Let's add a redirect back to the Path for Comment Steps. 
+                
                 _ = await Step.AddPathStepPropertiesAsync(_context);
                 Scenario = StepScenarios.Step;
                 hasValidStepId = true;
