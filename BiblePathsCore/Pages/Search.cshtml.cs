@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BiblePathsCore
 {
@@ -21,14 +22,22 @@ namespace BiblePathsCore
 
         public IList<BibleVerse> BibleVerses { get;set; }
         public bool NoResults { get; set; }
-        public string BibleId { get; set;  }
+
+        [BindProperty(SupportsGet = true)]
+        public string BibleId { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string PageSearchString { get; set; }
+        public List<SelectListItem> BibleSelectList { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string SearchString)
+        public async Task<IActionResult> OnGetAsync(string SearchString, string BibleId)
         {
+            if (this.BibleId != null) { BibleId = this.BibleId; }
             BibleId = await Bible.GetValidBibleIdAsync(_context, BibleId);
+            this.BibleId = BibleId;
+
+            BibleSelectList = await GetBibleSelectListAsync();
+
             NoResults = false; 
             if(PageSearchString != null) { SearchString = PageSearchString; }
             if(SearchString != null ) { PageSearchString = SearchString; }
@@ -47,6 +56,17 @@ namespace BiblePathsCore
             if (BibleVerses.Count == 0 ) { NoResults = true; }
 
             return Page();
+        }
+
+        private async Task<List<SelectListItem>> GetBibleSelectListAsync()
+        {
+            // NOTE: Upon Further Review NKJV-EN is removed for stricter adherence to Thomas Nelson copyright.  
+            return await _context.Bibles.Where(b => b.Id != "NKJV-EN").Select(b =>
+                               new SelectListItem
+                               {
+                                   Value = b.Id,
+                                   Text = b.Language + "-" + b.Version
+                               }).ToListAsync();
         }
     }
 }

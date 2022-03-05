@@ -49,7 +49,7 @@ namespace BiblePathsCore.Pages.PBE
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
+            if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit a PBE BookList" }); }
 
             BookList = await _context.QuizBookLists.FindAsync(Id);
             if (BookList == null ) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Book List" }); }
@@ -72,7 +72,7 @@ namespace BiblePathsCore.Pages.PBE
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE BookList" }); }
+            if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit a PBE BookList" }); }
 
             QuizBookList BookListToUpdate = await _context.QuizBookLists.FindAsync(Id);
             if (BookListToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Book List" }); }

@@ -1,15 +1,15 @@
 ﻿@page
-@model BiblePathsCore.Pages.PBE.QuestionsModel
+@model BiblePathsCore.Pages.PBE.ChallengedQuestionsModel
 
 @{
-    ViewData["Title"] = "PBE Questions";
+    ViewData["Title"] = "PBE Challenged Questions";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h4>@ViewData["Title"]</h4>
 
 <div class="container-fluid">
-    <div class="row">
+@*    <div class="row">
         <span>
             @if (Model.IsCommentary)
             {
@@ -22,8 +22,8 @@
         <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions">  Change Book/Chapter  </a>
             <br />
         </span>
-    </div>
-    <div class="row">
+    </div>*@
+@*    <div class="row">
         <div class="col-12">
             @if (Model.Verse > 0)
             {
@@ -34,7 +34,7 @@
                 <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter">Add Question</a>
             }
         </div>
-    </div>
+    </div>*@
     <hr />
     @foreach (var question in Model.Questions)
     { 
@@ -76,7 +76,7 @@
                             </div>
                         }
 
-                        @if (Model.IsCommentary == false)
+                        @if (question.IsCommentaryQuestion == false)
                         {
                             <button data-toggle="collapse" data-target="#Verses-@question.Id" class="btn btn-link"
                                     onclick="GetBibleVerses(@question.Id, @question.BookNumber, @question.Chapter, @question.StartVerse, @question.EndVerse)">
@@ -85,16 +85,13 @@
                             <div id="Verses-@question.Id" class="collapse">
                                 <P><small>Loading...</small></P>
                             </div>
-                            <div class="row text-muted small">
-                                @question.LegalNote
-                            </div>
                         }
 
                     </div>
                 </div>
             </div>
             <div class="col-2">
-                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="Questions">Edit</a>
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="ChallengedQuestions">Edit</a>
                 <br />
                 <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
                     Delete
@@ -114,7 +111,7 @@
                             <div class="modal-footer">
                                 <form asp-page="/PBE/DeleteQuestion" method="post">
                                     <input type="hidden" name="id" value="@question.Id" />
-                                    <input type="hidden" name="ReturnPath" value="Questions" />
+                                    <input type="hidden" name="ReturnPath" value="ChallengedQuestions" />
                                     <input type="submit" value="Confirm" class="btn btn-danger" />
                                 </form>
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

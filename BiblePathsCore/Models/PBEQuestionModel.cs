@@ -53,6 +53,33 @@ namespace BiblePathsCore.Models.DB
             if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
 
             TimeLimit = (Points * 5) + 20;
+            LegalNote = GetBibleLegalNote();
+        }
+
+        // PopulatePBEQuestionAndBookInfoAsync is expensive as it builds a new PBE Book everytime, we don't want to call this often. 
+        public async Task<bool> PopulatePBEQuestionAndBookInfoAsync(BiblePathsCoreDbContext context)
+        {
+            // BibleId may not be set on every question, particularly old ones, so default it.
+            if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
+
+            BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(context, BibleId, BookNumber, Chapter);
+            if (PBEBook == null) { return false; }
+
+            if (Chapter == Bible.CommentaryChapter)
+            {
+                IsCommentaryQuestion = true;
+                BookName = PBEBook.CommentaryTitle;
+            }
+            else
+            {
+                IsCommentaryQuestion = false;
+                BookName = PBEBook.Name;
+            }
+            PBEQuestion = GetPBEQuestionText();
+
+            TimeLimit = (Points * 5) + 20;
+
+            return true;
         }
         public string GetBibleLegalNote()
         {

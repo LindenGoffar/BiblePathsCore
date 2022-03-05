@@ -10,7 +10,7 @@ $SelectedBooks = @("Ruth","1 Kings")
 
 # Add QuizQuestion
 # To obtain a valid Token browse to ../howto/apitoken
-    $APIToken = "bGdvZmZhckBnbWFpbC5jb20zNjUzNg=="
+    $APIToken = "bGdvZmZhckBnbWFpbC5jb20xODY3Mg=="
     $OwnerEmail = "lgoffar@gmail.com"
 
 

@@ -94,12 +94,13 @@ namespace BiblePathsCore
 
         private async Task<List<SelectListItem>> GetBibleSelectListAsync()
         {
-            return await _context.Bibles.Select(b =>
-                              new SelectListItem
-                              {
-                                  Value = b.Id,
-                                  Text = b.Language + "-" + b.Version
-                              }).ToListAsync();
+            // NOTE: Upon Further Review NKJV-EN is removed for stricter adherence to Thomas Nelson copyright.  
+            return await _context.Bibles.Where(b => b.Id != "NKJV-EN").Select(b =>
+                               new SelectListItem
+                               {
+                                   Value = b.Id,
+                                   Text = b.Language + "-" + b.Version
+                               }).ToListAsync();
         }
     }
 }

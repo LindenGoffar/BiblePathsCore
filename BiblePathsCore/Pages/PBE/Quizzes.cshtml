@@ -36,7 +36,11 @@
             </span>
             <div class="row">
                 <div class="col-12">
-                    <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                    <br />
+                    <h6>
+                        <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                    </h6>
+                    <br />
                 </div>
             </div>
             <table class="table">
@@ -99,7 +103,9 @@
             </table>
             <div class="row">
                 <div class="col-12">
-                    <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                    <h6>
+                        <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+                    </h6>
                 </div>
             </div>
         </div>
@@ -113,7 +119,11 @@
             </span>
             <div class="row">
                 <div class="col-12">
-                    <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                    <br />
+                    <h6>
+                        <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                    </h6>
+                    <br />
                 </div>
             </div>
             <hr />
@@ -161,7 +171,10 @@
             }
             <div class="row">
                 <div class="col-12">
-                    <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                    <br />
+                    <h6>
+                        <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                    </h6>
                 </div>
             </div>
         </div>
@@ -169,7 +182,7 @@
             <br />
             <h4>Book Lists</h4>
             <span class="text-info">
-                Book Lists provide a convenient way to group books together. It is not uncommon for PBE teams to have to learn
+                Book Lists provide a convenient way to group books together. PBE teams often to have to learn
                 more then one book in a year, Book Lists are used to simplify the management of Quizzes and Templates.
             </span>
             <hr />
@@ -188,9 +201,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-2">
-                        <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id">Edit</a>
-                    </div>
+                    @if (Model.PBEUser.IsModerator)
+                    {
+                        <div class="col-2">
+                            <a class="btn btn-outline-primary btn-sm" asp-page="EditBookList" asp-route-BibleId="@Model.BibleId" asp-route-Id="@BookList.Id">Edit</a>
+                        </div>
+                    }
                 </div>
             }
             <hr />

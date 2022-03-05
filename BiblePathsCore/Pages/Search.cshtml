@@ -2,7 +2,7 @@
 @model SearchModel
 
 @{
-    ViewData["Title"] = "Search";
+    ViewData["Title"] = "Bible Search";
 }
 
 <h4>@ViewData["Title"]</h4>
@@ -11,22 +11,26 @@
     <div class="row">
         <div class="col-12">
             <form>
-                <p>
-                    <input type="hidden" asp-for="@Model.BibleId" />
+                <div>
+                    @*<input type="hidden" asp-for="@Model.BibleId" />*@
+                    <select asp-for="BibleId" asp-items="@Model.BibleSelectList" class="form-control"></select>
+                    <hr />
                     <input type="text" asp-for="PageSearchString" />
                     <input type="submit" value="Search the Bible" />
-                </p>
+                </div>
             </form>
         </div>
     </div>
 </div>
-<hr />
+
 @if (Model.NoResults == true)
 {
+    <hr />
     <strong>Sorry! This search returned no results... </strong>
 }
 @if (Model.BibleVerses != null)
 {
+    <hr />
     @foreach (var item in Model.BibleVerses)
     {
         <div class="row border border-top-0 border-right-0 mb-2">

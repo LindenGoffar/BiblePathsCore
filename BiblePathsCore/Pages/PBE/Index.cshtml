@@ -21,6 +21,7 @@
     @if (User.Identity.IsAuthenticated)
     {
         <a asp-page="Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">My Quiz Templates</a>
+        <a asp-page="ChallengedQuestions" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>
         @if (Model.PBEUser != null)
         {
             @if (Model.PBEUser.IsModerator)
@@ -46,6 +47,6 @@
 
 <div class="text-left">
     <br />
-    <p>Learn more <a asp-page="./about">about Bible Paths</a>.</p>
+    <p>Learn more <a asp-page="../about">about Bible Paths</a>.</p>
 </div>
 
