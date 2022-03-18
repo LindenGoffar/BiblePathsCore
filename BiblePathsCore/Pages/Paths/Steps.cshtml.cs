@@ -87,7 +87,8 @@ namespace BiblePathsCore
             if (MarkAsRead == 1)
             {
                 //_ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
-                _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+                //_ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+                _ = await Path.RegisterReadEventAsync(_context);
             }
             //if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
 

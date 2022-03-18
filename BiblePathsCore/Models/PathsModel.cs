@@ -272,6 +272,22 @@ namespace BiblePathsCore.Models.DB
             }
         }
 
+        public async Task<bool> RegisterReadEventAsync(BiblePathsCoreDbContext context)
+        {
+            // this routine is called on a full read scenarnio so we need to do two things. 
+            // 1. Register a Start event as a read is presumed to accompany a complete. 
+            // 2. register a Completed AND importantly update Read count as well. 
+            _ = await RegisterEventAsync(context, EventType.PathStarted, null);
+            _ = await RegisterEventAsync(context, EventType.PathCompleted, null);
+
+            // Now we need to increment Read Count... 
+            context.Attach(this).State = EntityState.Modified;
+            Reads++;
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<bool> ApplyPathRatingAsync(BiblePathsCoreDbContext context)
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
