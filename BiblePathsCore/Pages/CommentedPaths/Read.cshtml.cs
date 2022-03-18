@@ -84,8 +84,8 @@ namespace BiblePathsCore
             // Now let's register this as a Path Start and Path Read
             if (MarkAsRead == 1)
             {
-                _ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
-                _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+                _ = await Path.RegisterEventAsync(_context, EventType.PathStarted, null);
+                _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
             }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
