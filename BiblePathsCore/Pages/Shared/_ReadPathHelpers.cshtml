@@ -1,0 +1,9 @@
+﻿
+<script>
+    // Let's go ahead and scroll to the selectedStep.
+    $(document).ready(function () {
+        $('html, body').animate({
+            scrollTop: $('#Step-' + @ViewData["StepId"]).offset().top - 300
+        }, 300);
+    });
+</script>

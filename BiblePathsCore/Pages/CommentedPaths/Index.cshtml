@@ -1,8 +1,8 @@
 ﻿@page
-@model BiblePathsCore.IndexModel
+@model BiblePathsCore.IndexCPModel
 
 @{
-    ViewData["Title"] = "Bible Paths";
+    ViewData["Title"] = "Commented Bible Paths";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
@@ -61,7 +61,7 @@
     {
     <div class="row">
         <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
-            <strong><a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a></strong>
+            <strong><a asp-page="./Read" asp-route-PathId="@item.Id" asp-route-MarkAsRead=1>@item.Name</a></strong>
             <small> @item.Topics</small>
         </div>
         <div class="col-md-2 col-4 border border-top-0 border-left-0 border-right-0 mb-3">
@@ -75,6 +75,6 @@
 
 <div>
     <hr />
-    <a asp-page="./MyPaths" >Build a Path of your own</a><br />
+    <a asp-page="./MyCommentedPaths" >Build a Commented Path of your own</a><br />
     <a asp-page="/Index" >Back to Home</a>
 </div>

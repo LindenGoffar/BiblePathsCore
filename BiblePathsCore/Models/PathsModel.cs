@@ -139,7 +139,10 @@ namespace BiblePathsCore.Models.DB
         public async Task<List<BibleVerse>> GetPathVersesAsync(BiblePathsCoreDbContext context, String BibleId)
         {
             List<BibleVerse> returnVerses = new List<BibleVerse>();
-            List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id).OrderBy(P => P.Position).ToListAsync();
+            List<PathNode> pathNodes = await context.PathNodes.Where(N => N.PathId == Id
+                                                                    && N.Type == (int)StepType.Standard)
+                                                                .OrderBy(P => P.Position)
+                                                                .ToListAsync();
             foreach (PathNode node in pathNodes)
             {
                 returnVerses.AddRange(await context.BibleVerses
@@ -208,28 +211,39 @@ namespace BiblePathsCore.Models.DB
 
             foreach (PathNode Step in PathNodes)
             {
-                // Let's go fetch any other PathNodes that match the Book/Chapter/Verse combo
-                // this means any steps that start between the curent Steps range of verses... 
-                // NOTE: The above described logic may not be intuitive, what if the step ends with in the curent steps range? 
-
-                // TODO Perf: this likely becomes expensive over time. 
-                List<PathNode> dbNodes = await context.PathNodes.Include(N => N.Path).Where(N => N.BookNumber == Step.BookNumber && N.Chapter == Step.Chapter && N.StartVerse >= Step.StartVerse && N.StartVerse <= Step.EndVerse && N.PathId != Id).ToListAsync();
-
-                if (dbNodes.Count > 0)
+                // We only operate against Standard Steps i.e. not Commented ones. 
+                if (Step.Type == (int)StepType.Standard)
                 {
-                    // Iterate through the related step nodes to see if it is part of a unique published path
-                    foreach (PathNode entry in dbNodes)
+                    // Let's go fetch any other PathNodes that match the Book/Chapter/Verse combo
+                    // this means any steps that start between the curent Steps range of verses... 
+                    // NOTE: The above described logic may not be intuitive, what if the step ends with in the curent steps range? 
+
+                    // TODO Perf: this likely becomes expensive over time. 
+                    List<PathNode> dbNodes = await context.PathNodes.Include(N => N.Path).Where(N => N.Type == (int)StepType.Standard
+                                                                                                && N.BookNumber == Step.BookNumber 
+                                                                                                && N.Chapter == Step.Chapter 
+                                                                                                && N.StartVerse >= Step.StartVerse 
+                                                                                                && N.StartVerse <= Step.EndVerse 
+                                                                                                && N.PathId != Id)
+                                                                                            .ToListAsync();
+
+                    if (dbNodes.Count > 0)
                     {
-                        // At this point we only know there is another Step associated with this Step, but is the Path published? 
-                        if (entry.Path != null)
+                        // Iterate through the related step nodes to see if it is part of a unique published path
+                        foreach (PathNode entry in dbNodes)
                         {
-                            if (entry.Path.IsPublished && !UniqueRelatedPaths.ContainsKey(entry.Path.Id))
+                            // At this point we only know there is another Path associated with this Step, but is the Path published? 
+                            if (entry.Path != null)
                             {
-                                UniqueRelatedPaths.Add(entry.Path.Id, entry.Path.Name); // used only to ensure uniqueness.
-                                // looks to be a published and unique path, 
-                                if (!RelatedPaths.Contains(entry.Path))
+                                // We only want Published, Standard and unique Paths today... 
+                                if (entry.Path.IsPublished && entry.Path.Type == (int)PathType.Standard && !UniqueRelatedPaths.ContainsKey(entry.Path.Id))
                                 {
-                                    RelatedPaths.Add(entry.Path);
+                                    UniqueRelatedPaths.Add(entry.Path.Id, entry.Path.Name); // used only to ensure uniqueness.
+                                                                                            // looks to be a published and unique path, 
+                                    if (!RelatedPaths.Contains(entry.Path))
+                                    {
+                                        RelatedPaths.Add(entry.Path);
+                                    }
                                 }
                             }
                         }
@@ -258,7 +272,7 @@ namespace BiblePathsCore.Models.DB
             }
         }
 
-        public async Task<bool> ApplyPathRatingAsyc(BiblePathsCoreDbContext context)
+        public async Task<bool> ApplyPathRatingAsync(BiblePathsCoreDbContext context)
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
             // Rating is the average of the following Scores ranging from 0 - 5 (there is a little arbitrary uplift)
@@ -337,15 +351,25 @@ namespace BiblePathsCore.Models.DB
                     NumRatings++; 
                 }
             }
-            double AvgUserRating = SumRatings / NumRatings; 
+            // Let's just assume the best... 
+            double AvgUserRating = 5;
+            if (NumRatings > 0)
+            {
+                AvgUserRating = SumRatings / NumRatings;
+            }
+
             if (AvgUserRating > 0 && AvgUserRating <= 5)
             {
                 TotalScore += (AvgUserRating * 1.1); // Make this count by applying a small uplift. 
                 ScoreCount++;
             }
 
-            // Ok now it's time to calculate a our new rating. 
-            double TempRating = TotalScore / ScoreCount;
+            // Ok now it's time to calculate a our new rating... again assume the best
+            double TempRating = 5;
+            if (ScoreCount > 0)
+            {
+                TempRating = TotalScore / ScoreCount;
+            }
             TempRating = TempRating > 5 ? 5 : TempRating;
             TempRating = TempRating < 0 ? 0.5 : TempRating;
 

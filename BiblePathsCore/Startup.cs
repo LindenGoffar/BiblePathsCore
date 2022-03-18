@@ -77,8 +77,8 @@ namespace BiblePathsCore
             services.AddRazorPages()
                 .AddRazorPagesOptions(options =>
                  {
-                     options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
                      options.Conventions.AddPageRoute("/CommentedPaths/Path", "/CommentedPaths/{name}");
+                     options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
                      options.Conventions.AddPageRoute("/Search", "/Search/{SearchString?}");
                  });
             services.AddSignalR();

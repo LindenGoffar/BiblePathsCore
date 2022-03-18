@@ -14,12 +14,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace BiblePathsCore
 {
     // [Authorize]
-    public class StepsModel : PageModel
+    public class ReadModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public StepsModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public ReadModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _userManager = userManager;
             _context = context;
@@ -27,64 +27,66 @@ namespace BiblePathsCore
 
         public IList<PathNode> PathNodes { get;set; }
         public Path Path { get; set; }
-        public bool IsPathReader { get; set; } // Path Reader scenario overrides most Owner/Editor capabilities
         public bool IsPathOwner { get; set; }
-        public bool IsPathEditor { get; set; }
         public Bible Bible { get; set; }
+        public int FocusStepID { get; set; }
         public List<SelectListItem> BibleSelectList { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string BibleId { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public bool? CountAsRead { get; set; }
-
-        public async Task<IActionResult> OnGetAsync(int PathId, string Scenario)
+        public async Task<IActionResult> OnGetAsync(int PathId, int? StepId, int MarkAsRead = 0)
         {
-            CountAsRead = CountAsRead.HasValue ? CountAsRead.Value : false;
-            IsPathEditor = false;
             IsPathOwner = false;
-
-            IsPathReader = Scenario switch
-            {
-                "ReadPath" => true,
-                _ => false,
-            };
 
             // Confirm Path 
             Path = await _context.Paths.FindAsync(PathId);
-            if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find the requested Path" }); }
-
-            // If the requested Path is a Commented Path then we need to redirected to the CommentedPaths reading experience
-            if (Path.Type == (int)PathType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Path.Id }); }
-
+            if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find the requested Commented Path" }); }
             // Check whether user is Auth'd since we support either way. 
             if (User.Identity.IsAuthenticated){
                 var user = await _userManager.GetUserAsync(User);
                 IsPathOwner = Path.IsPathOwner(user.Email);
-                IsPathEditor = Path.IsValidPathEditor(user.Email);
             }
             
             // We want to use the Owners Bible ID only if BibleId hasn't been provided. 
-            if (BibleId == null) { BibleId = Path.OwnerBibleId;  }
+            if (BibleId == null) { BibleId = Path.OwnerBibleId; }
             BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);            
 
             Bible = await _context.Bibles.FindAsync(BibleId);
             if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", BibleId) }); }
             Bible.HydrateBible();
 
-            PathNodes = await _context.PathNodes
-                .Where(pn => pn.PathId == Path.Id).OrderBy(pn => pn.Position).ToListAsync();
+            PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
+                                                .OrderBy(pn => pn.Position)
+                                                .ToListAsync();
+
             // Add our Bible Verse and fwd/back step Data to each node. 
+            bool FocusStepSelected = false;
+            int FirstStepID = 0;
             foreach (PathNode step in PathNodes)
             {
-                _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
-                step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
-                _ = await step.AddPathStepPropertiesAsync(_context);
+                if (step.Type == (int)StepType.Commented)
+                {
+                    _ = await step.AddPathStepPropertiesAsync(_context);
+                }
+                else
+                {
+                    _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
+                    step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
+                    _ = await step.AddPathStepPropertiesAsync(_context);
+                }
+                // Now StepID is either Null or presumably a valid Step let's make sure get's set to a valid step.
+                if (StepId == null) { StepId = step.Id; FirstStepID = step.Id; }
+                if (StepId == step.Id) { FocusStepSelected = true; FocusStepID = step.Id; }
             }
+            if (!FocusStepSelected) { FocusStepID = FirstStepID; }
 
-            // Now let's conditionally register this as a Path Read
-            if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
+            // Now let's register this as a Path Start and Path Read
+            if (MarkAsRead == 1)
+            {
+                _ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
+                _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+            }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
             return Page();

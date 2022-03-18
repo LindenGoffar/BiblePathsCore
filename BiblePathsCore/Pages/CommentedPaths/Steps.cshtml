@@ -38,7 +38,7 @@
                     <div class="card">
                         <div class="card-body">
                             @{string VerseRef = "";}
-                            @if (Node.Type == (int)Models.StepType.Standard)
+                            @if (Node.Type == (int)BiblePathsCore.Models.StepType.Standard)
                                 {
                                     {VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
                                     if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
@@ -83,7 +83,7 @@
                             }
 
                             <p class="card-title">
-                                @if (Node.Type == (int)Models.StepType.Commented)
+                                @if (Node.Type == (int)BiblePathsCore.Models.StepType.Commented)
                                 {
                                     @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
                                     {
@@ -101,7 +101,7 @@
                                 }
                             </p>
                             <p class="card-text">
-                                @if (Node.Type == (int)Models.StepType.Commented)
+                                @if (Node.Type == (int)BiblePathsCore.Models.StepType.Commented)
                                 {
                                     @Node.Text <br />
                                 }

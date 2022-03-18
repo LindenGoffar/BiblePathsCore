@@ -1,0 +1,76 @@
+﻿@page
+@model BiblePathsCore.PublishCPModel
+@{
+    ViewData["Title"] = "Publish: " + Model.Path.Name;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <span class="text-info">
+            Publishing a Bible Path makes it visible to others who visit this site. In keeping with our promise to feature the Biblical text we require that
+            <b>Commented Path Name may contain only words or phrases taken from the passages below, </b> and that
+            <b>Topics may contain only comma seperated words or phrases taken from the passages below.</b>
+            <br />
+        </span>
+        <hr />
+    </div>
+    <div class="row">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Path.Id" />
+            <input type="hidden" asp-for="BibleId" />
+            <div class="form-group input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Name</span>
+                </div>
+                <input asp-for="Name" class="form-control" />
+                <input type="hidden" asp-for="Path.Name" /> @*passed back so we can check for changes.*@
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Topics</span>
+                </div>
+                <input asp-for="Path.Topics" class="form-control" />
+                <span asp-validation-for="Path.Topics" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" asp-route-id="@Model.Path.Id" value="Publish" class="btn btn-primary"/>
+            </div>
+        </form>
+        <hr />
+    </div>
+    <div class="row">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Bible passages in this Path</span>
+            </div>
+            <div class="card-body">
+                <div class="card-text">
+                    @if (Model.BibleVerses != null)
+                    {
+                        @foreach (var Verse in Model.BibleVerses)
+                        {
+                            <span>@Verse.Text </span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="./Steps" asp-route-PathId="@Model.Path.Id">Add or Remove Steps</a><br />
+    <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+    <a asp-page="./MyCommentedPaths">Back to My Commented Paths</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

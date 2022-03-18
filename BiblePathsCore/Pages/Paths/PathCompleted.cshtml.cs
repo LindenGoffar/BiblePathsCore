@@ -34,6 +34,11 @@ namespace BiblePathsCore
             {
                 return NotFound();
             }
+
+            // WE SHOULD NOT BE COMPLETING a Commented Path in this way so redirect... 
+            // If the requested Path is a Commented Path then we need to redirected to the CommentedPaths reading experience
+            if (Path.Type == (int)PathType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Path.Id }); }
+
             _ = await Path.AddCalculatedPropertiesAsync(_context);
 
             // We have a 48 hour back off timer on rating a given path, to try and avoid rating abuse
@@ -63,7 +68,7 @@ namespace BiblePathsCore
             // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
             if (Path.Reads % 10 == 0)
             {
-                _ = await Path.ApplyPathRatingAsyc(_context);
+                _ = await Path.ApplyPathRatingAsync(_context);
             }
             RatingAcknowledged = false;
             return Page();
@@ -90,7 +95,7 @@ namespace BiblePathsCore
                 }
             }
             // Now let's Apply a new rating to this Path 
-            _ = await Path.ApplyPathRatingAsyc(_context);
+            _ = await Path.ApplyPathRatingAsync(_context);
             RatingAcknowledged = true;
             RatingAccepted = false; 
             return Page();

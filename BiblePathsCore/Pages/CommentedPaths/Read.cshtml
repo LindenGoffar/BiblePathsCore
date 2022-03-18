@@ -1,0 +1,73 @@
+﻿@page
+@model BiblePathsCore.ReadModel
+
+@{
+    ViewData["Title"] = Model.Path.Name;
+    ViewBag.NoIndex = true;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["StepId"] = Model.FocusStepID;
+}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6"><h4>@ViewData["Title"]</h4></div>
+            <div class="col-6">
+                <form method="get" class="float-right">
+                    <input type="hidden" name="PathId" value="@Model.Path.Id" />
+                    <select asp-for="BibleId" asp-items="Model.BibleSelectList" class="form-control" onchange="this.form.submit()"></select>
+                </form>
+            </div>
+        </div>
+        @foreach (var Node in Model.PathNodes)
+        {
+        <div class="row">
+            <div class="col-12">
+                @if (Node.Type == (int)BiblePathsCore.Models.StepType.Standard)
+                {
+                    <div class="card" id="step-@Node.Id">
+                        <div class="card-body">
+                            @{string VerseRef = "";
+                              VerseRef = Node.BookName + " " + Node.Chapter + ": " + Node.StartVerse;
+                              if (Node.EndVerse > Node.StartVerse) { VerseRef += " - " + Node.EndVerse; }
+                            }
+                            <p class="card-title">
+                                <a asp-page="/Steps/Step" asp-route-id="@Node.Id" asp-route-BibleId="@Model.BibleId"><b>@VerseRef</b></a>
+                            </p>
+                            <p class="card-text">
+                                @foreach (var Verse in Node.Verses)
+                                {
+                                    <sup>@Verse.Verse</sup>@Verse.Text<br />
+                                }
+                            </p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div id="Step-@Node.Id">
+                        <p>
+                            @Node.Text
+                        </p>
+                    </div>
+                }
+            </div>
+         </div>
+        }
+    <div class="row">
+        <div class="text-muted">
+            @Model.Bible.LegalNote
+        </div>
+    </div>
+</div>
+<div>
+    <hr />
+    @if (Model.IsPathOwner)
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
+        <a asp-page="./MyCommentedPaths">Back to My Commented Paths</a><br />
+    }
+    <a asp-page="./Index">Back to Commented Paths</a>
+</div>
+@section Scripts {
+    <partial name="_ReadPathHelpers" />
+}
