@@ -216,7 +216,7 @@
                 @if (Model.Scenario != StepModel.StepScenarios.Study)
                 {
                     <div class="float-right">
-                        <a asp-page="/Paths/Steps" asp-route-PathId="@Model.Step.PathId" asp-route-BibleId="@Model.BibleId" asp-route-Scenario="ReadPath">Full Bible Path</a>
+                        <a asp-page="/Paths/Steps" asp-route-PathId="@Model.Step.PathId" asp-route-BibleId="@Model.BibleId" asp-route-Scenario="ReadPath" asp-route-MarkAsRead=1>Full Bible Path</a>
                     </div>
                 }
             </div>
