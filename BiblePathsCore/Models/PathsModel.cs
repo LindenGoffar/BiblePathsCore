@@ -318,9 +318,9 @@ namespace BiblePathsCore.Models.DB
 
             // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5.25 (a quarter point uplift)
             int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
+            int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
             if (NumStarts > 0)
             { 
-                int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
                 double ReadPercent = NumCompletes / NumStarts;
                 TotalScore += ReadPercent * 5.25;
                 ScoreCount++;
@@ -389,8 +389,12 @@ namespace BiblePathsCore.Models.DB
             TempRating = TempRating > 5 ? 5 : TempRating;
             TempRating = TempRating < 0 ? 0.5 : TempRating;
 
-            // Save our Rating Now. 
+            // Save our Rating, and True Up Reads as deemed Necessary, Now. 
             context.Attach(this).State = EntityState.Modified;
+            if (Reads < NumCompletes) // These should generally be in sync but sometimes fall out of sync. 
+            {
+                Reads = NumCompletes;
+            }
             ComputedRating = (decimal)TempRating;
             await context.SaveChangesAsync();
 

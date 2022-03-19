@@ -87,6 +87,11 @@ namespace BiblePathsCore
                 // _ = await Path.RegisterEventAsync(_context, EventType.PathStarted, null);
                 // _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
                 _ = await Path.RegisterReadEventAsync(_context);
+                // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
+                if (Path.Reads % 10 == 0)
+                {
+                    _ = await Path.ApplyPathRatingAsync(_context);
+                }
             }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);

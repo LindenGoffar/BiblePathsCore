@@ -113,7 +113,10 @@ namespace BiblePathsCore
             else { PageTitle = Step.PathName; }
 
             // Let's see if we need to register any events for this step read. 
-            if (Scenario == StepScenarios.Step) { _ = await Step.RegisterReadEventsAsync(_context);  }
+            if (Scenario == StepScenarios.Step && Step.PathType != (int)PathType.Commented) 
+            {
+                _ = await Step.RegisterReadEventsAsync(_context);  
+            }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
 
