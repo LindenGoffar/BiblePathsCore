@@ -100,7 +100,6 @@ namespace BiblePathsCore
                 "Path",
                 p => p.Name, p => p.Topics))
             {
-
                 // Now We've got some necessary validation to do here so let's build the verse text block
                 pathToUpdate.Name = Name; // Name is handled seperately for remote validation to work. 
                 StringBuilder PathText = new StringBuilder();
