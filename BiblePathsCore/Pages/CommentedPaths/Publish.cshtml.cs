@@ -129,6 +129,7 @@ namespace BiblePathsCore
                         }
                     }
                 }
+
                 if (!ModelState.IsValid)
                 {
                     //BibleVerses is already set

@@ -1,0 +1,21 @@
+﻿<!-- This function allows various elements to follow as the user scrolls -->
+<script>
+    var textarea = document.getElementById("OwnerComment");
+
+    textarea.addEventListener("input", function(){
+        var maxlength = this.getAttribute("maxlength");
+        var currentLength = this.value.length;
+        var CharCountElem = document.getElementById("CharCountMsg")
+        
+        if( currentLength >= maxlength ){
+            CharCountElem.innerHTML = "You have reached the maximum number of characters."
+            console.log("You have reached the maximum number of characters.");
+        }else{
+            var CharsLeft = maxlength - currentLength;
+            CharCountElem.innerHTML = "Characters remaining: " + CharsLeft;
+            console.log(maxlength - currentLength + " chars left");
+        }
+    });
+
+</script>
+

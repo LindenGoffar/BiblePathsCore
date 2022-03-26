@@ -37,8 +37,12 @@ namespace BiblePathsCore
             // confirm our owner is a valid path editor i.e. owner or the path is publicly editable
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit to this Path" }); }
+            
             // Confirm this Path indeed supports Comments
             if (Path.Type != (int)PathType.Commented) { return RedirectToPage("/error", new { errorMessage = "Sorry! This Path does not support Steps of type Comment" }); }
+
+            // We want to force Comment changes through the Publish flow so no adding/editing comments on published paths. 
+            if (Path.IsPublished) { return RedirectToPage("/error", new { errorMessage = "Sorry! Comments can only be added/edited in UnPublished Paths" }); }
 
             return Page();
         }
@@ -47,10 +51,16 @@ namespace BiblePathsCore
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync(int Id)
         {
-            if (!ModelState.IsValid)
+            // Sanity check Step.Text
+            ContentReview CheckThis = new ContentReview(Step.Text);
+            if (CheckThis.FindBannedWords() > 0)
             {
-                return Page();
+                string WordsFound = string.Join(", ", CheckThis.FoundWords);
+                string ErrorMessage = "This is awkward, but we feel some of the words used below are not appropriate for the Bible Paths mission, these include: " + WordsFound;
+                ModelState.AddModelError(string.Empty, ErrorMessage);
+                ModelState.AddModelError("Step.Text", "Please review the text below for inappropriate words...");
             }
+
             // Now let's validate a few things, first lets go grab the Step and Path
             PathNode StepToUpdate = await _context.PathNodes.FindAsync(Id);
             Path = await _context.Paths.FindAsync(Step.PathId);
@@ -58,11 +68,20 @@ namespace BiblePathsCore
             if (StepToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
             if (StepToUpdate.PathId != Path.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! Path/Step mismatch" }); }
 
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
             // confirm our owner is a valid path editor i.e. owner or the path is publicly editable
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add to this Path" }); }
+            
             // Confirm this Path indeed supports Comments
             if (Path.Type != (int)PathType.Commented) { return RedirectToPage("/error", new { errorMessage = "Sorry! This Path does not support Steps of type Comment" }); }
+
+            // We want to force Comment changes through the Publish flow so no adding/editing comments on published paths. 
+            if (Path.IsPublished) { return RedirectToPage("/error", new { errorMessage = "Sorry! Comments can only be added/edited in UnPublished Paths" }); }
 
             if (!Path.IsPathOwner(user.Email))
             {

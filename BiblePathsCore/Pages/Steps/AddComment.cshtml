@@ -10,15 +10,17 @@
 
 <div class="container-fluid">
     <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="col-12">
             <div class="card">
             <div class="card-body">
                 <form method="post">
                     <div class="form-group">
-                        <textarea asp-for="Step.Text" rows="8" placeholder="Owner Commentary" class="scroll-box"> </textarea>
                         <span asp-validation-for="Step.Text" class="text-danger"></span>
+                        <textarea asp-for="Step.Text" rows="8" placeholder="Owner Commentary" class="scroll-box" maxlength='2048' id="OwnerComment"> </textarea>
                         <input type="hidden" asp-for="Step.PathId" />
                         <input type="hidden" asp-for="Step.Position" />
+                        <div class="small" id="CharCountMsg"></div>
                         <input type="submit" value="Add Step" class="btn btn-primary" />
                     </div>
                 </form>
@@ -34,5 +36,6 @@
 </div>
 
 @section Scripts {
+    <partial name="_CharCountHelper" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

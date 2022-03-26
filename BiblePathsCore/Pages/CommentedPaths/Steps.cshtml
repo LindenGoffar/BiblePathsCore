@@ -22,7 +22,13 @@
             </div>
         </div>
         <div class="row">
-            @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+        @if (Model.Path.IsPublished)
+        {
+            <div class="alert alert-info">
+                To protect our readers we do not allow Comments to be modified on Published Paths, please select UnPublish to Edit this Path. 
+            </div>
+        }
+            @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
             {
                 <p>
                     <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add Commentary</a>
@@ -51,7 +57,7 @@
 
                             @if (!Model.IsPathReader)
                             {
-                                @if (Model.IsPathOwner) // Only owners can delete a step...
+                                @if (Model.IsPathOwner && !Model.Path.IsPublished) // Only owners can delete a step...
                                 {
                                     <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal-@Node.Id">
                                         Delete
@@ -85,7 +91,7 @@
                             <p class="card-title">
                                 @if (Node.Type == (int)BiblePathsCore.Models.StepType.Commented)
                                 {
-                                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
                                     {
                                         <a asp-page="/Steps/EditComment" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a>
                                     }
@@ -115,7 +121,7 @@
                             </p>
                         </div>
                     </div>
-                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor))
+                    @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
                     {
                         <p>
                             <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Add Commentary</a>
