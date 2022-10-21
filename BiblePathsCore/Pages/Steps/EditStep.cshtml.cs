@@ -89,11 +89,6 @@ namespace BiblePathsCore
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (!Path.IsValidPathEditor(user.Email)) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add to this Path" }); }
 
-            if (!Path.IsPathOwner(user.Email))
-            {
-                _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
-            }
-
             if (await TryUpdateModelAsync<PathNode>(
                             StepToUpdate,
                             "Step",   // Prefix for form value.

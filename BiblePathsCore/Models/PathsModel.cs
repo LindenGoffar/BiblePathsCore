@@ -168,6 +168,67 @@ namespace BiblePathsCore.Models.DB
             return false;
         }
 
+        public async Task<bool> HydrateCommentedPathAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            bool RetVal = true;
+
+            //PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
+            //                                    .OrderBy(pn => pn.Position)
+            //                                    .ToListAsync();
+            context.Entry(this).Collection(p => p.PathNodes).Load();
+
+            // Add our Bible Verse and fwd/back step Data to each node. 
+            foreach (PathNode step in PathNodes)
+            {
+                if (step.Type == (int)StepType.Commented)
+                {
+                    _ = await step.AddPathStepPropertiesAsync(context);
+                }
+                else
+                {
+                    _ = await step.AddGenericStepPropertiesAsync(context, BibleId);
+                    step.Verses = await step.GetBibleVersesAsync(context, BibleId, true, false);
+                    _ = await step.AddPathStepPropertiesAsync(context);
+                }
+            }
+            return RetVal;
+        }
+
+        public async Task<List<PathNode>> GetPathNodesAsListAsync(BiblePathsCoreDbContext context, string BibleId, bool AddFillerNodes = false)
+        {
+
+            List<PathNode> PathNodes = await context.PathNodes.Where(pn => pn.PathId == Id)
+                                                .OrderBy(pn => pn.Position)
+                                                .ToListAsync();
+
+            // Add our Bible Verse and fwd/back step Data to each node. 
+            foreach (PathNode step in PathNodes)
+            {
+                if (step.Type == (int)StepType.Commented)
+                {
+                    _ = await step.AddPathStepPropertiesAsync(context);
+                }
+                else
+                {
+                    _ = await step.AddGenericStepPropertiesAsync(context, BibleId);
+                    step.Verses = await step.GetBibleVersesAsync(context, BibleId, true, false);
+                    _ = await step.AddPathStepPropertiesAsync(context);
+                }
+
+                // Here we add 3 filler nodes for each existing node if requested
+                //if (AddFillerNodes)
+                //{
+                //    for (int i = 1; i <= 3; i++)
+                //    {
+                //        PathNode FillerStep = new PathNode();
+                //        FillerStep.Type = (int)Models.StepType.NonPersistedComment;
+                //        FillerStep.Position = step.Position + i;
+                //        PathNodes.Add(FillerStep);
+                //    }
+                //}
+            }
+            return PathNodes.OrderBy(pn => pn.Position).ToList();
+        }
         public async Task<bool> RedistributeStepsAsync(BiblePathsCoreDbContext context)
         {
             int DefaultInterval = 10;

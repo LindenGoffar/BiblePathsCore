@@ -1,0 +1,102 @@
+﻿<!-- This function enables the Submit button when PointsAwarded is selected-->
+<script>
+    // As soon as a change is made, we want to shut off all add step options. 
+    function ChangeMadeDisableAdds() {
+
+        if (cb.checked) {
+            if ($("#Question_ChallengeComment").val().length === 0) {
+                console.log("Empty Challenge Comment")
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //$(document).ready(function () {
+    //    $('#AwardPoints').prop('disabled', true);
+    //    $('#Question_Challenged').change(function () {
+    //        if (this.checked) {
+    //            $('div.HideUnHide').fadeIn('fast');
+    //        }
+    //        else {
+    //            $('div.HideUnHide').fadeOut('fast');
+    //        }
+    //    });
+    //});
+    //// When there is a change to the Points DropDown we determine whether to enable the button or not.
+    //$('#Question_PointsAwarded').change(function () {
+    //    console.log("Points Changed")
+    //    console.log(isChallengedNoComment())
+    //    if (parseInt($("#Question_PointsAwarded").val()) >= 0 && !isChallengedNoComment()) {
+    //        $('#AwardPoints').prop('disabled', false);
+    //    }
+    //    else {
+    //        $('#AwardPoints').prop('disabled', true);
+    //    }
+    //});
+    //$('#Question_Challenged').change(function () {
+    //    console.log("Checkbox Changed")
+    //    console.log(isChallengedNoComment())
+    //    if (parseInt($("#Question_PointsAwarded").val()) >= 0 && !isChallengedNoComment()) {
+    //        $('#AwardPoints').prop('disabled', false);
+    //    }
+    //    else {
+    //        $('#AwardPoints').prop('disabled', true);
+    //    }
+    //});
+    //$('#Question_ChallengeComment').change(function () {
+    //    console.log("Comment Changed")
+    //    console.log(isChallengedNoComment())
+    //    if (parseInt($("#Question_PointsAwarded").val()) >= 0 && !isChallengedNoComment()) {
+    //        $('#AwardPoints').prop('disabled', false);
+    //    }
+    //    else {
+    //        $('#AwardPoints').prop('disabled', true);
+    //    }
+    //});
+
+    //// If a question is challenged, we want to force a comment. 
+    //function isChallengedNoComment() {
+    //    const cb = document.getElementById('Question_Challenged');
+    //    console.log("IsChallenged")
+    //    console.log(cb.checked)
+    //    if (cb.checked) {
+    //        if ($("#Question_ChallengeComment").val().length === 0) {
+    //            console.log("Empty Challenge Comment")
+    //            return true;
+    //        }
+    //    }
+    //    return false;
+    //}
+
+    //function StartTimer(timeLeft) {
+    //    var elem = document.getElementById('StartTimerButton');
+    //    // document.getElementById('StartTimerButton').remove();
+    //    // var TimerCard = document.getElementById('QuestionTimer');
+    //    var timerId = setInterval(countdown, 1000);
+    //    $('#StartTimerButton').prop('disabled', true)
+
+    //    function countdown() {
+    //        if (timeLeft >= 10 ) {
+    //            elem.style.backgroundColor = "white";
+    //            elem.innerHTML = "<h4>" + timeLeft + "</h4>";
+    //        }
+    //        if (timeLeft < 10) {
+    //            elem.style.backgroundColor = "yellow"
+    //            elem.innerHTML = "<h4> " + timeLeft + "</h4>";
+    //        }
+    //        if (timeLeft < 1) {
+    //            elem.style.backgroundColor = "salmon"
+    //            elem.innerHTML = "<h4> " + timeLeft + "</h4>";
+    //        }
+    //        if (timeLeft == -1) {
+    //            elem.innerHTML = "<h4> 0</h4>";
+    //            clearTimeout(timerId);
+    //        }
+    //        else {
+    //            timeLeft--;
+    //        }
+    //    }
+    //}
+</script>
+

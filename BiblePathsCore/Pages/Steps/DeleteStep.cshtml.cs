@@ -31,7 +31,7 @@ namespace BiblePathsCore
             RedirectToPage("/error", new { errorMessage = "That's Odd! The Delete page should never be hit... " });
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id, int pathId)
+        public async Task<IActionResult> OnPostAsync(int? id, int pathId, int experienceID = 0)
         {
             if (id == null)
             {
@@ -64,7 +64,14 @@ namespace BiblePathsCore
 
             if (Path.Type == (int)PathType.Commented)
             {
-                return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+                if (experienceID == 1)
+                {
+                    return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id });
+                }
+                else
+                {
+                    return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+                }
             }
             else
             {
