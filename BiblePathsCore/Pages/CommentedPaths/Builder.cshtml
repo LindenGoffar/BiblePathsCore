@@ -23,28 +23,30 @@
             <div class="alert alert-info">
                 To protect our readers we do not allow Comments to be modified on Published Paths, please select UnPublish to Edit this Path. 
             </div>
-            @if (Model.IsPathOwner || Model.IsPathEditor)
-            {
-                <p>
-@*                    <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add Commentary</a>*@
-                    <form asp-page="/Steps/AddBuilderComment" method="post">
-                        <input type="hidden" name="pathId" value="@Model.Path.Id" />
-                        <input type="hidden" name="experienceId" value="1" /> @*This ensures the new Builder experience*@
-                        <input type="submit" value="Confirm" class="btn btn-danger" />
-                    </form>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
-                    <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Search for Verses</a>
-                </p>
-            }
         }
         </div>
         <form method="post">
-            <div class="form-group">
+            <div>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @if ((Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
+                {
+                    <p>
+                        <form asp-page="/Steps/AddBuilderComment" method="post">
+                            <input type="hidden" name="PathId" value="@Model.Path.Id" />
+                            <input type="hidden" name="Position" value="0" />
+                            <input type="submit" value="Add Commentary" class="btn btn-outline-primary btn-sm DisabledOnEdit" />
+                            <a class="btn btn-outline-primary btn-sm DisabledOnEdit" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position=0 asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
+                            <a class="btn btn-outline-primary btn-sm DisabledOnEdit" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position=0 >Search for Verses</a>
+                        </form>
+                    </p>
+                }
+                <div id="StepPosition-0"></div>
+
                 @for (var i = 0; i < Model.PathNodes.Count; i++)
                 {
-                    <div>
+                    int StepPosition = Model.PathNodes[i].Position;
+                    <div id="StepPosition-@StepPosition">
                         @{string VerseRef = "";}
                         @if (Model.PathNodes[i].Type == (int)BiblePathsCore.Models.StepType.Standard)
                         {
@@ -54,7 +56,7 @@
                         }
                         @if (Model.IsPathOwner && !Model.Path.IsPublished) // Only owners can delete a step...
                         {
-                            <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#DeleteModal-@Model.PathNodes[i].Id">
+                            <button type="button" class="btn btn-link float-right DisabledOnEdit" data-toggle="modal" data-target="#DeleteModal-@Model.PathNodes[i].Id">
                                 Delete
                             </button>
                             <div class="modal fade" id="DeleteModal-@Model.PathNodes[i].Id" tabindex="-1" role="dialog" aria-labelledby="Delete Step" aria-hidden="true">
@@ -73,7 +75,7 @@
                                             <form asp-page="/Steps/DeleteStep" method="post">
                                                 <input type="hidden" name="id" value="@Model.PathNodes[i].Id" />
                                                 <input type="hidden" name="pathId" value="@Model.Path.Id" />
-                                                <input type="hidden" name="experienceId" value="1" /> @*This ensures the new Builder experience*@
+                                                <input type="hidden" name="experienceId" value="1" /> 
                                                 <input type="submit" value="Confirm" class="btn btn-danger" />
                                             </form>
                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -93,19 +95,43 @@
                             {
                                 <sup>@Verse.Verse</sup>@Verse.Text<br />
                             }
-                        }
-                        @if (Model.PathNodes[i].Type == (int)BiblePathsCore.Models.StepType.Commented)
-                        {
-                                <span asp-validation-for="@Model.PathNodes[i].Text" class="text-danger"></span>
-                                <textarea asp-for="@Model.PathNodes[i].Text" rows="8" placeholder="Owner Commentary" class="scroll-box" maxlength='2048'> </textarea>
+                            <div class="form-group">
                                 <input type="hidden" asp-for="@Model.PathNodes[i].PathId" />
                                 <input type="hidden" asp-for="@Model.PathNodes[i].Id" />
                                 <input type="hidden" asp-for="@Model.PathNodes[i].Type" />
-    @*                            <div class="small" id="CharCountMsg"></div>*@
+                            </div>
+                        }
+                        @if (Model.PathNodes[i].Type == (int)BiblePathsCore.Models.StepType.Commented)
+                        {
+                            <div class="form-group">
+                                <span asp-validation-for="@Model.PathNodes[i].Text" class="text-danger"></span>
+                                <textarea asp-for="@Model.PathNodes[i].Text" id="Comment-@Model.PathNodes[i].Id" rows="8" placeholder="Owner Commentary" class="scroll-box CommentaryStep" maxlength='2040' onchange="ChangeMadeDisableButtons()"> </textarea>
+                                <input type="hidden" asp-for="@Model.PathNodes[i].PathId" />
+                                <input type="hidden" asp-for="@Model.PathNodes[i].Id" />
+                                <input type="hidden" asp-for="@Model.PathNodes[i].Type" />
+                                <div class="small" id="CharCount-Comment-@Model.PathNodes[i].Id"></div>
+                            </div>
+                        }
+                        @if ((Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
+                        {
+                            <p>
+                                <form asp-page="/Steps/AddBuilderComment" method="post">
+                                                <input type="hidden" name="PathId" value="@Model.Path.Id" />
+                                                <input type="hidden" name="Position" value="@Model.PathNodes[i].Position" />
+                                                @if (Model.PathNodes[i].Type == (int)BiblePathsCore.Models.StepType.Standard)
+                                                {
+                                                    <input type="submit" value="Add Commentary" class="btn btn-outline-primary btn-sm DisabledOnEdit" />
+                                                }
+                                                <a class="btn btn-outline-primary btn-sm DisabledOnEdit" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Model.PathNodes[i].Position" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
+                                                <a class="btn btn-outline-primary btn-sm DisabledOnEdit" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Model.PathNodes[i].Position">Search for Verses</a>
+                                </form>
+                            </p>
                         }
                     </div>
                 }
-                <input type="submit" value="Update Path" class="btn btn-primary" />
+                <div class="form-group">
+                    <input type="submit" value="Update Path" class="btn btn-primary btn-sm" />
+                </div>
             </div>
         </form>
     <div class="row">
@@ -139,3 +165,9 @@
     }
     <a asp-page="./Index">Back to Commented Paths</a>
 </div>
+
+@section Scripts {
+    <partial name="_BuilderHelpers.cshtml" model="Model"/>
+    <partial name="_CharCountHelper" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

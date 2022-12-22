@@ -31,13 +31,17 @@ namespace BiblePathsCore
         public bool IsPathOwner { get; set; }
         public bool IsPathEditor { get; set; }
         public Bible Bible { get; set; }
+        public int ReqStepPosition { get; set; }
         public List<SelectListItem> BibleSelectList { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string BibleId { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int PathId, int? StepId)
+        public async Task<IActionResult> OnGetAsync(int PathId, int? StepPosition)
         {
+            // If a Step Position is not specified we'll move to top of page else to step position.
+            ReqStepPosition = StepPosition ?? 0; // set to 1 if VersNum is Null.
+
             // Confirm Path 
             Path = await _context.Paths.FindAsync(PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find the requested Commented Path" }); }
@@ -65,6 +69,8 @@ namespace BiblePathsCore
         public async Task<IActionResult> OnPostAsync(int PathId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
+            bool PathUpdated = false;
+
             // Let's get the path and validate a few things.
             Path = await _context.Paths.FindAsync(PathId);
             if (Path == null)
@@ -83,22 +89,21 @@ namespace BiblePathsCore
             // We want to force Comment changes through the Publish flow so no adding/editing comments on published paths. 
             if (Path.IsPublished) { return RedirectToPage("/error", new { errorMessage = "Sorry! Comments can only be added/edited in UnPublished Paths" }); }
 
-            // We should now have a list of partial PathNodes now, all are likely Comments
-            // Sanity check each Comment Step
+            // We should now have a list of all of the Pathnodes, we'll only operate on the Commentary though. 
             foreach (PathNode Step in PathNodes)
             {
                 // Now lets process each individual step.
-                // We pull the step from DB to check whether it needs to be updated.
-                PathNode StepToUpdate = Path.PathNodes.Where(N => N.Id == Step.Id).Single();
-                if (StepToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this step in the Database" }); }
-                if (StepToUpdate.PathId != Path.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! Path/Step mismatch" }); }
-
-                // We really only want to update if there is a change to the Step Text.  
-                if (Step.Text != StepToUpdate.Text)
+                if (Step.Type == (int)StepType.Commented)
                 {
-                    // Let's check for some not so good words
-                    if (Step.Type == (int)StepType.Commented)
+                    // We pull the step from DB to check whether it needs to be updated, and do a few sanity checks.
+                    PathNode StepToUpdate = Path.PathNodes.Where(N => N.Id == Step.Id).Single();
+                    if (StepToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this step in the Database" }); }
+                    if (StepToUpdate.PathId != Path.Id) { return RedirectToPage("/error", new { errorMessage = "That's Odd! Path/Step mismatch" }); }
+                    
+                    // We really only want to update if there is a change to the Step Text.  
+                    if (Step.Text != StepToUpdate.Text)
                     {
+                        // Let's check for some not so good words
                         ContentReview CheckThis = new ContentReview(Step.Text);
                         if (CheckThis.FindBannedWords() > 0)
                         {
@@ -107,37 +112,40 @@ namespace BiblePathsCore
                             ModelState.AddModelError(string.Empty, ErrorMessage);
                             ModelState.AddModelError("Step.Text", "Please review the text below for inappropriate words...");
                         }
+
+                        // let's go ahead and fail if Model State is invalid, but first load some key elements for the page. 
+                        if (!ModelState.IsValid)
+                        {
+                            IsPathOwner = this.Path.IsPathOwner(user.Email);
+                            IsPathEditor = this.Path.IsValidPathEditor(user.Email);
+                            BibleSelectList = await GetBibleSelectListAsync(BibleId);
+                            return Page();
+                        }
+
+                        // Alright now we update our step.
+                        StepToUpdate.Text = Step.Text;
+                        StepToUpdate.Modified = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                        PathUpdated = true;
                     }
-                    // let's go ahead and fail if Model State is invalid, but first load some key elements for the page. 
-                    if (!ModelState.IsValid)
-                    {
-                        IsPathOwner = this.Path.IsPathOwner(user.Email);
-                        IsPathEditor = this.Path.IsValidPathEditor(user.Email);
-
-                        BibleSelectList = await GetBibleSelectListAsync(BibleId);
-                        return Page();
-                    }
-                    // Alright then we can now update our step.
-                    StepToUpdate.Text = Step.Text;
-
-                    StepToUpdate.Modified = DateTime.Now;
-                    await _context.SaveChangesAsync();
-
-                    // Prepare to update some properties on Path
-                    _context.Attach(this.Path);
-                    this.Path.Modified = DateTime.Now;
-                    // Save our now updated Path Object. 
-                    await _context.SaveChangesAsync();
                 }
             }
-            // If this is a non-owner edit let's log that... this functionality is not fully functional in my view. 
-            if (!Path.IsPathOwner(user.Email))
+            if (PathUpdated)
             {
-                _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
+                // Prepare to update some properties on Path
+                _context.Attach(this.Path);
+                this.Path.Modified = DateTime.Now;
+                // Save our now updated Path Object. 
+                await _context.SaveChangesAsync();
+
+                // If this is a non-owner edit let's log that... this functionality is not fully functional in my view. 
+                if (!Path.IsPathOwner(user.Email))
+                {
+                    _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email);
+                }
             }
             return base.RedirectToPage("/CommentedPaths/Builder", new { PathId = this.Path.Id });
         }
-
         private async Task<List<SelectListItem>> GetBibleSelectListAsync(string BibleId)
         {
             // NOTE: Upon Further Review NKJV-EN is removed for stricter adherence to Thomas Nelson copyright.  

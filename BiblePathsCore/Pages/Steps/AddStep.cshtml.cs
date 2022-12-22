@@ -125,14 +125,14 @@ namespace BiblePathsCore
                 
                 if (Path.Type == (int)PathType.Commented)
                 {
-                    return RedirectToPage("/CommentedPaths/Steps", new { PathId = Path.Id });
+                    return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
                 }
                 else
                 {
                     return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
                 }
             }
-            return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+            return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to add this Step, we failed to update the Database... not sure what to tell you." });
         }
     }
 }

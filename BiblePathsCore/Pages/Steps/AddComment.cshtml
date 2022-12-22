@@ -17,7 +17,7 @@
                 <form method="post">
                     <div class="form-group">
                         <span asp-validation-for="Step.Text" class="text-danger"></span>
-                        <textarea asp-for="Step.Text" rows="8" placeholder="Owner Commentary" class="scroll-box" maxlength='2048' id="OwnerComment"> </textarea>
+                        <textarea asp-for="Step.Text" rows="8" placeholder="Owner Commentary" class="scroll-box" maxlength='2040' id="OwnerComment"> </textarea>
                         <input type="hidden" asp-for="Step.PathId" />
                         <input type="hidden" asp-for="Step.Position" />
                         <div class="small" id="CharCountMsg"></div>
