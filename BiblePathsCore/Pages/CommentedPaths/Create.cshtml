@@ -17,11 +17,6 @@
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            @*<div class="form-group">
-                <label asp-for="Path.Name" class="control-label">Name your new Path</label>
-                <input asp-for="Path.Name" class="form-control" />
-                <span asp-validation-for="Path.Name" class="text-danger"></span>
-            </div>*@
             <div class="form-group">
                 <label asp-for="Path.OwnerBibleId" class="control-label">Select a default Bible language and version</label>
                 <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
