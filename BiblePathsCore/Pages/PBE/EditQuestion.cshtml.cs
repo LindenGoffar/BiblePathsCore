@@ -151,7 +151,7 @@ namespace BiblePathsCore.Pages.PBE
                         // break; not needed unreachable
 
                     case "ChallengedQuestions":
-                        return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId });
+                        return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter});
                         // break; not needed unreachable
 
                     default:
