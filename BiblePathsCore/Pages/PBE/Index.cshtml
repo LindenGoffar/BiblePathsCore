@@ -21,7 +21,8 @@
     @if (User.Identity.IsAuthenticated)
     {
         <a asp-page="Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">My Quiz Templates</a>
-        <a asp-page="ChallengedQuestions" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>
+        <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/ChallengedQuestions" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>
+@*        <a asp-page="ChallengedQuestions" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>*@
         @if (Model.PBEUser != null)
         {
             @if (Model.PBEUser.IsModerator)
