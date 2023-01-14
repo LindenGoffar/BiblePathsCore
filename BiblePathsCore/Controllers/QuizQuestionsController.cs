@@ -37,6 +37,7 @@ namespace BiblePathsCore.Controllers
                                                                 && Q.BookNumber == Book.BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
+                                                                && Q.Challenged == false
                                                                 && Q.IsAnswered == true).ToListAsync();
             foreach(QuizQuestion Question in Questions)
             {
