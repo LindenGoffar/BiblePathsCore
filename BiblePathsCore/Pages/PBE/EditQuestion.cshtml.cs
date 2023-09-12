@@ -30,6 +30,7 @@ namespace BiblePathsCore.Pages.PBE
         public string AnswerText { get; set; }
         public QuizUser PBEUser { get; set; }
         public bool IsCommentary { get; set; }
+        public bool HasExclusion { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
 
@@ -54,6 +55,8 @@ namespace BiblePathsCore.Pages.PBE
 
             Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+
+            HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
             // We need an answer text, and while techincally we support multiple Answers
             // we are only going to allow operating on the first one in this basic edit experience.
@@ -91,8 +94,8 @@ namespace BiblePathsCore.Pages.PBE
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
+                HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
                 // We should still have AnswerText
-
 
                 IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)

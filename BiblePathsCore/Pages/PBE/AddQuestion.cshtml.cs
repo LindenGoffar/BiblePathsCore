@@ -103,6 +103,7 @@ namespace BiblePathsCore.Pages.PBE
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
+                HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
                 IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)
