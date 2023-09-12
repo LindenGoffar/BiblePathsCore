@@ -1,11 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Humanizer.Localisation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+
+namespace BiblePathsCore.Models
+{
+    // Enums generally used in the PBE Quiz App
+    public enum QuestionType { Standard, Automated, Exclusion} 
+}
 
 namespace BiblePathsCore.Models.DB
 {
@@ -81,6 +89,19 @@ namespace BiblePathsCore.Models.DB
 
             return true;
         }
+
+        public async Task<bool> IsQuestionInExclusionAsync(BiblePathsCoreDbContext context)
+        {
+            bool RetVal = false;
+            RetVal = await context.QuizQuestions.AnyAsync(E => E.Type == (int)QuestionType.Exclusion
+                                                        && E.BookNumber == BookNumber
+                                                        && E.Chapter == Chapter
+                                                        && E.IsDeleted == false
+                                                        && E.StartVerse <= StartVerse
+                                                        && E.EndVerse >= EndVerse
+                                                        );
+            return RetVal;
+        }
         public string GetBibleLegalNote()
         {
             string LegalNote = "";
@@ -118,14 +139,18 @@ namespace BiblePathsCore.Models.DB
         public async Task<List<BibleVerse>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
         {
             List<BibleVerse> bibleVerses = new List<BibleVerse>();
-            // Go grab all of the questions for this Chapter once
+            // Go grab all of the questions and Exclusions for this Chapter once
             // So we can count them as we iterate through each verse
-            List<QuizQuestion> Questions = await context.QuizQuestions
+            List<QuizQuestion> QuestionsAndExclusions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                                 && Q.BookNumber == BookNumber
                                                                 && Q.Chapter == Chapter
+                                                                //&& Q.Type == (int)QuestionType.Standard
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
+
+            List<QuizQuestion> Questions = QuestionsAndExclusions.Where(Q => Q.Type == (int)QuestionType.Standard).ToList();
+            List<QuizQuestion> Exclusions = QuestionsAndExclusions.Where(Q => Q.Type == (int)QuestionType.Exclusion).ToList();
 
             if (Chapter != Bible.CommentaryChapter)
             {
@@ -141,6 +166,7 @@ namespace BiblePathsCore.Models.DB
                 foreach (BibleVerse verse in bibleVerses)
                 {
                     verse.QuestionCount = verse.GetQuestionCountWithQuestionList (Questions);
+                    verse.IsPBEExcluded = verse.IsVerseInExclusionList(Exclusions);
                 }
             }
             else // COMMENTARY SCENARIO:

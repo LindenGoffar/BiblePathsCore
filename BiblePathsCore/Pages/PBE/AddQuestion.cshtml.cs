@@ -30,6 +30,7 @@ namespace BiblePathsCore.Pages.PBE
         public string AnswerText { get; set; }
         public QuizUser PBEUser { get; set; }
         public bool IsCommentary { get; set; }
+        public bool HasExclusion { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
 
@@ -71,6 +72,8 @@ namespace BiblePathsCore.Pages.PBE
 
             Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+
+            HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
             IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (IsCommentary == false)
@@ -135,8 +138,12 @@ namespace BiblePathsCore.Pages.PBE
                 "Question",   // Prefix for form value.
                 Q => Q.BibleId, Q => Q.Points, Q => Q.BookNumber, Q => Q.Chapter, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question))
             {
+                // If the Question is in an Exclusion range we will show an Error
+                if (await emptyQuestion.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
+
                 emptyQuestion.Owner = PBEUser.Email;
                 emptyQuestion.Source = "BiblePaths.Net";
+                emptyQuestion.Type = (int)QuestionType.Standard;
                 _context.QuizQuestions.Add(emptyQuestion);
 
                 // now we need to add the Answer if there is one. 

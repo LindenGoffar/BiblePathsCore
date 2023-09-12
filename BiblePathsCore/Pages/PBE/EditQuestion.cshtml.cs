@@ -123,6 +123,9 @@ namespace BiblePathsCore.Pages.PBE
             {
                 QuestionToUpdate.Modified = DateTime.Now;
 
+                // If the Question is in an Exclusion range we will show an Error
+                if (await QuestionToUpdate.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
+
                 // now we need to add the Answer if there is one. 
                 if (AnswerText.Length > 0) 
                 {

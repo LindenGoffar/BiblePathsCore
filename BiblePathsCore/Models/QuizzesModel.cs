@@ -267,7 +267,9 @@ namespace BiblePathsCore.Models.DB
                                                                     && Q.Chapter == Chapter
                                                                     && Q.Challenged == false 
                                                                     && Q.IsAnswered == true 
-                                                                    && !(Q.IsDeleted)).OrderBy(Q => Q.LastAsked).Take(5).ToListAsync();
+                                                                    && !(Q.IsDeleted)
+                                                                    && Q.Type == (int)QuestionType.Standard)
+                                                                .OrderBy(Q => Q.LastAsked).Take(5).ToListAsync();
             }
             catch
             {

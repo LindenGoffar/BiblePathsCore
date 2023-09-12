@@ -17,6 +17,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int QuestionCount { get; set; }
         [NotMapped]
+        public bool IsPBEExcluded { get; set; }
+        [NotMapped]
         public bool InRelatedPaths { get; set; }
         [NotMapped]
         public List<Path> RelatedPaths { get; set;  }
@@ -29,7 +31,8 @@ namespace BiblePathsCore.Models.DB
                                 && Q.Chapter == Chapter 
                                 && Q.EndVerse == Verse 
                                 && (Q.BibleId == BibleId || Q.BibleId == null)
-                                && Q.IsDeleted == false)
+                                && Q.IsDeleted == false
+                                && Q.Type == (int)QuestionType.Standard)
                         .CountAsync();
         }
 
@@ -40,8 +43,22 @@ namespace BiblePathsCore.Models.DB
                                 && Q.Chapter == Chapter
                                 && Q.EndVerse == Verse
                                 && (Q.BibleId == BibleId || Q.BibleId == null)
-                                && Q.IsDeleted == false)
+                                && Q.IsDeleted == false
+                                && Q.Type == (int)QuestionType.Standard)
                         .Count();
+        }
+
+        public bool IsVerseInExclusionList(List<QuizQuestion> ExclusionQuestions)
+        {
+            bool RetVal = false;
+            RetVal =  ExclusionQuestions.Any(E => E.BookNumber == BookNumber
+                                           && E.Chapter == Chapter
+                                           && E.Type == (int)QuestionType.Exclusion
+                                           && E.IsDeleted == false
+                                           && E.StartVerse <= Verse
+                                           && E.EndVerse >= Verse
+                                           );
+            return RetVal;
         }
 
         public static async Task<BibleVerse> GetVerseAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int Verse)

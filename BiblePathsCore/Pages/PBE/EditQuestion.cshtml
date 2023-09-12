@@ -34,11 +34,27 @@
             <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.Question.BibleId" asp-route-TargetPage="/PBE/AddQuestion">  Change Book/Chapter  </a>
                 <br />
             </span>
+            @if (Model.HasExclusion)
+            {
+                <br />
+                <div class="row text-danger">
+                    <strong>Please Note:</strong> Some verses in this chapter have been excluded from PBE testing, these are indicated with a line through them, please do not add questions to these verses.
+                </div>
+            }
             <br />
             @foreach (var Verse in Model.Question.Verses)
             {
                 <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
-                    <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+
+                    @if (!Verse.IsPBEExcluded)
+                    {
+                        <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
+                    }
+
                     @if (Model.IsCommentary == false)
                     {
                         @if (Verse.QuestionCount > 0)

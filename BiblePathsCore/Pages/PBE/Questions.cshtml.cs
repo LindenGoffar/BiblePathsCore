@@ -50,11 +50,11 @@ namespace BiblePathsCore.Pages.PBE
 
             if (!Verse.HasValue)
             {
-                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.IsDeleted == false);
+                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.Type == (int)QuestionType.Standard && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
             }
             else
             {
-                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false);
+                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
             }
 
             Questions = await questions.Include(Q => Q.QuizAnswers)

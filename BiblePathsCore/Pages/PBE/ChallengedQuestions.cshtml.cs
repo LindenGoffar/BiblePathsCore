@@ -42,7 +42,12 @@ namespace BiblePathsCore.Pages.PBE
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, this.BibleId, this.BookNumber, this.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-            Questions = await _context.QuizQuestions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.Challenged == true && Q.IsDeleted == false)
+            Questions = await _context.QuizQuestions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) 
+                                                            && Q.BookNumber == BookNumber 
+                                                            && Q.Chapter == Chapter 
+                                                            && Q.Challenged == true 
+                                                            && Q.IsDeleted == false
+                                                            && Q.Type == (int)QuestionType.Standard)
                                         .Include(Q => Q.QuizAnswers)
                                         .OrderBy(Q => Q.EndVerse)
                                         .ToListAsync();
