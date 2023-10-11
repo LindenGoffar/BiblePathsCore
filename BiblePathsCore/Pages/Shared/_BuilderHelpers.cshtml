@@ -1,0 +1,21 @@
+﻿<!-- This function disables all Add/Delete buttons when a Comment change is made, user needs to save changes -->
+<script>
+    // Let's go ahead and scroll to the hightlighted text on page ready.
+    $(document).ready(function () {
+        var i = parseInt(@Model.ReqStepPosition)
+        $('html, body').animate({
+            scrollTop: $('#StepPosition-' + i).offset().top - 300
+        }, 300);
+    });
+
+    // As soon as a change is made, we want to shut off all add/delete step options. 
+    function ChangeMadeDisableButtons() {
+        console.log("Called");
+            document.querySelectorAll(".DisabledOnEdit").forEach(elem => {
+                elem.disabled = true;
+                elem.classList.add("disabled");
+                console.log("here");
+            });
+        }
+</script>
+

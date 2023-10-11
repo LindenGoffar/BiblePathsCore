@@ -6,6 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+namespace BiblePathsCore.Models
+{
+    // Enums generally used in the Steps classes
+    public enum StepType { Standard, Commented }
+}
+
 namespace BiblePathsCore.Models.DB
 {
     public partial class PathNode
@@ -32,7 +38,8 @@ namespace BiblePathsCore.Models.DB
         public int PrevChapter { get; set; }
         [NotMapped]
         public int NextChapter { get; set; }
-
+        [NotMapped]
+        public int PathType { get; set; }
 
         public async Task<bool> AddPathStepPropertiesAsync(BiblePathsCoreDbContext context)
         {
@@ -88,9 +95,10 @@ namespace BiblePathsCore.Models.DB
         {
             try
             {
-                Path path = await context.Paths.Where(p => p.Id == PathId).FirstAsync();
+                Path path = await context.Paths.FindAsync(PathId);
                 PathName = path.Name;
                 PathStepCount = Path.StepCount;
+                PathType = Path.Type;
             }
             catch {
                 return false; 

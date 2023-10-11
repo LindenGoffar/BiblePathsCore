@@ -30,6 +30,7 @@ namespace BiblePathsCore.Pages.PBE
         public string AnswerText { get; set; }
         public QuizUser PBEUser { get; set; }
         public bool IsCommentary { get; set; }
+        public bool HasExclusion { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
 
@@ -54,6 +55,8 @@ namespace BiblePathsCore.Pages.PBE
 
             Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+
+            HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
             // We need an answer text, and while techincally we support multiple Answers
             // we are only going to allow operating on the first one in this basic edit experience.
@@ -91,8 +94,8 @@ namespace BiblePathsCore.Pages.PBE
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
+                HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
                 // We should still have AnswerText
-
 
                 IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)
@@ -123,6 +126,9 @@ namespace BiblePathsCore.Pages.PBE
             {
                 QuestionToUpdate.Modified = DateTime.Now;
 
+                // If the Question is in an Exclusion range we will show an Error
+                if (await QuestionToUpdate.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
+
                 // now we need to add the Answer if there is one. 
                 if (AnswerText.Length > 0) 
                 {
@@ -151,7 +157,7 @@ namespace BiblePathsCore.Pages.PBE
                         // break; not needed unreachable
 
                     case "ChallengedQuestions":
-                        return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId });
+                        return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter});
                         // break; not needed unreachable
 
                     default:

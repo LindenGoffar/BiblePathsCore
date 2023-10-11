@@ -1,0 +1,39 @@
+﻿@page
+@model BiblePathsCore.CreateCPModel
+
+@{
+    ViewData["Title"] = "Add a Commented Path";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="col">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label">Name your new Commented Path</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Path.OwnerBibleId" class="control-label">Select a default Bible language and version</label>
+                <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
+                <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="MyCommentedPaths">Back to My Commented Paths</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

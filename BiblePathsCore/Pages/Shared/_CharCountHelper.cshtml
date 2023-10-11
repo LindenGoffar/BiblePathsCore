@@ -1,0 +1,40 @@
+﻿<!-- This script adds an event listener for input changes and updates the associated character counter -->
+<script>
+    //var textarea = document.getElementById("OwnerComment");
+
+    //textarea.addEventListener("input", function(){
+    //    var maxlength = this.getAttribute("maxlength");
+    //    var currentLength = this.value.length;
+    //    var CharCountElem = document.getElementById("CharCountMsg")
+        
+    //    if( currentLength >= maxlength ){
+    //        CharCountElem.innerHTML = "You have reached the maximum number of characters."
+    //        console.log("You have reached the maximum number of characters.");
+    //    }else{
+    //        var CharsLeft = maxlength - currentLength;
+    //        CharCountElem.innerHTML = "Characters remaining: " + CharsLeft;
+    //        console.log(maxlength - currentLength + " chars left");
+    //    }
+    //});
+
+    document.querySelectorAll('.CommentaryStep').forEach(item => {
+        item.addEventListener('input', event => {
+            console.log("Event Target: " + event.target.id);
+            console.log("ID of CharCount: CharCount-" + event.target.id);
+            var maxlength = event.target.getAttribute("maxlength");
+            var currentLength = event.target.value.length;
+            var CharCountElem = document.getElementById("CharCount-" + event.target.id);
+        
+            if( currentLength >= maxlength ){
+                CharCountElem.innerHTML = "You have reached the maximum number of characters.";
+                console.log("You have reached the maximum number of characters.");
+            }else{
+                var CharsLeft = maxlength - currentLength;
+                CharCountElem.innerHTML = "Characters remaining: " + CharsLeft;
+                console.log(maxlength - currentLength + " chars left");
+            }
+        })
+    })
+
+</script>
+

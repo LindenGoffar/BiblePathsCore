@@ -115,7 +115,8 @@ namespace BiblePathsCore.Models.DB
             // and pass them around for counting.
             List<QuizQuestion> Questions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.IsDeleted == false)
+                                                                && Q.IsDeleted == false
+                                                                && Q.Type == (int)QuestionType.Standard)
                                                         .ToListAsync();
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
@@ -210,7 +211,8 @@ namespace BiblePathsCore.Models.DB
             // and pass them around for counting.
             List<QuizQuestion> Questions = await context.QuizQuestions
                                                         .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.IsDeleted == false)
+                                                                && Q.IsDeleted == false
+                                                                && Q.Type == (int)QuestionType.Standard)
                                                         .ToListAsync();
 
             foreach (BibleBook Book in PBEBooks)
@@ -231,7 +233,8 @@ namespace BiblePathsCore.Models.DB
                 Questions = await context.QuizQuestions
                         .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
                                 && Q.BookNumber == BookNumber 
-                                && Q.IsDeleted == false)
+                                && Q.IsDeleted == false
+                                && Q.Type == (int)QuestionType.Standard)
                         .ToListAsync();
             }
             InBookList = IsInBooklist(context, BookLists);

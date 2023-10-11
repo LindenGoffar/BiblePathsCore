@@ -36,12 +36,12 @@ namespace BiblePathsCore
         [BindProperty(SupportsGet = true)]
         public string BibleId { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public bool? CountAsRead { get; set; }
+        //[BindProperty(SupportsGet = true)]
+        //public bool? CountAsRead { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int PathId, string Scenario)
+        public async Task<IActionResult> OnGetAsync(int PathId, string Scenario, int MarkAsRead = 0)
         {
-            CountAsRead = CountAsRead.HasValue ? CountAsRead.Value : false;
+            // CountAsRead = CountAsRead.HasValue ? CountAsRead.Value : false;
             IsPathEditor = false;
             IsPathOwner = false;
 
@@ -54,6 +54,10 @@ namespace BiblePathsCore
             // Confirm Path 
             Path = await _context.Paths.FindAsync(PathId);
             if (Path == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We were unable to find the requested Path" }); }
+
+            // If the requested Path is a Commented Path then we need to redirected to the CommentedPaths reading experience
+            if (Path.Type == (int)PathType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Path.Id }); }
+
             // Check whether user is Auth'd since we support either way. 
             if (User.Identity.IsAuthenticated){
                 var user = await _userManager.GetUserAsync(User);
@@ -80,7 +84,13 @@ namespace BiblePathsCore
             }
 
             // Now let's conditionally register this as a Path Read
-            if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
+            if (MarkAsRead == 1)
+            {
+                //_ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
+                //_ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+                _ = await Path.RegisterReadEventAsync(_context);
+            }
+            //if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
             return Page();

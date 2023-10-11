@@ -1,6 +1,15 @@
 ﻿<!-- This function causes one or More Divs to appear when an Checkbox on the page is ticked-->
 <script>
     $(document).ready(function () {
+
+        const UnHideCheckBox = document.getElementById('UnHide');
+        if (UnHideCheckBox.checked) {
+            $('div.HideUnHide').fadeIn('fast');
+        }
+        else {
+            $('div.HideUnHide').fadeOut('fast');
+        }
+
         $('#UnHide').change(function () {
             if (this.checked){
                 $('div.HideUnHide').fadeIn('fast');

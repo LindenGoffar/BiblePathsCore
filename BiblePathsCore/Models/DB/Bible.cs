@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
-
 namespace BiblePathsCore.Models.DB
 {
     public partial class Bible
@@ -20,6 +18,7 @@ namespace BiblePathsCore.Models.DB
         public string Id { get; set; }
         public string Language { get; set; }
         public string Version { get; set; }
+        public int Type { get; set; }
 
         public virtual ICollection<BibleBook> BibleBooks { get; set; }
         public virtual ICollection<BibleNoiseWord> BibleNoiseWords { get; set; }

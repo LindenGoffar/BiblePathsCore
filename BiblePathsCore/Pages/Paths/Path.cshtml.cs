@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,11 @@ namespace BiblePathsCore
         {
             try
             {
-                Path = await _context.Paths.Where(P => P.Name == name && P.IsPublished == true && P.IsDeleted == false).SingleAsync();
+                Path = await _context.Paths.Where(P => P.Name == name 
+                                                    && P.Type == (int)PathType.Standard
+                                                    && P.IsPublished == true 
+                                                    && P.IsDeleted == false)
+                                            .SingleAsync();
                 if (Path == null)
                 {
                     return RedirectToPage("Index");

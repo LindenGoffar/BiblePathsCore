@@ -1,0 +1,88 @@
+﻿@page
+@model BiblePathsCore.MyCommentedPathsModel
+
+@{
+    ViewData["Title"] = "My Paths";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="Create">Create New</a>
+            <div class="float-right">
+                <input type="checkbox" id="UnHide" checked /> Show Published Paths
+            </div>
+        </div>
+    </div>
+    <hr />
+    @foreach (var item in Model.Paths)
+    {
+        if (item.IsPublished == false)
+        {
+            <div class="row">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <strong><a asp-page="./Builder" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                            <small> @item.Topics</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
+                    <div id="Details-@item.Id" class="collapse">
+                        <small>Length: @item.Length min</small><br />
+                        <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
+                        <small>Reads: @item.Reads</small><br />
+                        <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
+                        <small>Created: @String.Format("{0:M/d/yyyy HH:mm}", item.Created)</small><br />
+                        <small>Modified: @String.Format("{0:M/d/yyyy HH:mm}", item.Modified)</small>
+                    </div>
+                </div>
+                <div class="col">
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./Publish" asp-route-id="@item.Id">Publish</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Settings</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row HideUnHide" style="display: none">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                            <small> @item.Topics</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
+                    <div id="Details-@item.Id" class="collapse">
+                        <small>Length: @item.Length min</small><br />
+                        <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                        <small>Reads: @item.Reads</small><br />
+                        <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
+                        <small>Created: @Html.DisplayFor(modelItem => item.Created)</small><br />
+                        <small>Modified: @Html.DisplayFor(modelItem => item.Modified)</small>
+                    </div>
+                </div>
+                <div class="col">
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./UnPublish" asp-route-id="@item.Id">UnPublish</a>
+                    <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Path Settings</a>
+                </div>
+            </div>
+        }
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/Index">Back to Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_HideUnHide" />
+}

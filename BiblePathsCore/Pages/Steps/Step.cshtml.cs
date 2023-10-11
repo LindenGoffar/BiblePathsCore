@@ -49,6 +49,8 @@ namespace BiblePathsCore
             
             // There are three distinct scenarios to account for here: 
             // 1. Step Scenario, we have an id of a step but no BookNumber or Chapter, this is the most basic step scenario.
+            //    a) Standad Step, we'll go grab the step details and display the step
+            //    b) Commented Step, we'll send the reader back to the path reader experience. 
             // 2. Context Scenario, we have an id of a step and a BookNumber and Chapter, user is navigating for context.
             // 3. Study Scenario, we have no id of a step, but have Booknumber and Chapter, user is reading the Bible.
 
@@ -56,6 +58,10 @@ namespace BiblePathsCore
             {
                 Step = await _context.PathNodes.FindAsync(id);
                 if (Step == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
+                
+                // If the requested Step is a Commented Step then we need to redirected to the CommentedPaths reading experience
+                if (Step.Type == (int)StepType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Step.PathId, StepId = Step.Id }); }
+                
                 _ = await Step.AddPathStepPropertiesAsync(_context);
                 Scenario = StepScenarios.Step;
                 hasValidStepId = true;
@@ -107,7 +113,10 @@ namespace BiblePathsCore
             else { PageTitle = Step.PathName; }
 
             // Let's see if we need to register any events for this step read. 
-            if (Scenario == StepScenarios.Step) { _ = await Step.RegisterReadEventsAsync(_context);  }
+            if (Scenario == StepScenarios.Step && Step.PathType != (int)PathType.Commented) 
+            {
+                _ = await Step.RegisterReadEventsAsync(_context);  
+            }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
 

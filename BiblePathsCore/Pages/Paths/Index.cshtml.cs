@@ -31,11 +31,16 @@ namespace BiblePathsCore
                          select p;
             if (!string.IsNullOrEmpty(SearchString))
             {
-                paths = paths.Where(s => (s.Name.Contains(SearchString) || s.Topics.Contains(SearchString)) && s.IsPublished == true && s.IsDeleted == false);
+                paths = paths.Where(s => (s.Name.Contains(SearchString) || s.Topics.Contains(SearchString))
+                                            && s.Type == (int)PathType.Standard
+                                            && s.IsPublished == true 
+                                            && s.IsDeleted == false);
             }
             else 
             {
-                paths = paths.Where(s => s.IsPublished == true && s.IsDeleted == false);
+                paths = paths.Where(s => s.Type == (int)PathType.Standard
+                                    && s.IsPublished == true 
+                                    && s.IsDeleted == false);
             }
 
             switch (SortOrder)

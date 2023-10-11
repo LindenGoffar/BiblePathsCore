@@ -9,7 +9,7 @@
 <h4>@ViewData["Title"]</h4>
 
 <div class="container-fluid">
-@*    <div class="row">
+    <div class="row">
         <span>
             @if (Model.IsCommentary)
             {
@@ -19,22 +19,10 @@
             {
                 <strong>@Model.BookName @Model.Chapter</strong>
             }
-        <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions">  Change Book/Chapter  </a>
+        <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/ChallengedQuestions">  Change Book/Chapter  </a>
             <br />
         </span>
-    </div>*@
-@*    <div class="row">
-        <div class="col-12">
-            @if (Model.Verse > 0)
-            {
-                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter" asp-route-VerseNum="@Model.Verse">Add Question</a>
-            }
-            else
-            {
-                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter">Add Question</a>
-            }
-        </div>
-    </div>*@
+    </div>
     <hr />
     @foreach (var question in Model.Questions)
     { 

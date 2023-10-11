@@ -111,10 +111,7 @@ namespace BiblePathsCore
 
                 _context.PathNodes.Add(emptyStep);
                 await _context.SaveChangesAsync();
-                
-                // Now we need to update the Path Object with some calculated properties 
-                if (!Path.IsPathOwner(user.Email)) { _ = await Path.RegisterEventAsync(_context, EventType.NonOwnerEdit, user.Email); }
-                
+
                 // Prepare to update some properties on Path
                 _context.Attach(Path);
                 Path.Length = await Path.GetPathVerseCountAsync(_context);
@@ -126,13 +123,16 @@ namespace BiblePathsCore
                 // Finally we need to re-position each node in the path to ensure safe ordering
                 _ = await Path.RedistributeStepsAsync(_context);
                 
-                return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+                if (Path.Type == (int)PathType.Commented)
+                {
+                    return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
+                }
+                else
+                {
+                    return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+                }
             }
-
-                //_context.PathNodes.Add(PathNodes);
-                //await _context.SaveChangesAsync();
-
-                return RedirectToPage("./Index");
+            return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to add this Step, we failed to update the Database... not sure what to tell you." });
         }
     }
 }

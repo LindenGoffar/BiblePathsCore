@@ -37,6 +37,8 @@ namespace BiblePathsCore.Controllers
                                                                 && Q.BookNumber == Book.BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
+                                                                && Q.Challenged == false
+                                                                && Q.Type == (int)QuestionType.Standard
                                                                 && Q.IsAnswered == true).ToListAsync();
             foreach(QuizQuestion Question in Questions)
             {
@@ -126,8 +128,13 @@ namespace BiblePathsCore.Controllers
                 EndVerse = Question.EndVerse,
                 Question = Question.Question,
                 Owner = Question.Owner,
-                Source = Question.Source
+                Source = Question.Source,
+                Type = (int)QuestionType.Standard
             };
+
+            // If the Question is in an Exclusion range we will show an Error
+            if (await emptyQuestion.IsQuestionInExclusionAsync(_context)) { return Unauthorized(); }
+
             _context.QuizQuestions.Add(emptyQuestion);
             // now we need to add the Answer if there are any 
             foreach (string AnswerString in Question.Answers)

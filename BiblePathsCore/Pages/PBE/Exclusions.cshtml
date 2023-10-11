@@ -1,0 +1,79 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.ExclusionsModel
+
+@{
+    ViewData["Title"] = "PBE Exclusions";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+<h4>@ViewData["Title"]</h4>
+<span class="text-info">
+    PBE Exclusions are used to designate chapters or select verses that will not be included in PBE testing. 
+    The reasons for exclusions vary, and more detail will be provided at https://nadpbe.org/pbe-resources/. 
+</span>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddExclusion" class="btn btn-light btn-sm font-weight-bold">Add PBE Exclusion</a>
+        </div>
+    </div>
+    <hr />
+    @if(Model.Exclusions != null)
+    {
+        @foreach (var exclusion in Model.Exclusions)
+        {
+            <div class="card">
+                <div class="card-body">
+                    @{
+                        string ExclusionTitle = @exclusion.BookName + " " + @exclusion.Chapter + ":" + @exclusion.StartVerse + " - " + @exclusion.EndVerse;
+                    }
+                    <div class="row">
+                        <div class="col-6">
+                            <span><strong>@ExclusionTitle</strong></span>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@exclusion.Id">
+                                Delete
+                            </button>
+                            <div class="modal fade" id="DeleteModal-@exclusion.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Exclusion" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLongTitle">Delete this Exclusion?</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="font-weight-bold">@ExclusionTitle</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form asp-page="/PBE/DeleteExclusion" method="post">
+                                                <input type="hidden" name="id" value="@exclusion.Id" />
+                                                <input type="submit" value="Confirm" class="btn btn-danger" />
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <span>There are currently no PBE Exclusions</span>
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>
