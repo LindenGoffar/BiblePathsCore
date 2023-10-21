@@ -170,7 +170,7 @@ namespace BiblePathsCore.Pages.PBE
                 if (await emptyQuestion.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
 
                 emptyQuestion.Owner = PBEUser.Email;
-                if (emptyQuestion.Source.Length < 1) {emptyQuestion.Source = "BiblePaths.Net";}
+                if (emptyQuestion.Source == null) {emptyQuestion.Source = "BiblePaths.Net";}
                 emptyQuestion.Type = (int)QuestionType.Standard;
                 _context.QuizQuestions.Add(emptyQuestion);
 
