@@ -83,6 +83,9 @@ namespace BiblePathsCore
                  });
             services.AddSignalR();
             services.AddApplicationInsightsTelemetry();
+
+            services.AddSingleton<IOpenAIResponder, OpenAIResponder>();
+            services.Configure<OpenAISettings>(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

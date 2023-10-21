@@ -10,6 +10,8 @@ using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using BiblePathsCore.Services;
+using Microsoft.Extensions.Options;
 
 namespace BiblePathsCore.Pages.PBE
 {
@@ -18,11 +20,15 @@ namespace BiblePathsCore.Pages.PBE
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
+        private readonly OpenAISettings _openAIsettings;
+        private readonly IOpenAIResponder _openAIResponder;
 
-        public AddQuestionModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public AddQuestionModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context, IOptions<OpenAISettings> openAISettings, IOpenAIResponder openAIResponder)
         {
             _userManager = userManager;
             _context = context;
+            _openAIsettings = openAISettings.Value;
+            _openAIResponder = openAIResponder;
         }
         [BindProperty]
         public QuizQuestion Question { get; set; }
@@ -33,17 +39,24 @@ namespace BiblePathsCore.Pages.PBE
         public bool HasExclusion { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
+        public bool IsOpenAIEnabled { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion)
+        public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion, bool? BuildAIQuestion)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
 
             bool generateQuestion = false;
+            bool generateAIQuestion = false;
             if (BuildQuestion.HasValue)
             {
                 generateQuestion = (bool)BuildQuestion;
+            }
+            if (BuildAIQuestion.HasValue)
+            {
+                generateQuestion = (bool)BuildAIQuestion;
+                generateAIQuestion = (bool)BuildAIQuestion;
             }
             Question = new QuizQuestion();
             // Setup our PBEBook Object
@@ -52,10 +65,22 @@ namespace BiblePathsCore.Pages.PBE
             if (generateQuestion)
             {
                 BibleVerse verse = await BibleVerse.GetVerseAsync(_context, Question.BibleId, BookNumber, Chapter, (int)VerseNum);
-                Question = await Question.BuildQuestionForVerseAsync(_context, verse, 10, Question.BibleId);
-                foreach (QuizAnswer Answer in Question.QuizAnswers)
+                
+                if (generateAIQuestion)
                 {
-                    AnswerText += Answer.Answer;
+                    Question = await Question.BuildAIQuestionForVerseAsync(_context, verse, _openAIResponder, _openAIsettings);
+                    foreach (QuizAnswer Answer in Question.QuizAnswers)
+                    {
+                        AnswerText += Answer.Answer;
+                    }
+                }
+                else
+                {
+                    Question = await Question.BuildQuestionForVerseAsync(_context, verse, 10, Question.BibleId);
+                    foreach (QuizAnswer Answer in Question.QuizAnswers)
+                    {
+                        AnswerText += Answer.Answer;
+                    }
                 }
             }
             else
@@ -86,6 +111,8 @@ namespace BiblePathsCore.Pages.PBE
             // and now we need a Verse Select List
             ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
             ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+            IsOpenAIEnabled = false;
+            if(_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
             return Page();
         }
 
@@ -137,13 +164,13 @@ namespace BiblePathsCore.Pages.PBE
             if (await TryUpdateModelAsync<QuizQuestion>(
                 emptyQuestion,
                 "Question",   // Prefix for form value.
-                Q => Q.BibleId, Q => Q.Points, Q => Q.BookNumber, Q => Q.Chapter, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question))
+                Q => Q.BibleId, Q => Q.Points, Q => Q.BookNumber, Q => Q.Chapter, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question, Q => Q.Source))
             {
                 // If the Question is in an Exclusion range we will show an Error
                 if (await emptyQuestion.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
 
                 emptyQuestion.Owner = PBEUser.Email;
-                emptyQuestion.Source = "BiblePaths.Net";
+                if (emptyQuestion.Source.Length < 1) {emptyQuestion.Source = "BiblePaths.Net";}
                 emptyQuestion.Type = (int)QuestionType.Standard;
                 _context.QuizQuestions.Add(emptyQuestion);
 

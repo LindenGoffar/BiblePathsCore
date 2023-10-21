@@ -16,10 +16,14 @@
         $("#Question_EndVerse").val(VerseNum);
         $("#Question_EndVerse").change();
         UpdateGenerateQuestionLink(VerseNum);
+        UpdateGenerateAIQuestionLink(VerseNum);
     }
 
     function UpdateGenerateQuestionLink(VerseNum) {
         document.getElementById("GenerateQuestionLink").href ="/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildQuestion=True"
+    }
+    function UpdateGenerateAIQuestionLink(VerseNum) {
+        document.getElementById("GenerateAIQuestionLink").href = "/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildAIQuestion=True"
     }
 
      // Highlights Start -> End Verses
