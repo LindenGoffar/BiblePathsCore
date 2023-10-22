@@ -79,6 +79,11 @@
         </div>
         <div class="col-5">
             <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
+            @if (Model.IsOpenAIEnabled)
+            {
+                <br />
+                <a class="follow-scroll" id="GenerateAIQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildAIQuestion=True">Generate AI Question (Experimental) </a>
+            }
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="container-fluid follow-scroll">
@@ -135,6 +140,7 @@
                             <input type="hidden" asp-for="Question.BookNumber" />
                             <input type="hidden" asp-for="Question.Chapter" />
                             <input type="hidden" asp-for="Question.BibleId" />
+                            <input type="hidden" asp-for="Question.Source" />
                             <input type="submit" value="Add Question" class="btn btn-primary" /> 
                         </div>
                     </div>

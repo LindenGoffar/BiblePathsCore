@@ -1,4 +1,5 @@
-﻿using Humanizer.Localisation;
+﻿using BiblePathsCore.Services;
+using Humanizer.Localisation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -236,6 +237,33 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
+        public async Task<QuizQuestion> BuildAIQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, IOpenAIResponder openAIResponder, OpenAISettings openAISettings)
+        {
+            // First let's go query OpenAI
+            QandAObj qandAObj = await openAIResponder.GetAIQuestionAsync(verse.Text, openAISettings.OpenAIAPIKey);
+            if (qandAObj == null)
+            {
+                return null;
+            }
+            QuizQuestion NewQuestion = new QuizQuestion();
+            QuizAnswer AIAnswer = new QuizAnswer();
+            NewQuestion.BibleId = verse.BibleId;
+            NewQuestion.Points = 1;
+            NewQuestion.Question = qandAObj.question;
+            NewQuestion.BookNumber = verse.BookNumber;
+            NewQuestion.Chapter = verse.Chapter;
+            NewQuestion.StartVerse = verse.Verse;
+            NewQuestion.EndVerse = verse.Verse;
+            NewQuestion.Source = "BiblePaths.Net OpenAI Question Generator (GPT 3.5)";
+            // Build the Answer
+            AIAnswer.Answer = qandAObj.answer;
+            NewQuestion.QuizAnswers.Add(AIAnswer);
+
+            if (NewQuestion.QuizAnswers.Count > 0) { NewQuestion.IsAnswered = true; }
+            else { NewQuestion.IsAnswered = false; }
+
+            return NewQuestion;
+        }
         public async Task<QuizQuestion> BuildQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, int MaxPoints, string BibleId)
         {
             int BlankWordProbability = 3; // read as 1 in every 3 valid words may get blanked rnd is 0 based
