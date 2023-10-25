@@ -51,6 +51,19 @@ Do this to randomize the WordIndex.
 UPDATE BibleWordIndex
 	SET    RandomInt = abs(checksum(NewId()) % 50)
 
+--10/22/2023 in support of Commentary Management
+ALTER TABLE CommentaryBooks
+		Add CommentaryTitle nvarchar(256)
+
+ALTER TABLE CommentaryBooks
+		Add Owner nvarchar(256)
+
+ALTER TABLE CommentaryBooks
+		Add Created datetimeoffset
+
+ALTER TABLE CommentaryBooks
+		Add Modified datetimeoffset
+
 ---------------------------------------
 
 #>
@@ -378,6 +391,10 @@ If ($CreateCommentaryTable){
 			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID),
 			BookNumber int NOT NULL,
             BookName nvarchar (32),
+			CommentaryTitle nvarchar(256),
+            Owner nvarchar(256),
+			Created datetimeoffset,
+			Modified datetimeoffset,
 			Text nvarchar(MAX)
 		) 
 "@

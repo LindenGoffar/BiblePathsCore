@@ -144,7 +144,7 @@ namespace BiblePathsCore.Models.DB
                 Text = "Random Chapter",
                 Value = "0",
             });
-            if (BookNumber > 0) // Bok Number of 0 just means no book selected
+            if (BookNumber > 0) // Book Number of 0 just means no book selected
             {
                 // Find our book
                 MinBook SelectedBook = TemplateBooks.Where(B => B.BookNumber == BookNumber).Single();
@@ -161,7 +161,7 @@ namespace BiblePathsCore.Models.DB
                 {
                     SelectList.Add(new SelectListItem
                     {
-                        Text = "SDA Bible Commentary",
+                        Text = "Bible Commentary",
                         Value = "1000",
                     });
                 }

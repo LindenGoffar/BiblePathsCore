@@ -132,14 +132,14 @@
                                 @if (book.CommentaryHasChallenge)
                                 {
                                     <a class="btn btn-danger btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
-                                        SDA Bible Commentary
+                                        Bible Commentary
                                     </a>
                                 }
                             }
                             else
                             {
                                 <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
-                                    SDA Bible Commentary
+                                    Bible Commentary
                                     @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
                                     { 
                                         @if (book.CommentaryHasChallenge)
@@ -292,14 +292,14 @@
                                 @if (book.CommentaryHasChallenge)
                                 {
                                     <a class="btn btn-danger btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
-                                        SDA Bible Commentary
+                                        Bible Commentary
                                     </a>
                                 }
                             }
                             else
                             {
                                 <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
-                                    SDA Bible Commentary
+                                    Bible Commentary
                                     @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
                                     {
                                         @if (book.CommentaryHasChallenge)
