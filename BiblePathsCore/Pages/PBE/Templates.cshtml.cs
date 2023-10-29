@@ -37,6 +37,7 @@ namespace BiblePathsCore.Pages.PBE
 
             Templates = await _context.PredefinedQuizzes.Include(T => T.PredefinedQuizQuestions)
                                                     .Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
+                                                    .OrderByDescending(T => T.Created)
                                                     .ToListAsync();
 
             UserMessage = GetUserMessage(Message);
