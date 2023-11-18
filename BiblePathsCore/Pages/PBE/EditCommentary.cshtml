@@ -1,0 +1,104 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.EditCommentaryModel
+
+@{
+    ViewData["Title"] = "Edit Bible Commentary";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="row">
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Book</span>
+                        </div>
+                        <select asp-for="Commentary.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-0"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <p class="text-info">Name is typically the same as the selected book name, however, some commentary cover multiple books.</p>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input asp-for="Commentary.BookName" class="form-control" />
+                        <span asp-validation-for="Commentary.BookName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <p class="text-info">Title of the Commentary itself e.g. "SDA Bible Commentary")</p>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Title</span>
+                        </div>
+                        <input asp-for="Commentary.CommentaryTitle" class="form-control" placeholder="Bible Commentary" />
+                        <span asp-validation-for="Commentary.CommentaryTitle" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-0 input-group input-group-sm form-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Commentary Text</span>
+                        </div>
+                        <textarea asp-for="Commentary.Text" rows="4" placeholder="Paste Commentary Text Here" class="scroll-box"> </textarea>
+                        <span asp-validation-for="Commentary.Text" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <br />
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="Commentary.BibleId" />
+                    <input type="submit" value="Save Commentary" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#DeleteModal">
+            Delete
+        </button>
+        <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="Delete Commentary" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Commentary entry?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="font-weight-bold">@Model.Commentary.CommentaryTitle for @Model.Commentary.BookName</p>
+                        <br />
+                        <p class="font-italic">By deleting this Commentary entry any Quiz Questions that reference this will no longer function correctly.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form asp-page="/PBE/DeleteCommentary" method="post">
+                            <input type="hidden" name="id" value="@Model.Commentary.Id" />
+                            <input type="submit" value="Confirm" class="btn btn-danger" />
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Commentaries" asp-route-BibleId="@Model.Commentary.BibleId">Back to Commentary Lists</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

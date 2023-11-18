@@ -126,7 +126,7 @@ namespace BiblePathsCore.Models.DB
             // Handle the Commentary scenario
             if (IsCommentaryQuestion)
             {
-                tempstring += "According to the SDABC for " + BookName;
+                tempstring += "According to the " + BookName;
             }
             else
             {

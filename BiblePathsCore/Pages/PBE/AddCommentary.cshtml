@@ -1,0 +1,75 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.AddCommentaryModel
+
+@{
+    ViewData["Title"] = "Add Bible Commentary";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="row">
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Book</span>
+                        </div>
+                        <select asp-for="Commentary.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-0"></select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <p class="text-info">Name is typically the same as the selected book name, however, some commentary cover multiple books.</p>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input asp-for="Commentary.BookName" class="form-control" />
+                        <span asp-validation-for="Commentary.BookName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <p class="text-info">Title of the Commentary itself e.g. "SDA Bible Commentary")</p>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Title</span>
+                        </div>
+                        <input asp-for="Commentary.CommentaryTitle" class="form-control" placeholder="Bible Commentary" />
+                        <span asp-validation-for="Commentary.CommentaryTitle" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="mb-0 input-group input-group-sm form-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Commentary Text</span>
+                        </div>
+                        <textarea asp-for="Commentary.Text" rows="20" placeholder="Paste Commentary Text Here" class="scroll-box"> </textarea>
+                        <span asp-validation-for="Commentary.Text" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <br />
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="Commentary.BibleId" />
+                    <input type="submit" value="Save Commentary" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Commentaries" asp-route-BibleId="@Model.Commentary.BibleId">Back to Commentary Lists</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

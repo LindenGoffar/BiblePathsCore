@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB
@@ -159,6 +160,40 @@ namespace BiblePathsCore.Models.DB
             return BookSelectList;
         }
 
+        public static async Task<List<SelectListItem>> GetCommentaryBookSelectListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNum = 0, bool IncludeBooksWithCommentary = false)
+        {
+
+            List<SelectListItem> BookSelectList = new List<SelectListItem>();
+            List<BibleBook> Books = await context.BibleBooks
+                                      .Where(B => B.BibleId == BibleId)
+                                      .ToListAsync();
+            List<CommentaryBook> commentaryBooks = await context.CommentaryBooks
+                                                     .Where(C => C.BibleId == BibleId)
+                                                     .ToListAsync();
+
+            // Add a Default entry 
+            BookSelectList.Add(new SelectListItem
+            {
+                Text = "Select a Book",
+                Value = 0.ToString()
+            });
+
+            foreach (BibleBook Book in Books)
+            {
+                // If there is already a Commentary entry for this book we skip it...
+                // unless IncludeBooksWithCommentary is true
+                // or unless this is the Book for the commentary we are editing the Booknum > 0 case
+                bool CommentaryExists = commentaryBooks.Where(C => C.BibleId == BibleId && C.BookNumber == Book.BookNumber).Any();
+                if (!CommentaryExists || IncludeBooksWithCommentary || Book.BookNumber == BookNum)
+                BookSelectList.Add(new SelectListItem
+                {
+                    Text = Book.Name,
+                    Value = Book.BookNumber.ToString()
+                });
+            }
+            return BookSelectList;
+        }
+
         public static async Task<List<SelectListItem>> GetBookAndBookListSelectListAsync(BiblePathsCoreDbContext context, string BibleId)
         {
 
@@ -243,7 +278,7 @@ namespace BiblePathsCore.Models.DB
             HasCommentary = await HasCommentaryAsync(context);
             if (HasCommentary)
             {
-                CommentaryTitle = await GetCommentaryTitleAsync(context);
+                CommentaryTitle = await GetFullCommentaryTitleAsync(context);
                 CommentaryQuestionCount = GetCommentaryQuestionCount(Questions);
                 CommentaryHasChallenge = CommentaryHasChallengedQuestion(Questions);
             }
@@ -338,11 +373,14 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
-        public async Task<string> GetCommentaryTitleAsync(BiblePathsCoreDbContext context)
+        public async Task<string> GetFullCommentaryTitleAsync(BiblePathsCoreDbContext context)
         {
-            return (await context.CommentaryBooks
+            CommentaryBook Commentary = await context.CommentaryBooks
                              .Where(C => C.BibleId == BibleId && C.BookNumber == BookNumber)
-                             .FirstAsync()).BookName;
+                             .FirstAsync();
+            string returnString = Commentary.CommentaryTitle + " for " + Commentary.BookName;
+
+            return returnString;
         }
 
     }  

@@ -13,7 +13,7 @@
             <span>
                 @if (Model.IsCommentary)
                 {
-                    <strong>SDA Bible Commentary for @Model.Question.BookName</strong>
+                    <strong>@Model.Question.BookName</strong>
                     @if (Model.CommentaryQuestionCount > 0)
                     {
                         <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter">
@@ -47,11 +47,11 @@
                 <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
                     @if (!Verse.IsPBEExcluded)
                     {
-                        <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+                        <span style="white-space: pre-line"> <sup>@Verse.Verse </sup>@Verse.Text </span>
                     }
                     else
                     {
-                        <span class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
+                        <span style="white-space: pre-line" class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
                     }
                     @if (Model.IsCommentary == false)
                     {
@@ -78,11 +78,14 @@
             </div>
         </div>
         <div class="col-5">
-            <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
-            @if (Model.IsOpenAIEnabled)
+            @if (!(Model.IsCommentary))
             {
-                <br />
-                <a class="follow-scroll" id="GenerateAIQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildAIQuestion=True">Generate AI Question (Experimental) </a>
+                <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
+                @if (Model.IsOpenAIEnabled)
+                {
+                    <br />
+                    <a class="follow-scroll" id="GenerateAIQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildAIQuestion=True">Generate AI Question (Experimental) </a>
+                }
             }
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -98,7 +101,7 @@
                     </div>
                     <div class="row">
                     @if (Model.IsCommentary)
-                        {<span>According to the SDA Bible Commentary for <strong>@Model.Question.BookName</strong></span> }
+                        {<span>According to the <strong>@Model.Question.BookName</strong></span> }
                     else
                     {<span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>}
                     </div>

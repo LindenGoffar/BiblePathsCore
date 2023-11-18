@@ -13,7 +13,7 @@
             <span>
                 @if (Model.IsCommentary)
                 {
-                    <strong>SDA Bible Commentary for @Model.Question.BookName</strong>
+                    <strong>@Model.Question.BookName</strong>
                     @if (Model.CommentaryQuestionCount > 0)
                     {
                         <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter">
@@ -48,11 +48,11 @@
 
                     @if (!Verse.IsPBEExcluded)
                     {
-                        <span><sup>@Verse.Verse </sup>@Verse.Text </span>
+                        <span style="white-space: pre-line"><sup>@Verse.Verse </sup>@Verse.Text </span>
                     }
                     else
                     {
-                        <span class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
+                        <span style="white-space: pre-line" class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
                     }
 
                     @if (Model.IsCommentary == false)
@@ -96,7 +96,7 @@
                     </div>
                     <div class="row">
                         @if (Model.IsCommentary)
-                        {<span>According to the SDA Bible Commentary for <strong>@Model.Question.BookName</strong></span> }
+                        {<span>According to the <strong>@Model.Question.BookName</strong></span> }
                     else
                     {<span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>}
                     </div>

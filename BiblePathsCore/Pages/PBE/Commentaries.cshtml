@@ -1,0 +1,47 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.CommentariesModel
+
+@{
+    ViewData["Title"] = "PBE Commentaries";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+<h4>@ViewData["Title"]</h4>
+<span class="text-muted">
+    A Bible Commentary in this context is a portion of a larger commentary that introduces one or more Bible Books
+    to the reader. Members of a Pathfinder Bible Experience (PBE) team are asked to study specific portions of 
+    a Bible Commentary see: https://nadpbe.org/pbe-resources for more details
+</span>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="AddCommentary" asp-route-BibleId="@Model.BibleId">Add Bible Commentary</a>
+        </div>
+    </div>
+    <hr />
+    @foreach (var Commentary in Model.Commentaries)
+    {
+        <div class="row">
+            <div class="col-10">
+                <div class="card">
+                    <div class="card-body">
+                        <span><strong>@Commentary.CommentaryTitle for @Commentary.BookName</strong></span>
+                        <p>Book Number = @Commentary.BookNumber</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-2">
+                <a class="btn btn-outline-primary btn-sm" asp-page="EditCommentary" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Commentary.Id">Edit</a>
+            </div>
+        </div>
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>
