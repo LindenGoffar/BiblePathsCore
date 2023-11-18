@@ -54,6 +54,10 @@
                         <span><small>Owner: @question.Owner</small></span> <br />
                         <span><small>Source: @question.Source</small></span> <br />
                         <span><small>Last Asked: @String.Format("{0:M/d/yyyy HH:mm}", question.LastAsked)</small></span> <br />
+                        @if (question.ChallengeComment != null && question.Challenged == false)
+                        {
+                            <span><small>Challenge Comment:  @question.ChallengeComment</small></span> <br />
+                        }
 
                         @if (question.Challenged == true)
                         {

@@ -125,6 +125,8 @@ namespace BiblePathsCore.Pages.PBE
                 Q => Q.BibleId, Q => Q.Points, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question, Q => Q.Challenged, Q => Q.ChallengeComment))
             {
                 QuestionToUpdate.Modified = DateTime.Now;
+                // We've got some bad edits happening so logging to challengeComment
+                QuestionToUpdate.ChallengeComment = "Question lasted edited by: " + PBEUser.Email;
 
                 // If the Question is in an Exclusion range we will show an Error
                 if (await QuestionToUpdate.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
