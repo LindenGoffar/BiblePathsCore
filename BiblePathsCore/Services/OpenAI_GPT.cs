@@ -89,11 +89,20 @@ namespace BiblePathsCore.Services
                 {
                     JSONResponseString = response.Value.Choices[0].Message.FunctionCall.Arguments;
                 }
-                qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                try
+                {
+                    qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                }
+                catch 
+                {
+                    qandAObj.question = "UhOh... we had a problem parsing the following response: ";
+                    qandAObj.question += JSONResponseString;
+                }               
             }
             else
             {
-                qandAObj.answer = "Hmm... We didn't get a resonse back that we could use, please try again.";
+                qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
             }
 
             return qandAObj;
