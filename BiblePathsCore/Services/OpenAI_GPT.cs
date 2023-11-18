@@ -40,25 +40,27 @@ namespace BiblePathsCore.Services
     public class OpenAIResponder : IOpenAIResponder
 
     {
-        private readonly HttpClient _httpClient;
+        //private readonly HttpClient _httpClient;
 
-        public OpenAIResponder()
-        {
-            _httpClient = new HttpClient();
-        }
+        //public OpenAIResponder()
+        //{
+        //    _httpClient = new HttpClient();
+        //}
         public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
         {
              
-            string QnARequest = "Build a question and answer pair from the following text: " 
+            string QnARequest = "Build a question and answer pair, with precise questions, and brief answers, from the following text:" 
                                 + text;
             ChatCompletionsOptions CCOptions = new ChatCompletionsOptions();
+
+            QandAObj qandAObj = new QandAObj();
 
             ChatMessage QnAMessage = new ChatMessage();
             QnAMessage.Role = "function";
             QnAMessage.Name = "QnAFunction";
             QnAMessage.Content = QnARequest;
 
-            List<FunctionDefinition> QnAFuntions = new List<FunctionDefinition>();
+            //List<FunctionDefinition> QnAFuntions = new List<FunctionDefinition>();
             FunctionDefinition QnAFunction = new FunctionDefinition();
             
             JSchemaGenerator generator = new JSchemaGenerator();
@@ -70,15 +72,29 @@ namespace BiblePathsCore.Services
 
             CCOptions.Functions.Add(QnAFunction);
             CCOptions.Messages.Add(QnAMessage);
+            CCOptions.ChoiceCount = 1; // we only want one question generated
+            CCOptions.Temperature = (float)1.2;
 
             OpenAIClient client = new OpenAIClient(key);
             Response<ChatCompletions> response = await client.GetChatCompletionsAsync(
-                "gpt-3.5-turbo-0613", // assumes a matching model deployment or model name
+                "gpt-4-1106-preview", // assumes a matching model deployment or model name
                 CCOptions);
             
-            string JSONResponseString = response.Value.Choices[0].Message.FunctionCall.Arguments;
-            QandAObj qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
-
+            if (response.Value.Choices.Count >= 1)
+            {
+                // Very oddly the response may show up on one of two properties. 
+                string JSONResponseString = response.Value.Choices[0].Message.Content;
+                // OK This is wierd but sometimes the result shows up on a deprecated property.
+                if (JSONResponseString == null)
+                {
+                    JSONResponseString = response.Value.Choices[0].Message.FunctionCall.Arguments;
+                }
+                qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+            }
+            else
+            {
+                qandAObj.answer = "Hmm... We didn't get a resonse back that we could use, please try again.";
+            }
 
             return qandAObj;
         }
