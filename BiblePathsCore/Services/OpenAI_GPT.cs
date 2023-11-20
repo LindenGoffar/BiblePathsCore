@@ -40,6 +40,7 @@ namespace BiblePathsCore.Services
     public class OpenAIResponder : IOpenAIResponder
 
     {
+        public const string OpenAIAPI = "gpt-4-1106-preview";
         //private readonly HttpClient _httpClient;
 
         //public OpenAIResponder()
@@ -77,7 +78,7 @@ namespace BiblePathsCore.Services
 
             OpenAIClient client = new OpenAIClient(key);
             Response<ChatCompletions> response = await client.GetChatCompletionsAsync(
-                "gpt-4-1106-preview", // assumes a matching model deployment or model name
+                OpenAIAPI, // assumes a matching model deployment or model name
                 CCOptions);
             
             if (response.Value.Choices.Count >= 1)
@@ -96,7 +97,7 @@ namespace BiblePathsCore.Services
                 }
                 catch 
                 {
-                    qandAObj.question = "UhOh... we had a problem parsing the following response: ";
+                    qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
                     qandAObj.question += JSONResponseString;
                 }               
             }

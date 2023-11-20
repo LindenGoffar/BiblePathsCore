@@ -63,6 +63,7 @@
                     <input type="hidden" asp-for="Quiz.Id" />
                     <input type="hidden" asp-for="Question.Id" />
                     <input id="AwardPoints" type="submit" value="Award Points" class="btn btn-primary" />
+@* 
                     <div class="card mt-2">
                         <div class="card-body">
                             <span class="card-title font-weight-bold">
@@ -75,11 +76,47 @@
                                 <small class="text-info">A Challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small>
                             </div>
                         </div>
-                    </div>
+                    </div> *@
                 </div>
             </form>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-9">
+            <br />
+            <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#ChallengeModal">
+                Challenge this Question
+            </button>
+            <p><small class="text-info">You should only challenge a question if you feel the Question or Answer are incorrect or the question does not conform to PBE standards.</small></p>
+            <div class="modal fade" id="ChallengeModal" tabindex="-1" role="dialog" aria-labelledby="Challenge Question" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle">Challenge Comment</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form asp-page="/PBE/ChallengeQuestion" method="post">
+                            <div class="modal-body">
+                                <textarea name="ChallengeComment" rows="4" placeholder="Challenge Comment Required" class="scroll-box" required></textarea>
+                                <p><small class="text-info">A challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="hidden" name="id" value="@Model.Question.Id" />
+                                <input type="hidden" name="ReturnPath" value="Quiz" />
+                                <input type="hidden" name="ReturnQuizID" value="@Model.Quiz.Id" />
+                                <input type="submit" value="Challenge Question" class="btn btn-danger" />
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <hr />
     <div class="row">
         @{string VerseRef = Model.Question.BookName + " " + Model.Question.Chapter + ": " + Model.Question.StartVerse;

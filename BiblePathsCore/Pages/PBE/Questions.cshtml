@@ -112,7 +112,7 @@
                     <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
                         Delete
                     </button>
-                    <div class="modal fade" id="DeleteModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                    <div class="modal fade" id="DeleteModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Question" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -136,7 +136,37 @@
                         </div>
                     </div>
                 }
-
+                @if (!question.Challenged && Model.PBEUser.IsQuizModerator())
+                {
+                    <br />
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#ChallengeModal-@question.Id">
+                        Challenge
+                    </button>
+                    <div class="modal fade" id="ChallengeModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Challenge Question" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">Challenge Comment</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <form asp-page="/PBE/ChallengeQuestion" method="post">
+                                    <div class="modal-body">
+                                        <textarea name="ChallengeComment" rows="4" placeholder="Challenge Comment Required" class="scroll-box" required></textarea>
+                                        <p><small class="text-info">A challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small></p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <input type="hidden" name="id" value="@question.Id" />
+                                        <input type="hidden" name="ReturnPath" value="Questions" />
+                                        <input type="submit" value="Challenge Question" class="btn btn-danger" />
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     }

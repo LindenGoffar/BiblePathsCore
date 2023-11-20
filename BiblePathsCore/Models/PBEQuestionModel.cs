@@ -254,7 +254,7 @@ namespace BiblePathsCore.Models.DB
             NewQuestion.Chapter = verse.Chapter;
             NewQuestion.StartVerse = verse.Verse;
             NewQuestion.EndVerse = verse.Verse;
-            NewQuestion.Source = "BiblePaths.Net OpenAI Question Generator (GPT 3.5)";
+            NewQuestion.Source = "BiblePaths.Net OpenAI Question Generator (" + OpenAIResponder.OpenAIAPI + ")";
             // Build the Answer
             AIAnswer.Answer = qandAObj.answer;
             NewQuestion.QuizAnswers.Add(AIAnswer);
@@ -359,7 +359,7 @@ namespace BiblePathsCore.Models.DB
             NewQuestion.Chapter = verse.Chapter;
             NewQuestion.StartVerse = verse.Verse;
             NewQuestion.EndVerse = verse.Verse;
-            NewQuestion.Source = "BiblePaths.Net Question Generator - Iteration: " + Iteration.ToString();
+            NewQuestion.Source = "BiblePaths.Net FITB Question Generator - Iteration: " + Iteration.ToString();
             // Build the Answer
             FitBAnswer.Answer = string.Join(", ", BlankedWords);
             NewQuestion.QuizAnswers.Add(FitBAnswer);
