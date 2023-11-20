@@ -40,6 +40,7 @@ namespace BiblePathsCore.Pages.PBE
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
         public bool IsOpenAIEnabled { get; set; }
+        public bool IsFITBGenerationEnabled { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion, bool? BuildAIQuestion)
         {
@@ -113,6 +114,9 @@ namespace BiblePathsCore.Pages.PBE
             ViewData["PointsSelectList"] = Question.GetPointsSelectList();
             IsOpenAIEnabled = false;
             if(_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
+
+            IsFITBGenerationEnabled = PBEUser.IsQuizModerator();
+
             return Page();
         }
 

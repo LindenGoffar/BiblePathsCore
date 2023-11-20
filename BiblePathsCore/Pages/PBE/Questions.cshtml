@@ -35,6 +35,12 @@
             }
         </div>
     </div>
+
+    <br />
+    <div class="row text-info">
+        Because we've had an unfortunate number of inappropriate edits we have had to remove some capabilities from standard users, we hope this does not become an inconvenience.
+    </div>
+
     <hr />
     @foreach (var question in Model.Questions)
     { 
@@ -98,34 +104,38 @@
                 </div>
             </div>
             <div class="col-2">
-                <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="Questions">Edit</a>
-                <br />
-                <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
-                    Delete
-                </button>
-                <div class="modal fade" id="DeleteModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLongTitle">Delete this Question?</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p class="font-italic">Are you sure?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <form asp-page="/PBE/DeleteQuestion" method="post">
-                                    <input type="hidden" name="id" value="@question.Id" />
-                                    <input type="hidden" name="ReturnPath" value="Questions" />
-                                    <input type="submit" value="Confirm" class="btn btn-danger" />
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                
+                @if(Model.PBEUser.Email == question.Owner || Model.PBEUser.IsQuizModerator())
+                {
+                    <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="Questions">Edit</a>
+                    <br />
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
+                        Delete
+                    </button>
+                    <div class="modal fade" id="DeleteModal-@question.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Question?</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="font-italic">Are you sure?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form asp-page="/PBE/DeleteQuestion" method="post">
+                                        <input type="hidden" name="id" value="@question.Id" />
+                                        <input type="hidden" name="ReturnPath" value="Questions" />
+                                        <input type="submit" value="Confirm" class="btn btn-danger" />
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
 
             </div>
         </div>

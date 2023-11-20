@@ -34,6 +34,7 @@
             <a class="small" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.Question.BibleId" asp-route-TargetPage="/PBE/AddQuestion">  Change Book/Chapter  </a>
                 <br />
             </span>
+
             @if (Model.HasExclusion)
             {
                 <br />
@@ -80,8 +81,6 @@
             </div>
         </div>
         <div class="col-5">
-            <!--The following link is hidden to support a shared Javascript function with AddQuestion-->
-            <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True" style="display:none">Generate Question</a>
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="container-fluid follow-scroll">
