@@ -30,7 +30,7 @@ namespace BiblePathsCore
 
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id, string ChallengeComment, string ReturnPath, int ReturnQuizID = 0)
+        public async Task<IActionResult> OnPostAsync(int? id, string ChallengeComment, string ReturnPath, int PointsToAward = -1, int ReturnQuizID = 0)
         {
             if (id == null)
             {
@@ -49,6 +49,19 @@ namespace BiblePathsCore
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to challenge a PBE question" }); }
+
+            // If Points were awarded we need to go and grab the Quiz object, indicated by PointsToAward being 0 or more.
+            // Let's grab the Quiz Object in order to update it, if it's 0 then we skip points assignment.
+            if (ReturnQuizID > 0 && PointsToAward > -1)
+            {
+                QuizGroupStat Quiz = await _context.QuizGroupStats.FindAsync(ReturnQuizID);
+                if (Quiz == null)
+                {
+                    return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd... We were unable to find the Quiz with ID {0}?", ReturnQuizID) });
+                }
+                if (Quiz.QuizUser != PBEUser) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Quiz Owner can award points during a Quiz" }); }
+                _ = await Quiz.AddQuizPointsforQuestionAsync(_context, QuestionToUpdate, PointsToAward, PBEUser);
+            }
 
             if (QuestionToUpdate != null)
             {

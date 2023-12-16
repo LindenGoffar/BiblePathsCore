@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using BiblePathsCore.Pages.PBE;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyModel;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using static BiblePathsCore.Models.DB.QuizQuestion;
 
 namespace BiblePathsCore.Models.DB
 {
@@ -92,6 +95,48 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             BookStats = bookStats;
+            return retval;
+        }
+
+        public async Task<bool> AddQuizPointsforQuestionAsync(BiblePathsCoreDbContext context, QuizQuestion QuestionToUpdate, int PointsToAward, QuizUser PBEUser)
+        {
+            bool retval = true;
+            // Now we award the points... let's get this right: 
+            // Let's prevent posting an anomalous number of points. 
+            int QuestionPointsPossible = QuestionToUpdate.Points;
+            if (PointsToAward > QuestionPointsPossible)
+            { PointsToAward = QuestionPointsPossible; }
+            if (PointsToAward < 0) { PointsToAward = 0; }
+
+            // Update the Quiz Object: 
+            context.Attach(this);
+            PointsPossible += QuestionPointsPossible;
+            PointsAwarded += PointsToAward;
+            QuestionsAsked += 1;
+            Modified = DateTime.Now;
+
+            // Update the Question Object
+            context.Attach(QuestionToUpdate);
+            QuestionToUpdate.LastAsked = DateTime.Now;
+
+            // We've had some challenges with users challenging many questions often with no comment.
+            // We will do a user check and make sure our user isn't blocked, if they are we silently fail the challenge.
+            // TODO: We should revisit the silent fail if it becomes a problem. 
+            // UPDATE: 12/13/2023 Quiz Challenge has been split from awarding points so this is 
+            // deprecated code
+            //if (Question.Challenged && !PBEUser.IsQuestionBuilderLocked)
+            //{
+            //    QuestionToUpdate.Challenged = true;
+            //    QuestionToUpdate.ChallengeComment = Question.ChallengeComment;
+            //    QuestionToUpdate.ChallengedBy = PBEUser.Email;
+            //}
+
+            // Save the changes to both the Quiz and Question objects. 
+            await context.SaveChangesAsync();
+
+            // And next let's make sure we log this event. 
+            // BUG: Note we've had a pretty significant data bug prior to 6/8/2019 where we were setting Points to the cumulative quizGroupStat.PointsAwarded vs. the non-cumulative PointsAwardedByJudge... so all data prior to this date is wrong. 
+            await QuestionToUpdate.RegisterEventAsync(context, QuestionEventType.QuestionPointsAwarded, PBEUser.Id, null, Id, PointsToAward);
             return retval;
         }
 

@@ -85,8 +85,8 @@
     <div class="row">
         <div class="col-xs-12 col-sm-9">
             <br />
-            <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#ChallengeModal">
-                Challenge this Question
+            <button type="button" id="BtnChallengeQuestion" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#ChallengeModal">
+                Challenge Question
             </button>
             <p><small class="text-info">You should only challenge a question if you feel the Question or Answer are incorrect or the question does not conform to PBE standards.</small></p>
             <div class="modal fade" id="ChallengeModal" tabindex="-1" role="dialog" aria-labelledby="Challenge Question" aria-hidden="true">
@@ -107,6 +107,7 @@
                                 <input type="hidden" name="id" value="@Model.Question.Id" />
                                 <input type="hidden" name="ReturnPath" value="Quiz" />
                                 <input type="hidden" name="ReturnQuizID" value="@Model.Quiz.Id" />
+                                <input type="hidden" id="PointsToAward" name="PointsToAward"/>
                                 <input type="submit" value="Challenge Question" class="btn btn-danger" />
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                             </div>
@@ -163,6 +164,6 @@
 
 @section Scripts {
     <partial name="_QuizHelpers" />
-    <partial name="_HideUnHide" />
+    @* <partial name="_HideUnHide" /> *@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

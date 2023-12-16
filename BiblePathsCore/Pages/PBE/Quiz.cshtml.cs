@@ -108,40 +108,9 @@ namespace BiblePathsCore.Pages.PBE
                 return RedirectToPage("/error", new { errorMessage = "That's Odd... We were unable to find this Question so we can't update it" });
             }
 
-            // Now we award the points... let's get this right: 
-            // Let's prevent posting an anomalous number of points. 
-            int QuestionPointsPossible = QuestionToUpdate.Points;
-            if (Question.PointsAwarded > QuestionPointsPossible)
-            { Question.PointsAwarded = QuestionPointsPossible; }
-            if (Question.PointsAwarded < 0) { Question.PointsAwarded = 0; }
+            // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats. 
+            _ = await Quiz.AddQuizPointsforQuestionAsync(_context, QuestionToUpdate, Question.PointsAwarded, PBEUser);
 
-            // Update the Quiz Object: 
-            _context.Attach(Quiz);
-            Quiz.PointsPossible += QuestionPointsPossible;
-            Quiz.PointsAwarded += Question.PointsAwarded;
-            Quiz.QuestionsAsked += 1;
-            Quiz.Modified = DateTime.Now;
-
-            // Update the Question Object
-            _context.Attach(QuestionToUpdate);
-            QuestionToUpdate.LastAsked = DateTime.Now;
-
-            // We've had some challenges with users challenging many questions often with no comment.
-            // We will do a user check and make sure our user isn't blocked, if they are we silently fail the challenge.
-            // TODO: We should revisit the silent fail if it becomes a problem. 
-            if (Question.Challenged && !PBEUser.IsQuestionBuilderLocked)
-            {
-                QuestionToUpdate.Challenged = true;
-                QuestionToUpdate.ChallengeComment = Question.ChallengeComment;
-                QuestionToUpdate.ChallengedBy = PBEUser.Email;
-            }
-
-            // Save both of these changes. 
-            await _context.SaveChangesAsync();
-
-            // And next let's make sure we log this event. 
-            // BUG: Note we've had a pretty significant data bug prior to 6/8/2019 where we were setting Points to the cumulative quizGroupStat.PointsAwarded vs. the non-cumulative PointsAwardedByJudge... so all data prior to this date is wrong. 
-            await QuestionToUpdate.RegisterEventAsync(_context, QuestionEventType.QuestionPointsAwarded, PBEUser.Id, null, Quiz.Id, Question.PointsAwarded);
             return RedirectToPage("Quiz", new { BibleId, QuizId });
         }
 

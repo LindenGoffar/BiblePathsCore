@@ -17,9 +17,13 @@
         // console.log(isChallengedNoComment())
         if (parseInt($("#Question_PointsAwarded").val()) >= 0) {
             $('#AwardPoints').prop('disabled', false);
+            document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
+            document.getElementById("BtnChallengeQuestion").innerText = "Challenge and Award Points";
         }
         else {
             $('#AwardPoints').prop('disabled', true);
+            document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
+            document.getElementById("BtnChallengeQuestion").innerText = "Challenge Question";
         }
     });
     // $('#Question_Challenged').change(function () {
