@@ -45,12 +45,14 @@ Invoke-RestMethod -Method Get -Uri "$BaseURI/API/BibleVerses/?BibleID=$BibleID&B
 
 
 # QuizQuestions
-Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleId=NKJV-EN&BookName=Genesis&Chapter=1"
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleId=NKJV-EN&BookName=Joshua&Chapter=2"
 
 
 #QuizQuestions Commentary
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/QuizQuestions/?BibleID=NKJV-EN&BookName=Ezra&Chapter=1000"
 
+# App Questions (use the PBE Quiz Logic to select.)
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/AppQuestions/?BibleId=NKJV-EN&BookName=Joshua&Chapter=2&Count=3"
 
 # Add QuizQuestion
 # To obtain a valid Token browse to ../howto/apitoken

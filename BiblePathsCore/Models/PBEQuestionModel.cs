@@ -137,6 +137,17 @@ namespace BiblePathsCore.Models.DB
             LegalNote = GetBibleLegalNote();
         }
 
+        public async Task<bool> UpdateLastAskedAsync(BiblePathsCoreDbContext context)
+        {
+            // Update this Question Object
+            context.Attach(this);
+            Type = DetectQuestionType();
+            LastAsked = DateTime.Now;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+
         // PopulatePBEQuestionAndBookInfoAsync is expensive as it builds a new PBE Book everytime, we don't want to call this often. 
         public async Task<bool> PopulatePBEQuestionAndBookInfoAsync(BiblePathsCoreDbContext context)
         {
@@ -531,6 +542,7 @@ namespace BiblePathsCore.Models.DB
         public bool IsCommentaryQuestion { get; set; }
         public string Owner { get; set; }
         public string Token { get; set; }
+        public string TypeName { get; set; }
         public MinQuestion()
         {
             // Parameterless constructor required for Post Action. 
@@ -553,6 +565,7 @@ namespace BiblePathsCore.Models.DB
             LastAsked = quizQuestion.LastAsked;
             BibleId = quizQuestion.BibleId;
             IsCommentaryQuestion = quizQuestion.IsCommentaryQuestion;
+            TypeName = Enum.GetName(typeof(QuestionType), quizQuestion.Type);
 
             Answers = new List<string>();
             foreach(QuizAnswer Answer in quizQuestion.QuizAnswers)
