@@ -31,16 +31,19 @@ namespace BiblePathsCore.Controllers
             if (Book == null) { return NotFound(); }
 
             List<MinQuestion> minQuestions = new List<MinQuestion>();
-            List<QuizQuestion> Questions = await _context.QuizQuestions
-                                                        .Include(Q => Q.QuizAnswers)
-                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.BookNumber == Book.BookNumber
-                                                                && Q.Chapter == Chapter
-                                                                && Q.IsDeleted == false
-                                                                && Q.Challenged == false
-                                                                && Q.Type == (int)QuestionType.Standard
-                                                                && Q.IsAnswered == true).ToListAsync();
-            foreach(QuizQuestion Question in Questions)
+
+            // Switch to static method
+            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionListAsync(_context, BibleId, Book.BookNumber, Chapter, false);
+            //List<QuizQuestion> Questions = await _context.QuizQuestions
+            //                                            .Include(Q => Q.QuizAnswers)
+            //                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+            //                                                    && Q.BookNumber == Book.BookNumber
+            //                                                    && Q.Chapter == Chapter
+            //                                                    && Q.IsDeleted == false
+            //                                                    && Q.Challenged == false
+            //                                                    && Q.Type == (int)QuestionType.Standard
+            //                                                    && Q.IsAnswered == true).ToListAsync();
+            foreach (QuizQuestion Question in Questions)
             {
                 Question.PopulatePBEQuestionInfo(Book);
                 MinQuestion minQuestion = new MinQuestion(Question);
@@ -129,7 +132,8 @@ namespace BiblePathsCore.Controllers
                 Question = Question.Question,
                 Owner = Question.Owner,
                 Source = Question.Source,
-                Type = (int)QuestionType.Standard
+                Type = Question.DetectQuestionType()
+                //Type = (int)QuestionType.Standard
             };
 
             // If the Question is in an Exclusion range we will show an Error

@@ -2,10 +2,13 @@
 using Humanizer.Localisation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +16,7 @@ using System.Threading.Tasks;
 namespace BiblePathsCore.Models
 {
     // Enums generally used in the PBE Quiz App
-    public enum QuestionType { Standard, Automated, Exclusion} 
+    public enum QuestionType { Standard, FITB, Exclusion}
 }
 
 namespace BiblePathsCore.Models.DB
@@ -24,6 +27,8 @@ namespace BiblePathsCore.Models.DB
 
         public const int MaxPoints = 15;
         public const int MinBlankWordLength = 3;
+        public const string FITBString = "fill in the blanks";
+        public const string FITBBlankWord = "___";
 
         [NotMapped]
         public string BookName { get; set; }
@@ -43,6 +48,73 @@ namespace BiblePathsCore.Models.DB
         public List<BibleVerse> Verses { get; set; }
         [NotMapped]
         public string LegalNote { get; set; }
+
+        public static async Task<List<QuizQuestion>> GetQuestionListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, bool includeChallenged)
+        {
+            if (includeChallenged)
+            {
+                return await context.QuizQuestions.Include(Q => Q.QuizAnswers)
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.BookNumber == BookNumber
+                                                                && Q.Chapter == Chapter
+                                                                && Q.IsDeleted == false
+                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && Q.IsAnswered == true).ToListAsync();
+            }
+            
+            return await context.QuizQuestions.Include(Q => Q.QuizAnswers)
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.BookNumber == BookNumber
+                                                                && Q.Chapter == Chapter
+                                                                && Q.IsDeleted == false
+                                                                && Q.Challenged == false
+                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && Q.IsAnswered == true).ToListAsync();
+        }
+
+        public static async Task<List<QuizQuestion>> GetQuestionListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int EndVerse, bool includeChallenged)
+        {
+            if (includeChallenged)
+            {
+                return await context.QuizQuestions.Include(Q => Q.QuizAnswers)
+                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                    && Q.BookNumber == BookNumber
+                                                    && Q.Chapter == Chapter
+                                                    && Q.EndVerse == EndVerse
+                                                    && Q.IsDeleted == false
+                                                    && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                    && Q.IsAnswered == true).ToListAsync();
+            }
+            
+            return await context.QuizQuestions.Include(Q => Q.QuizAnswers)
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.BookNumber == BookNumber
+                                                                && Q.Chapter == Chapter
+                                                                && Q.EndVerse == EndVerse
+                                                                && Q.IsDeleted == false
+                                                                && Q.Challenged == includeChallenged
+                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && Q.IsAnswered == true).ToListAsync();
+        }
+
+        public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.IsDeleted == false
+                                                                && (Q.Type == (int)QuestionType.Standard
+                                                                    || Q.Type == (int)QuestionType.FITB))
+                                                        .ToListAsync();
+        }
+        public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber)
+        {
+            return await context.QuizQuestions
+                        .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
+                                && Q.BookNumber == BookNumber 
+                                && Q.IsDeleted == false
+                                && (Q.Type == (int)QuestionType.Standard
+                                   || Q.Type == (int)QuestionType.FITB))
+                        .ToListAsync();
+        }
 
         public void PopulatePBEQuestionInfo(BibleBook PBEBook)
         {
@@ -89,6 +161,20 @@ namespace BiblePathsCore.Models.DB
             TimeLimit = (Points * 5) + 20;
 
             return true;
+        }
+
+        // This method attempts to determine whether a question is Standard or FITB
+        // and will return the appropriate QuestionType. Default being Standard.
+        public int DetectQuestionType()
+        {
+            StringComparison comp = StringComparison.OrdinalIgnoreCase;
+       
+            if (this.Question.Contains(FITBString, comp )
+                    || this.Question.Contains(FITBBlankWord))
+            {
+                return (int)QuestionType.FITB;
+            }
+            return (int)QuestionType.Standard;
         }
 
         public async Task<bool> IsQuestionInExclusionAsync(BiblePathsCoreDbContext context)
@@ -150,7 +236,7 @@ namespace BiblePathsCore.Models.DB
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
-            List<QuizQuestion> Questions = QuestionsAndExclusions.Where(Q => Q.Type == (int)QuestionType.Standard).ToList();
+            List<QuizQuestion> Questions = QuestionsAndExclusions.Where(Q => (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)).ToList();
             List<QuizQuestion> Exclusions = QuestionsAndExclusions.Where(Q => Q.Type == (int)QuestionType.Exclusion).ToList();
 
             if (Chapter != Bible.CommentaryChapter)
@@ -166,7 +252,9 @@ namespace BiblePathsCore.Models.DB
                 }
                 foreach (BibleVerse verse in bibleVerses)
                 {
-                    verse.QuestionCount = verse.GetQuestionCountWithQuestionList (Questions);
+                    verse.QuestionCount = verse.GetQuestionCountWithQuestionList(Questions);
+                    verse.FITBPct = verse.GetFITBPctWithQuestionList(Questions);
+
                     verse.IsPBEExcluded = verse.IsVerseInExclusionList(Exclusions);
                 }
             }
@@ -422,6 +510,8 @@ namespace BiblePathsCore.Models.DB
     // when a QuizQuestion is passed back through an API call. 
     public class MinQuestion
     {
+        public const string FITBString = "fill in the blanks";
+        public const string FITBBlankWord = "___";
         public int Id { get; set; }
         public string Question { get; set; }
         public string PBEQuestion { get; set; }
@@ -469,6 +559,20 @@ namespace BiblePathsCore.Models.DB
             {
                 Answers.Add(Answer.Answer);
             }
+        }
+
+        // This method attempts to determine whether a question is Standard or FITB
+        // and will return the appropriate QuestionType. Default being Standard.
+        public int DetectQuestionType()
+        {
+            StringComparison comp = StringComparison.OrdinalIgnoreCase;
+
+            if (this.Question.Contains(FITBString, comp)
+                    || this.Question.Contains(FITBBlankWord))
+            {
+                return (int)QuestionType.FITB;
+            }
+            return (int)QuestionType.Standard;
         }
 
         public async Task<bool> APIUserTokenCheckAsync(BiblePathsCoreDbContext context)

@@ -117,6 +117,7 @@ namespace BiblePathsCore.Models.DB
 
             // Update the Question Object
             context.Attach(QuestionToUpdate);
+            QuestionToUpdate.Type = QuestionToUpdate.DetectQuestionType();        
             QuestionToUpdate.LastAsked = DateTime.Now;
 
             // We've had some challenges with users challenging many questions often with no comment.
@@ -306,7 +307,9 @@ namespace BiblePathsCore.Models.DB
             List<QuizQuestion> PossibleQuestions = new List<QuizQuestion>();
             try
             {
-                // We now query for 5 questions in the selected chapter ordered by longest time since asked, we want to avoid re-asking questions in a short period of time. 
+                // We now query for 4 standard questions in the selected chapter
+                // ordered by longest time since asked,
+                // we want to avoid re-asking questions in a short period of time. 
                 PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber 
                                                                     && (Q.BibleId == bibleId || Q.BibleId == null)
                                                                     && Q.Chapter == Chapter
@@ -314,16 +317,51 @@ namespace BiblePathsCore.Models.DB
                                                                     && Q.IsAnswered == true 
                                                                     && !(Q.IsDeleted)
                                                                     && Q.Type == (int)QuestionType.Standard)
-                                                                .OrderBy(Q => Q.LastAsked).Take(5).ToListAsync();
+                                                                .OrderBy(Q => Q.LastAsked).Take(4).ToListAsync();
             }
             catch
+            {
+                // We're not going to do anything here... we'll add some FITB
+                // and move on. 
+            }
+
+            try
+            {
+                // We now query for 2 FITB questions in the selected chapter
+                // ordered by longest time since asked,
+                // we want to avoid re-asking questions in a short period of time. 
+                PossibleQuestions.AddRange(await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
+                                                                    && (Q.BibleId == bibleId || Q.BibleId == null)
+                                                                    && Q.Chapter == Chapter
+                                                                    && Q.Challenged == false
+                                                                    && Q.IsAnswered == true
+                                                                    && !(Q.IsDeleted)
+                                                                    && Q.Type == (int)QuestionType.FITB)
+                                                                .OrderBy(Q => Q.LastAsked).Take(2).ToListAsync()
+                                            );
+            }
+            catch
+            {
+                // We're not going to do anything here... 
+                // We'll catch the no questions scenario below.
+            }
+
+
+            if (PossibleQuestions == null)
             {
                 // This is the couldn't find a question scenario.
                 ReturnQuestion.QuestionSelected = false;
                 return ReturnQuestion;
             }
 
-            if(PossibleQuestions.Count > 0)
+            if (PossibleQuestions.Count == 0)
+            {
+                // This is another couldn't find a question scenario.
+                ReturnQuestion.QuestionSelected = false;
+                return ReturnQuestion;
+            }
+
+            if (PossibleQuestions.Count > 0)
             {
                 Random rand = new Random();
                 int QIndex = rand.Next(0, PossibleQuestions.Count); // Rand will return an int >= 0 and < PossibleQuestions.Count, which works with a zero based array right?

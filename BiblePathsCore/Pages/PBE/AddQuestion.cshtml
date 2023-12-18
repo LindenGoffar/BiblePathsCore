@@ -58,7 +58,15 @@
                         @if (Verse.QuestionCount > 0)
                         {
                             <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter" asp-route-Verse="@Verse.Verse">
-                                <span class="badge badge-secondary">@Verse.QuestionCount</span>
+                                @if(Verse.FITBPct > 75)
+                                {
+                                    <span class="badge badge-warning">@Verse.QuestionCount</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">@Verse.QuestionCount</span>
+                                }
+
                             </a>
                         }
                     }

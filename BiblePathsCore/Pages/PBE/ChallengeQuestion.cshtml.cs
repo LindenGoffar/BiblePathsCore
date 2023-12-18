@@ -70,6 +70,7 @@ namespace BiblePathsCore
                 QuestionToUpdate.Challenged = true;
                 QuestionToUpdate.ChallengedBy = PBEUser.Email;
                 QuestionToUpdate.ChallengeComment = ChallengeComment;
+                QuestionToUpdate.Type = QuestionToUpdate.DetectQuestionType();
                 await _context.SaveChangesAsync();
             }
             switch (ReturnPath)

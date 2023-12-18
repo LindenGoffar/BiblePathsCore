@@ -46,20 +46,31 @@ namespace BiblePathsCore.Pages.PBE
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
             // Handle the possibility that we want only one verse. 
-            var questions = from q in _context.QuizQuestions select q;
+            // Switch to Static method
+            //var questions = from q in _context.QuizQuestions select q;
 
+            //if (!Verse.HasValue)
+            //{
+            //    questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.Type == (int)QuestionType.Standard && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
+            //}
+            //else
+            //{
+            //    questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
+            //}
+
+            //Questions = await questions.Include(Q => Q.QuizAnswers)
+            //                            .OrderBy(Q=> Q.EndVerse)
+            //                            .ToListAsync();
             if (!Verse.HasValue)
             {
-                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.Type == (int)QuestionType.Standard && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
+                Questions = await QuizQuestion.GetQuestionListAsync(_context, this.BibleId, BookNumber, Chapter, true);
             }
             else
             {
-                questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
+                Questions = await QuizQuestion.GetQuestionListAsync(_context, this.BibleId, BookNumber, Chapter, (int)Verse, true);
             }
 
-            Questions = await questions.Include(Q => Q.QuizAnswers)
-                                        .OrderBy(Q=> Q.EndVerse)
-                                        .ToListAsync();
+            Questions = Questions.OrderBy(Q => Q.EndVerse).ToList(); 
 
             foreach (QuizQuestion Question in Questions)
             {

@@ -114,15 +114,17 @@ namespace BiblePathsCore.Models.DB
                                                   .ToListAsync();
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
-            List<QuizQuestion> Questions = await context.QuizQuestions
-                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.IsDeleted == false
-                                                                && Q.Type == (int)QuestionType.Standard)
-                                                        .ToListAsync();
+            // Switch to Static Method
+            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId);
+            //List<QuizQuestion> Questions = await context.QuizQuestions
+            //                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+            //                                                    && Q.IsDeleted == false
+            //                                                    && Q.Type == (int)QuestionType.Standard)
+            //                                            .ToListAsync();
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List<QuizBookList> BookLists = await context.QuizBookLists
+            List <QuizBookList> BookLists = await context.QuizBookLists
                                                 .Include(L => L.QuizBookListBookMaps)
                                                 .Where(L => L.IsDeleted == false)
                                                 .ToListAsync();
@@ -244,11 +246,13 @@ namespace BiblePathsCore.Models.DB
                                                   .ToListAsync();
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
-            List<QuizQuestion> Questions = await context.QuizQuestions
-                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.IsDeleted == false
-                                                                && Q.Type == (int)QuestionType.Standard)
-                                                        .ToListAsync();
+            // Switch to Static Method
+            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId);
+            //List<QuizQuestion> Questions = await context.QuizQuestions
+            //                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+            //                                                    && Q.IsDeleted == false
+            //                                                    && Q.Type == (int)QuestionType.Standard)
+            //                                            .ToListAsync();
 
             foreach (BibleBook Book in PBEBooks)
             {
@@ -265,12 +269,14 @@ namespace BiblePathsCore.Models.DB
         {
             if (Questions == null)
             {
-                Questions = await context.QuizQuestions
-                        .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
-                                && Q.BookNumber == BookNumber 
-                                && Q.IsDeleted == false
-                                && Q.Type == (int)QuestionType.Standard)
-                        .ToListAsync();
+                Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, BookNumber);
+                // Switch to Static method
+                //Questions = await context.QuizQuestions
+                //        .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
+                //                && Q.BookNumber == BookNumber 
+                //                && Q.IsDeleted == false
+                //                && Q.Type == (int)QuestionType.Standard)
+                //        .ToListAsync();
             }
             InBookList = IsInBooklist(context, BookLists);
             QuestionCount = GetQuestionCount(Questions);

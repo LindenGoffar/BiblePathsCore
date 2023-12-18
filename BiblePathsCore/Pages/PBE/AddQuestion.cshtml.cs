@@ -175,7 +175,7 @@ namespace BiblePathsCore.Pages.PBE
 
                 emptyQuestion.Owner = PBEUser.Email;
                 if (emptyQuestion.Source == null) {emptyQuestion.Source = "BiblePaths.Net";}
-                emptyQuestion.Type = (int)QuestionType.Standard;
+                emptyQuestion.Type = emptyQuestion.DetectQuestionType();
                 _context.QuizQuestions.Add(emptyQuestion);
 
                 // now we need to add the Answer if there is one. 

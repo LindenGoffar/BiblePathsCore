@@ -63,10 +63,11 @@ namespace BiblePathsCore.Services
 
             //List<FunctionDefinition> QnAFuntions = new List<FunctionDefinition>();
             FunctionDefinition QnAFunction = new FunctionDefinition();
-            
-            JSchemaGenerator generator = new JSchemaGenerator();
-            JSchema qnASchema = generator.Generate(typeof(QandAObj));
-            string qnASchemaString = qnASchema.ToString();
+
+            //JSchemaGenerator generator = new JSchemaGenerator();
+            //JSchema qnASchema = generator.Generate(typeof(QandAObj));
+            //string qnASchemaString = qnASchema.ToString();
+            string qnASchemaString = "{  \"type\": \"object\",  \"properties\": { \"question\": {\"type\": \"string\" }, \"answer\": { \"type\": \"string\" }  },  \"required\": [ \"question\",  \"answer\" ]}";
 
             QnAFunction.Name = "QnAFunction";
             QnAFunction.Parameters = BinaryData.FromString(qnASchemaString);
@@ -80,7 +81,26 @@ namespace BiblePathsCore.Services
             Response<ChatCompletions> response = await client.GetChatCompletionsAsync(
                 OpenAIAPI, // assumes a matching model deployment or model name
                 CCOptions);
-            
+   
+            // Handling some errors
+            if (response == null)
+            {
+                qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                return qandAObj;
+            }
+            if (response.GetRawResponse().Status != 200)
+            {
+                qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
+                qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
+                qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
+                return qandAObj;
+            }
+            if (response.Value == null)
+            {
+                qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                return qandAObj;
+            }
+
             if (response.Value.Choices.Count >= 1)
             {
                 // Very oddly the response may show up on one of two properties. 

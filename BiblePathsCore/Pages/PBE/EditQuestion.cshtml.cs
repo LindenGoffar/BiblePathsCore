@@ -131,6 +131,7 @@ namespace BiblePathsCore.Pages.PBE
                 Q => Q.BibleId, Q => Q.Points, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question, Q => Q.Challenged, Q => Q.ChallengeComment))
             {
                 QuestionToUpdate.Modified = DateTime.Now;
+                QuestionToUpdate.Type = QuestionToUpdate.DetectQuestionType();
                 // We've got some bad edits happening so logging to challengeComment
                 QuestionToUpdate.ChallengeComment += " - Question lasted edited by: " + PBEUser.Email;
 

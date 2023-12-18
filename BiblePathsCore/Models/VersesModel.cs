@@ -22,19 +22,21 @@ namespace BiblePathsCore.Models.DB
         public bool InRelatedPaths { get; set; }
         [NotMapped]
         public List<Path> RelatedPaths { get; set;  }
+        [NotMapped]
+        public int FITBPct { get; set; }
 
         // This one is expensive we shouldn't use this one if we can avoid.
-        public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
-        {
-            return await context.QuizQuestions
-                        .Where(Q => Q.BookNumber == BookNumber 
-                                && Q.Chapter == Chapter 
-                                && Q.EndVerse == Verse 
-                                && (Q.BibleId == BibleId || Q.BibleId == null)
-                                && Q.IsDeleted == false
-                                && Q.Type == (int)QuestionType.Standard)
-                        .CountAsync();
-        }
+        //public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
+        //{
+        //    return await context.QuizQuestions
+        //                .Where(Q => Q.BookNumber == BookNumber 
+        //                        && Q.Chapter == Chapter 
+        //                        && Q.EndVerse == Verse 
+        //                        && (Q.BibleId == BibleId || Q.BibleId == null)
+        //                        && Q.IsDeleted == false
+        //                        && Q.Type == (int)QuestionType.Standard)
+        //                .CountAsync();
+        //}
 
         public int GetQuestionCountWithQuestionList(List<QuizQuestion> Questions)
         {
@@ -44,8 +46,33 @@ namespace BiblePathsCore.Models.DB
                                 && Q.EndVerse == Verse
                                 && (Q.BibleId == BibleId || Q.BibleId == null)
                                 && Q.IsDeleted == false
-                                && Q.Type == (int)QuestionType.Standard)
+                                && (Q.Type == (int)QuestionType.Standard
+                                    || Q.Type == (int)QuestionType.FITB))
                         .Count();
+        }
+
+        public int GetFITBPctWithQuestionList(List<QuizQuestion> Questions)
+        {
+            int QuestionCount = Questions.Where(Q => Q.BookNumber == BookNumber
+                                                && Q.Chapter == Chapter
+                                                && Q.EndVerse == Verse
+                                                && (Q.BibleId == BibleId || Q.BibleId == null)
+                                                && Q.IsDeleted == false
+                                                && (Q.Type == (int)QuestionType.Standard
+                                                    || Q.Type == (int)QuestionType.FITB))
+                                       .Count();
+            int FITBCount = Questions.Where(Q => Q.BookNumber == BookNumber
+                                                && Q.Chapter == Chapter
+                                                && Q.EndVerse == Verse
+                                                && (Q.BibleId == BibleId || Q.BibleId == null)
+                                                && Q.IsDeleted == false
+                                                && Q.Type == (int)QuestionType.FITB)
+                                        .Count();
+            if (QuestionCount > 0)
+            {
+                return (FITBCount / QuestionCount) * 100;
+            }
+            return 0;
         }
 
         public bool IsVerseInExclusionList(List<QuizQuestion> ExclusionQuestions)
