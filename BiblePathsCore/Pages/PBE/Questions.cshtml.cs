@@ -45,22 +45,6 @@ namespace BiblePathsCore.Pages.PBE
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, this.BibleId, this.BookNumber, this.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-            // Handle the possibility that we want only one verse. 
-            // Switch to Static method
-            //var questions = from q in _context.QuizQuestions select q;
-
-            //if (!Verse.HasValue)
-            //{
-            //    questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.Type == (int)QuestionType.Standard && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
-            //}
-            //else
-            //{
-            //    questions = questions.Where(Q => (Q.BibleId == this.BibleId || Q.BibleId == null) && Q.BookNumber == BookNumber && Q.Chapter == Chapter && Q.EndVerse == Verse && Q.IsDeleted == false && Q.Type == (int)QuestionType.Standard);
-            //}
-
-            //Questions = await questions.Include(Q => Q.QuizAnswers)
-            //                            .OrderBy(Q=> Q.EndVerse)
-            //                            .ToListAsync();
             if (!Verse.HasValue)
             {
                 Questions = await QuizQuestion.GetQuestionListAsync(_context, this.BibleId, BookNumber, Chapter, true);
@@ -76,6 +60,12 @@ namespace BiblePathsCore.Pages.PBE
             {
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.CheckUserCanEdit(PBEUser);
+                // TODO: This may become temporary if expensive, but is useful for cleanup tasks. 
+                // First see if maint may be needed. 
+                if (Question.HasQuestionMaintenanceIssue())
+                {
+                    _ = await Question.PerformQuestionMaintenanceTasksAsync(_context);
+                }
             }
             IsCommentary = (this.Chapter == Bible.CommentaryChapter);
             if (IsCommentary) { this.BookName = PBEBook.CommentaryTitle;  }

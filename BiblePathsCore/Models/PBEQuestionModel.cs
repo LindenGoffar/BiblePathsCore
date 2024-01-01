@@ -147,6 +147,76 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
+        public bool HasQuestionMaintenanceIssue()
+        {
+            bool retVal = false;
+
+            if(QuizAnswers == null && IsAnswered == true)
+            {
+                retVal = true;
+            }
+            else
+            {
+                if(QuizAnswers.Count == 0 && IsAnswered == true)
+                {
+                    retVal= true;
+                }
+                if(QuizAnswers.Count > 1 && IsAnswered == false)
+                {
+                    retVal = true;
+                }
+            }
+
+            if(Type != DetectQuestionType())
+            {
+                retVal = true;
+            }
+
+            return retVal;
+        }
+        public async Task<bool> PerformQuestionMaintenanceTasksAsync(BiblePathsCoreDbContext context)
+        {
+            // there are a few states on a question object that are presumed not good. 
+            // we will check for these here and clean them up. 
+
+            bool Answered = false;
+            int Detectedtype = 0;
+
+            // Set IsAnswered as appropriate. 
+            if (this.QuizAnswers == null)
+            {
+                // Load our possible answers. 
+                await context.Entry(this)
+                    .Collection(Q => Q.QuizAnswers)
+                    .LoadAsync();
+            }
+            if (this.QuizAnswers != null) // still null? Then there are no answers. 
+            {
+                if (QuizAnswers.Count > 0)
+                {
+                    Answered = true;
+                }
+                else { Answered = false; }
+
+            }
+            else { Answered = false; }
+
+            // Set QuestionType as appropriate: 
+            Detectedtype = DetectQuestionType();
+
+            // Now let's compare agains the real vaues to determine if we need to do a write. 
+            if (Answered != this.IsAnswered || Detectedtype != this.Type)
+            {
+                context.Attach(this);
+                IsAnswered = Answered;
+                Type = DetectQuestionType();
+                await context.SaveChangesAsync();
+            }
+
+
+            return true;
+        }
+
 
         // PopulatePBEQuestionAndBookInfoAsync is expensive as it builds a new PBE Book everytime, we don't want to call this often. 
         public async Task<bool> PopulatePBEQuestionAndBookInfoAsync(BiblePathsCoreDbContext context)
