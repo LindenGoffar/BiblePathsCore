@@ -21,6 +21,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public float Percentage { get; set; }
         [NotMapped]
+        public int FITBQuestionCount { get; set; }
+        [NotMapped]
         public List<QuizBookStats> BookStats { get; set; }
         [NotMapped]
         public int QuestionNumber { get; set; }
@@ -61,6 +63,7 @@ namespace BiblePathsCore.Models.DB
         public async Task<bool> AddDetailedQuizStatsAsync(BiblePathsCoreDbContext context, string bibleId)
         {
             bool retval = true;
+            FITBQuestionCount = 0; 
 
             List<QuizBookStats> bookStats = new List<QuizBookStats>();
             // We need to retrieve all QuizQuestionStat Objects for this Quiz. 
@@ -92,6 +95,11 @@ namespace BiblePathsCore.Models.DB
                     }
                     // Now let's go update this bookStat
                     bookStat.AddQuestionToBookStat(Stat, Question);
+                   
+                    // Count our FITBQuestions
+                    if (Question.Type == (int)QuestionType.FITB){
+                        FITBQuestionCount++;
+                    }
                 }
             }
             BookStats = bookStats;

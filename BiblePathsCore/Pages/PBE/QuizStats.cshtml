@@ -14,7 +14,8 @@
             <span>Questions - @Model.Quiz.QuestionsAsked</span><br />
             <span>Points Awarded - @Model.Quiz.PointsAwarded</span><br />
             <span>Points Possible - @Model.Quiz.PointsPossible</span><br />
-            <span>Score - @Model.Quiz.Percentage%</span>
+            <span>Score - @Model.Quiz.Percentage%</span><br />
+            <span class="text-info">Fill in the Blanks Count - @Model.Quiz.FITBQuestionCount</span>
         </div>
     </div>
     @foreach (var BookStat in Model.Quiz.BookStats.OrderBy(B => B.BookNumber))
