@@ -49,17 +49,34 @@ namespace BiblePathsCore.Services
         //}
         public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
         {
-             
-            string QnARequest = "Build a question and answer pair, with precise questions, and brief answers, from the following text:" 
-                                + text;
+
+            string QnASystemRequest = "You will be provided Bible verse text (delimited by XML tags), " +
+                "write a question from this text that can be answered from the same text, then provide the answer to the question. " +
+                "The output, including both question and answer, should be in the schema specifid in the Function request. " +
+                "The Question should be brief and not include the phrase 'according to the verse or text'. " +
+                "The Answer should be concise and not include the contents of the question.";
+
+
+            string QnAUserRequest = "<Verse>"
+                                + text
+                                + "</Verse>";
+                                
             ChatCompletionsOptions CCOptions = new ChatCompletionsOptions();
 
             QandAObj qandAObj = new QandAObj();
 
-            ChatMessage QnAMessage = new ChatMessage();
-            QnAMessage.Role = "function";
-            QnAMessage.Name = "QnAFunction";
-            QnAMessage.Content = QnARequest;
+            ChatMessage QnASystemMessage = new ChatMessage();
+            QnASystemMessage.Role = "system";
+            QnASystemMessage.Content = QnASystemRequest;
+
+            ChatMessage QnAUserMessage = new ChatMessage();
+            QnAUserMessage.Role = "user";
+            QnAUserMessage.Content = QnAUserRequest;
+
+            ChatMessage QnAFunctionMessage = new ChatMessage();
+            QnAFunctionMessage.Role = "function";
+            QnAFunctionMessage.Name = "QnAFunction";
+            QnAFunctionMessage.Content = "Use QnAFunction Schema Provided";
 
             //List<FunctionDefinition> QnAFuntions = new List<FunctionDefinition>();
             FunctionDefinition QnAFunction = new FunctionDefinition();
@@ -73,7 +90,9 @@ namespace BiblePathsCore.Services
             QnAFunction.Parameters = BinaryData.FromString(qnASchemaString);
 
             CCOptions.Functions.Add(QnAFunction);
-            CCOptions.Messages.Add(QnAMessage);
+            CCOptions.Messages.Add(QnASystemMessage);
+            CCOptions.Messages.Add(QnAUserMessage);
+            CCOptions.Messages.Add(QnAFunctionMessage);
             CCOptions.ChoiceCount = 1; // we only want one question generated
             CCOptions.Temperature = (float)1.2;
 
