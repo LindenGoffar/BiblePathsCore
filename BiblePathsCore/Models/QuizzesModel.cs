@@ -335,7 +335,8 @@ namespace BiblePathsCore.Models.DB
 
             try
             {
-                // We now query for 2 FITB questions in the selected chapter
+                // We now query for 1 FITB questions in the selected chapter
+                // The 4 : 1 ratio is intended to reduce the likelihood of a FITB question popping up. 
                 // ordered by longest time since asked,
                 // we want to avoid re-asking questions in a short period of time. 
                 PossibleQuestions.AddRange(await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
@@ -345,7 +346,7 @@ namespace BiblePathsCore.Models.DB
                                                                     && Q.IsAnswered == true
                                                                     && !(Q.IsDeleted)
                                                                     && Q.Type == (int)QuestionType.FITB)
-                                                                .OrderBy(Q => Q.LastAsked).Take(2).ToListAsync()
+                                                                .OrderBy(Q => Q.LastAsked).Take(1).ToListAsync()
                                             );
             }
             catch

@@ -51,10 +51,10 @@ namespace BiblePathsCore.Services
         {
 
             string QnASystemRequest = "You will be provided Bible verse text (delimited by XML tags), " +
-                "write a question from this text that can be answered from the same text, then provide the answer to the question. " +
-                "The output, including both question and answer, should be in the schema specifid in the Function request. " +
-                "The Question should be brief and not include the phrase 'according to the verse or text'. " +
-                "The Answer should be concise and not include the contents of the question.";
+                "write a question from this text that can be answered from the same text, then provide the answer. " +
+                "The output, including both question and answer, should be in the schema specified in the Function request. " +
+                "The Question should be brief and not include the phrase 'according to'. " +
+                "The Answer should be short and not include the contents of the question, or restate the question.";
 
 
             string QnAUserRequest = "<Verse>"
