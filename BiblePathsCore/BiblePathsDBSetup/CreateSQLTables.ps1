@@ -84,7 +84,8 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreateGameTables,
 		[switch] $LocalDB,
         [switch] $ProductionDB,
-        [switch] $StagingDB
+        [switch] $StagingDB,
+		[switch] $DevDB
       )
 
 . .\InvokeSQLRemote.ps1
@@ -103,6 +104,14 @@ if ($StagingDB){
     $Server = "biblepathsppe.database.windows.net"
     $Database = "BiblePathsPPEDB"
     $User = "BiblePathsPPEDBA"
+    $Password = Read-Host "Please Enter the DB Password for User: $User" 
+}
+
+if ($DevDB){
+    # Dev...
+    $Server = "biblepathsdev.database.windows.net"
+    $Database = "BiblePathsApp"
+    $User = "BiblePathsDevDBA"
     $Password = Read-Host "Please Enter the DB Password for User: $User" 
 }
 
