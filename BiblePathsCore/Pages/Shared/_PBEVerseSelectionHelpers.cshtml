@@ -20,28 +20,35 @@
     }
 
     function UpdateGenerateQuestionLink(VerseNum) {
-        document.getElementById("GenerateQuestionLink").href ="/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildQuestion=True"
-    }
-    function UpdateGenerateAIQuestionLink(VerseNum) {
-        document.getElementById("GenerateAIQuestionLink").href = "/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildAIQuestion=True"
+        var FITBQLink = document.getElementById("GenerateQuestionLink");
+        if (FITBQLink != null){
+            FITBQLink.href = "/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildQuestion=True";
+        }
     }
 
-     // Highlights Start -> End Verses
-    for (i= 1; i <= @ViewData["VerseCount"]; i++){
-        if (i >=  parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
-            $('#text-' + i).addClass("mark");
+    function UpdateGenerateAIQuestionLink(VerseNum) {
+        var AIQLink = document.getElementById("GenerateAIQuestionLink");
+        if (AIQLink != null) { 
+            AIQLink.href = "/PBE/AddQuestion?BibleId=@Model.BibleId&BookNumber=@Model.BookNumber&Chapter=@Model.Chapter&VerseNum=" + VerseNum + "&BuildAIQuestion=True";
         }
-        else {
+    }
+
+    // Highlights Start -> End Verses
+    for (let i = 1; i <= @ViewData["VerseCount"]; i++) {
+        if (i >= parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())) {
+            $('#text-' + i).addClass("mark");
+        } else {
             $('#text-' + i).removeClass("mark");
         }
     }
+
     // Now we want to ensure highlighting changes happen when Start or End Verse changes.
     $("#Question_StartVerse").change(function () {
         if (parseInt($("#Question_EndVerse").val()) < parseInt($("#Question_StartVerse").val()))
         {
             $("#Question_EndVerse").val($("#Question_StartVerse").val());
         }
-        for (i = 1; i <= @ViewData["VerseCount"]; i++){
+        for (let i = 1; i <= @ViewData["VerseCount"]; i++){
             if (i >= parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
                 $('#text-' + i).addClass("mark");
             }
@@ -61,7 +68,7 @@
         {
             $("#Question_StartVerse").val($("#Question_EndVerse").val());
         }
-        for (i= 1; i <= @ViewData["VerseCount"]; i++){
+        for (let i= 1; i <= @ViewData["VerseCount"]; i++){
             if (i >= parseInt($("#Question_StartVerse").val()) && i <= parseInt($("#Question_EndVerse").val())){
                 $('#text-' + i).addClass("mark");
             }

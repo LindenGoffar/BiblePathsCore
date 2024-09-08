@@ -10,11 +10,15 @@ using BiblePathsCore.Models.DB;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Collections.Generic;
-using Azure.AI.OpenAI; 
+using OpenAI.Chat;
+using Azure.AI.OpenAI; // Maybe able to deprecate
 using Azure;
 using Newtonsoft.Json.Schema.Generation;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Emit;
+using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace BiblePathsCore.Services
 {
@@ -30,24 +34,216 @@ namespace BiblePathsCore.Services
         public string question { get; set; }
         [JsonProperty("answer", Required = Required.Always)]
         public string answer { get; set; }
+        [JsonProperty("points", Required = Required.Always)]
+        public int points { get; set; }
+
     }
 
     public interface IOpenAIResponder
     {
         public Task<QandAObj> GetAIQuestionAsync(string text, string key);
+        public Task<QandAObj> GetAIQuestionAsync2(string text);
     }
 
     public class OpenAIResponder : IOpenAIResponder
 
     {
-        public const string OpenAIAPI = "gpt-4-1106-preview";
+        public const string OpenAIAPI = "gpt-4o-mini";
+        private readonly OpenAISettings _openAIsettings;
         //private readonly HttpClient _httpClient;
+
+        public OpenAIResponder(IOptions<OpenAISettings> openAISettings)
+        {
+            _openAIsettings = openAISettings.Value;
+        }
+
+        // 09-05-2024 This method is rewritten to use the OpenAI .NET Library directly. 
+        public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
+        {
+
+            string QnASystemRequest = "You are a teacher preparing a quiz. " + 
+                "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
+                "you will write a question from this text that can be answered from the same text, and provide the answer. " +
+                "You will also need to determine how many points the anser will be worth, points will be an integer between 1 and 6, " +
+                "where each independant clause in the answer is worth 1 point." +
+                "Use a default of 1 if points cannot be determined. " +
+                "The output, including question, answer, and points should be in the schema specified " +
+                "The question should be brief and not include the phrase 'according to'. " +
+                "The Answer should be short and not include the contents of the question, or restate the question.";
+
+
+            string QnAUserRequest = "<Verse>"
+                                + text
+                                + "</Verse>";
+
+            ChatClient client = new(OpenAIAPI, key);
+
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                name: "QandAObj",
+                jsonSchema: BinaryData.FromString("""
+                    {
+                        "type": "object",
+                        "properties": {
+                            "question": { "type": "string" },
+                            "answer": { "type": "string" },
+                            "points": { "type": "integer"}
+                        },
+                        "required": ["question", "answer", "points"],
+                        "additionalProperties": false
+                    }
+                    """),
+                    strictSchemaEnabled: true),
+                Temperature = (float)1.2,
+            };
+
+            QandAObj qandAObj = new();
+
+            ChatCompletion chatCompletion = await client.CompleteChatAsync( 
+                [new SystemChatMessage(QnASystemRequest),
+                new UserChatMessage(QnAUserRequest)],
+                options);
+
+            //// Handling some errors
+            if (chatCompletion == null)
+            {
+                qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                return qandAObj;
+            }
+            //if (chatCompletion.     GetRawResponse().Status != 200)
+            //{
+            //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
+            //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
+            //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
+            //    return qandAObj;
+            //}
+            if (chatCompletion.Content == null)
+            {
+                qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                return qandAObj;
+            }
+
+            if (chatCompletion.Content.Count >= 1)
+            {
+                // Very oddly the response may show up on one of two properties. 
+                string JSONResponseString = chatCompletion.Content[0].ToString();
+                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                try
+                {
+                    qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                }
+                catch
+                {
+                    qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
+                    qandAObj.question += JSONResponseString;
+                }
+            }
+            else
+            {
+                qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
+            }
+
+            return qandAObj;
+        }
+
+        public async Task<QandAObj> GetAIQuestionAsync2(string text)
+        {
+
+            string QnASystemRequest = "You are a teacher preparing a quiz. " +
+                "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
+                "you will write a question from this text that can be answered from the same text, and provide the answer. " +
+                "You will also need to determine how many points the anser will be worth, points will be an integer between 1 and 6, " +
+                "where each independant clause in the answer is worth 1 point." +
+                "Use a default of 1 if points cannot be determined. " +
+                "The output, including question, answer, and points should be in the schema specified " +
+                "The question should be brief and not include the phrase 'according to'. " +
+                "The Answer should be short and not include the contents of the question, or restate the question.";
+
+
+            string QnAUserRequest = "<Verse>"
+                                + text
+                                + "</Verse>";
+
+            string key = _openAIsettings.OpenAIAPIKey;
+
+            ChatClient client = new(OpenAIAPI, key);
+
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                name: "QandAObj",
+                jsonSchema: BinaryData.FromString("""
+                    {
+                        "type": "object",
+                        "properties": {
+                            "question": { "type": "string" },
+                            "answer": { "type": "string" },
+                            "points": { "type": "integer"}
+                        },
+                        "required": ["question", "answer", "points"],
+                        "additionalProperties": false
+                    }
+                    """),
+                    strictSchemaEnabled: true),
+                Temperature = (float)1.2,
+            };
+
+            QandAObj qandAObj = new();
+
+            ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                [new SystemChatMessage(QnASystemRequest),
+                new UserChatMessage(QnAUserRequest)],
+                options);
+
+            //// Handling some errors
+            if (chatCompletion == null)
+            {
+                qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                return qandAObj;
+            }
+            //if (chatCompletion.     GetRawResponse().Status != 200)
+            //{
+            //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
+            //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
+            //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
+            //    return qandAObj;
+            //}
+            if (chatCompletion.Content == null)
+            {
+                qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                return qandAObj;
+            }
+
+            if (chatCompletion.Content.Count >= 1)
+            {
+                // Very oddly the response may show up on one of two properties. 
+                string JSONResponseString = chatCompletion.Content[0].ToString();
+                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                try
+                {
+                    qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                }
+                catch
+                {
+                    qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
+                    qandAObj.question += JSONResponseString;
+                }
+            }
+            else
+            {
+                qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
+            }
+
+            return qandAObj;
+        }
+
 
         //public OpenAIResponder()
         //{
         //    _httpClient = new HttpClient();
         //}
-        public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
+        public async Task<QandAObj> GetAzureAIQuestionAsync(string text, string key)
         {
 
             string QnASystemRequest = "You will be provided Bible verse text (delimited by XML tags), " +
@@ -65,15 +261,15 @@ namespace BiblePathsCore.Services
 
             QandAObj qandAObj = new QandAObj();
 
-            ChatMessage QnASystemMessage = new ChatMessage();
+            Azure.AI.OpenAI.ChatMessage QnASystemMessage = new Azure.AI.OpenAI.ChatMessage();
             QnASystemMessage.Role = "system";
             QnASystemMessage.Content = QnASystemRequest;
 
-            ChatMessage QnAUserMessage = new ChatMessage();
+            Azure.AI.OpenAI.ChatMessage QnAUserMessage = new Azure.AI.OpenAI.ChatMessage();
             QnAUserMessage.Role = "user";
             QnAUserMessage.Content = QnAUserRequest;
 
-            ChatMessage QnAFunctionMessage = new ChatMessage();
+            Azure.AI.OpenAI.ChatMessage QnAFunctionMessage = new Azure.AI.OpenAI.ChatMessage();
             QnAFunctionMessage.Role = "function";
             QnAFunctionMessage.Name = "QnAFunction";
             QnAFunctionMessage.Content = "Use QnAFunction Schema Provided";

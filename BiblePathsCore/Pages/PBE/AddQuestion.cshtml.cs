@@ -69,7 +69,7 @@ namespace BiblePathsCore.Pages.PBE
                 
                 if (generateAIQuestion)
                 {
-                    Question = await Question.BuildAIQuestionForVerseAsync(_context, verse, _openAIResponder, _openAIsettings);
+                    Question = await Question.BuildAIQuestionForVerseAsync(_context, verse, _openAIResponder);
                     foreach (QuizAnswer Answer in Question.QuizAnswers)
                     {
                         AnswerText += Answer.Answer;
@@ -115,7 +115,7 @@ namespace BiblePathsCore.Pages.PBE
             IsOpenAIEnabled = false;
             if(_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
 
-            IsFITBGenerationEnabled = PBEUser.IsQuizModerator();
+            IsFITBGenerationEnabled = true;
 
             return Page();
         }

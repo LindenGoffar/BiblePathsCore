@@ -1,8 +1,12 @@
 ﻿using BiblePathsCore.Services;
 using Humanizer.Localisation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Options;
 using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
@@ -16,7 +20,7 @@ using System.Threading.Tasks;
 namespace BiblePathsCore.Models
 {
     // Enums generally used in the PBE Quiz App
-    public enum QuestionType { Standard, FITB, Exclusion}
+    public enum QuestionType { Standard, FITB, Exclusion, AIProposed}
 }
 
 namespace BiblePathsCore.Models.DB
@@ -244,16 +248,27 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
+        // Save a Built Question to the Database
+        public async Task<int> SaveQuestionObjectAsync(BiblePathsCoreDbContext context)
+        {
+            // The assumption here is that we have a valid Question Object 
+            context.QuizQuestions.Add(this);
+            await context.SaveChangesAsync();
+            return this.Id;
+        }
+
         // This method attempts to determine whether a question is Standard or FITB
         // and will return the appropriate QuestionType. Default being Standard.
         public int DetectQuestionType()
         {
             StringComparison comp = StringComparison.OrdinalIgnoreCase;
-       
-            if (this.Question.Contains(FITBString, comp )
-                    || this.Question.Contains(FITBBlankWord))
+            if (this.Question != null)
             {
-                return (int)QuestionType.FITB;
+                if (this.Question.Contains(FITBString, comp)
+                        || this.Question.Contains(FITBBlankWord))
+                {
+                    return (int)QuestionType.FITB;
+                }
             }
             return (int)QuestionType.Standard;
         }
@@ -406,10 +421,50 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
-        public async Task<QuizQuestion> BuildAIQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, IOpenAIResponder openAIResponder, OpenAISettings openAISettings)
+        public async Task<BibleVerse> GetRandomVerseAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber, int Chapter)
+        {
+            BibleVerse ReturnVerse = new();
+            // First we've got to pick a random verse from the chapter, which means finding out how many there are?
+            int? VerseCount = 0;
+            try
+            {
+                VerseCount = await context.BibleChapters.Where(C => C.BibleId == bibleId
+                                                                && C.BookNumber == BookNumber
+                                                                && C.ChapterNumber == Chapter)
+                                                        .Select(C => C.Verses)
+                                                        .FirstAsync();
+            }
+            catch
+            {
+                // This is the couldn't find the Chapter scenario, we'll return null. 
+                return null;
+            }
+            if (VerseCount.HasValue)
+            {
+                if (VerseCount.Value > 0)
+                {
+                    // Now Let's pick a rendom Verse and hope it's not excluded... 
+                    Random rand = new Random();
+                    int verseNum = rand.Next(1, (int)VerseCount);
+                    ReturnVerse = await BibleVerse.GetVerseAsync(context, bibleId, BookNumber, Chapter, verseNum);
+                    if (ReturnVerse == null)
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    // this is the Chapter had no Verses scenario, shouldn't be real but let's return null regardless. 
+                    return null;
+                }
+            }
+            return ReturnVerse;
+        }
+
+        public async Task<QuizQuestion> BuildAIQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, IOpenAIResponder openAIResponder)
         {
             // First let's go query OpenAI
-            QandAObj qandAObj = await openAIResponder.GetAIQuestionAsync(verse.Text, openAISettings.OpenAIAPIKey);
+            QandAObj qandAObj = await openAIResponder.GetAIQuestionAsync2(verse.Text);
             if (qandAObj == null)
             {
                 return null;
@@ -417,7 +472,7 @@ namespace BiblePathsCore.Models.DB
             QuizQuestion NewQuestion = new QuizQuestion();
             QuizAnswer AIAnswer = new QuizAnswer();
             NewQuestion.BibleId = verse.BibleId;
-            NewQuestion.Points = 1;
+            NewQuestion.Points = (qandAObj.points > 0 && qandAObj.points < 7) ? qandAObj.points : 1;
             NewQuestion.Question = qandAObj.question;
             NewQuestion.BookNumber = verse.BookNumber;
             NewQuestion.Chapter = verse.Chapter;
@@ -650,10 +705,13 @@ namespace BiblePathsCore.Models.DB
         {
             StringComparison comp = StringComparison.OrdinalIgnoreCase;
 
-            if (this.Question.Contains(FITBString, comp)
-                    || this.Question.Contains(FITBBlankWord))
+            if (this.Question != null)
             {
-                return (int)QuestionType.FITB;
+                if (this.Question.Contains(FITBString, comp)
+                        || this.Question.Contains(FITBBlankWord))
+                {
+                    return (int)QuestionType.FITB;
+                }
             }
             return (int)QuestionType.Standard;
         }
@@ -677,5 +735,4 @@ namespace BiblePathsCore.Models.DB
             return false; 
         }
     }
-
 }
