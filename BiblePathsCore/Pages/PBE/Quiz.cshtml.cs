@@ -10,6 +10,7 @@ using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using static BiblePathsCore.Models.DB.QuizQuestion;
+using BiblePathsCore.Services;
 
 namespace BiblePathsCore.Pages.PBE
 {
@@ -18,11 +19,13 @@ namespace BiblePathsCore.Pages.PBE
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
+        private readonly IOpenAIResponder _openAIResponder;
 
-        public QuizModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public QuizModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
         {
             _userManager = userManager;
             _context = context;
+            _openAIResponder = openAIResponder;
         }
 
         [BindProperty]
@@ -57,8 +60,37 @@ namespace BiblePathsCore.Pages.PBE
             }
             while (iterations < 3 && Question.QuestionSelected == false);
 
-            // This is the no questions found scenario
-            if (Question.QuestionSelected == false) { return RedirectToPage("/error", new { errorMessage = "Sorry! We failed to find a random question after three tries... please add more questions." }); }
+            // This is the no questions found scenario, first let's try an AI Generated Question. 
+            if (Question.QuestionSelected == false) {
+
+                // We need to select a random Verse to build a temporary question for. 
+                BibleVerse bibleVerse = await Question.GetRandomVerseAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
+                // If this verse is excluded we're goin to bail here for now. 
+                if (bibleVerse.IsPBEExcluded)
+                {
+                    return RedirectToPage("/error", new { errorMessage = "Sorry! We could neither find a question, nor generate one, due to the selected verse being excluded... please help by adding more valid questions." });
+                }
+
+                QuizQuestion BuiltQuestion = new();
+                BuiltQuestion = await Question.BuildAIQuestionForVerseAsync(_context, bibleVerse, _openAIResponder);
+                if (BuiltQuestion != null)
+                {
+                    Question = BuiltQuestion;
+                    Question.QuestionSelected = true;
+                    Question.Type = (int)QuestionType.AIProposed; // this is a temporary type so we can make appropriate decisions.
+                    Question.Challenged = true; // We start these out challenged, because we don't fully tust them, if points are assigned by the user then we remove the challenge. 
+                    Question.ChallengeComment = "System: This was an AI Proposed Question, that was not accepted";
+                    Question.Owner = PBEUser.Email;
+                    Question.Id = await Question.SaveQuestionObjectAsync(_context);
+                }
+                //At this point if we've stil failed we could resort to an FITB But let's stop here for now. 
+
+                //If QuestionSelected still false... well we've done all we can for now... 
+                if (Question.QuestionSelected == false)
+                {
+                    return RedirectToPage("/error", new { errorMessage = "Sorry! We could neither find a question, nor generate one... please help by adding more questions." });
+                }
+            }
             
             if (Question.BibleId == null) { Question.BibleId = BibleId;  }
 
@@ -87,10 +119,11 @@ namespace BiblePathsCore.Pages.PBE
                 UserMessage = "Something has gone wrong! We were unable to save the results for that last question";
                 return RedirectToPage("Quiz", new { BibleId, QuizId, Message = UserMessage });
             }
-
+            // Validate our User
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuizHost()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to host a PBE Quiz" }); }
+
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             // Let's grab the Quiz Object in order to update it. 
@@ -106,6 +139,13 @@ namespace BiblePathsCore.Pages.PBE
             if (QuestionToUpdate == null)
             {
                 return RedirectToPage("/error", new { errorMessage = "That's Odd... We were unable to find this Question so we can't update it" });
+            }
+
+            // If the question was AIProposed and still Challenged, let's removed the challenge before saving it. 
+            if (QuestionToUpdate.Type == (int)QuestionType.AIProposed && QuestionToUpdate.Challenged == true)
+            {
+                QuestionToUpdate.Challenged = false;
+                QuestionToUpdate.ChallengeComment = "Challenge Removed by user point assignment.";
             }
 
             // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats. 
