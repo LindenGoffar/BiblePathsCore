@@ -4,6 +4,18 @@ Description: Create individual or all BiblePaths Core tables.
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
+--9/8/2024 in suport of Template Sharing and 
+ALTER TABLE PredefinedQuizzes
+		Add Type int NOT NULL DEFAULT(0)
+
+ALTER TABLE CommentaryBooks
+		Add SectionNumber int NOT NULL DEFAULT(1)
+
+ALTER TABLE CommentaryBooks
+		Add SectionTitle nvarchar(256)
+
+
+
 --2/12/2022-- In support of CommentNodes
 ALTER TABLE Paths
 		Add Type int NOT NULL DEFAULT(0)
@@ -404,7 +416,10 @@ If ($CreateCommentaryTable){
             Owner nvarchar(256),
 			Created datetimeoffset,
 			Modified datetimeoffset,
-			Text nvarchar(MAX)
+			Text nvarchar(MAX),
+			SectionNumber int NOT NULL DEFAULT(1)
+			SectionTitle nvarchar(256)
+
 		) 
 "@
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateCommentaryBooksTableQuery -Username $User -Password $Password
@@ -420,7 +435,8 @@ If ($CreatePreDefinedQuizTables){
 			NumQuestions int NOT NULL,
 			Created datetimeoffset,
 			Modified datetimeoffset,
-			isDeleted BIT NOT NULL DEFAULT 0
+			isDeleted BIT NOT NULL DEFAULT 0,
+			Type int NOT NULL DEFAULT(0)
 		) 
 "@
 	$CreatePredefinedQuizQuestionsTableQuery = @"

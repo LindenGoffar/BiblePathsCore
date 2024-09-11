@@ -29,7 +29,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-8">
                         <span><strong>@Template.QuizName</strong></span>
                     </div>
                     <div class="col-4">
@@ -52,7 +52,7 @@
                                         <p class="font-italic">By deleting this template any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
                                     </div>
                                     <div class="modal-footer">
-                                        <form asp-page="/PBE/DeleteTemplate" method="post">
+                                        <form asp-page="/PBE/QuizTemplate/DeleteTemplate" method="post">
                                             <input type="hidden" name="id" value="@Template.Id" />
                                             <input type="submit" value="Confirm" class="btn btn-danger" />
                                         </form>
@@ -62,6 +62,34 @@
                             </div>
                         </div>
 
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+        </div>
+    </div>
+    <hr />
+    <h4>Shared Templates</h4>
+    <span class="text-muted">
+        These are templates that have been shared by their owners, you can copy a Shared Template for
+        use in hosting your own quizzes.
+    </span>
+    <hr />
+    @foreach (var SharedTemplate in Model.SharedTemplates)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-8">
+                        <span><strong>@SharedTemplate.QuizName</strong></span>
+                        <span cass="small"> [Owner: @SharedTemplate.QuizUser.Email]</span>
+                    </div>
+                    <div class="col-4">
+                        <a class="btn btn-outline-primary btn-sm" asp-page="./CopyTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@SharedTemplate.Id">Copy Template</a>
                     </div>
                 </div>
             </div>

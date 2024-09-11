@@ -21,6 +21,8 @@ public partial class PredefinedQuiz
 
     public bool IsDeleted { get; set; }
 
+    public int Type { get; set; }
+
     public virtual ICollection<PredefinedQuizQuestion> PredefinedQuizQuestions { get; set; } = new List<PredefinedQuizQuestion>();
 
     public virtual QuizUser QuizUser { get; set; }

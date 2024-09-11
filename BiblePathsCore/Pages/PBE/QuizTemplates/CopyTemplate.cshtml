@@ -1,0 +1,61 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.CopyTemplateModel
+
+@{
+    ViewData["Title"] = "Copy Quiz Template";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Template Name</span>
+                    </div>
+                    <input asp-for="@Model.Template.QuizName" class="form-control" />
+                </div>
+                <input type="hidden" asp-for="@Model.Template.Id" />
+                <input type="hidden" asp-for="@Model.Template.Type" />
+                <span asp-validation-for="@Model.Template.QuizName" class="text-danger"></span>
+
+                @for (var i = 0; i < Model.Questions.Count; i++)
+                {
+                    <div id="AddQuestion-@i">
+                        <div class="form-group form-inline input-group">
+                            <span><strong>@Model.Questions[i].QuestionNumber </strong>- </span>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Book</span>
+                            </div>
+                            <input type="hidden" asp-for="@Model.Questions[i].QuestionNumber" />
+                            <select disabled asp-for="@Model.Questions[i].BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-@i"></select>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Chapter</span>
+                            </div>
+                            <select disabled asp-for="@Model.Questions[i].Chapter" asp-items="@Model.Questions[i].ChapterSelectList" class="form-control" id="ChapterSelect-@i"></select>
+                        </div>
+                    </div>
+                }
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="BibleId" />
+                    <input type="submit" value="Copy to My Templates" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" asp-route-Tab="#Templates">Back to My Quizzes</a>
+    <br />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

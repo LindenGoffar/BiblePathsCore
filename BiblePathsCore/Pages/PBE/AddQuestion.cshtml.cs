@@ -30,6 +30,7 @@ namespace BiblePathsCore.Pages.PBE
             _openAIsettings = openAISettings.Value;
             _openAIResponder = openAIResponder;
         }
+
         [BindProperty]
         public QuizQuestion Question { get; set; }
         [BindProperty]
@@ -44,10 +45,18 @@ namespace BiblePathsCore.Pages.PBE
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion, bool? BuildAIQuestion)
         {
+            // User Checks.
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE question" }); }
+            
+            // Create a stub Question Object we'll flesh this out below. 
+            Question = new QuizQuestion();
 
+            // Get a Valid Bible ID
+            Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
+
+            // Check whether we're generating a question or not. 
             bool generateQuestion = false;
             bool generateAIQuestion = false;
             if (BuildQuestion.HasValue)
@@ -59,14 +68,12 @@ namespace BiblePathsCore.Pages.PBE
                 generateQuestion = (bool)BuildAIQuestion;
                 generateAIQuestion = (bool)BuildAIQuestion;
             }
-            Question = new QuizQuestion();
-            // Setup our PBEBook Object
-            Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, BibleId);
 
+            // Generate a question since we were asked to. 
+            // TODO: This makes a dangerous assumption about a VerseNum
             if (generateQuestion)
             {
                 BibleVerse verse = await BibleVerse.GetVerseAsync(_context, Question.BibleId, BookNumber, Chapter, (int)VerseNum);
-                
                 if (generateAIQuestion)
                 {
                     Question = await Question.BuildAIQuestionForVerseAsync(_context, verse, _openAIResponder);
@@ -75,7 +82,7 @@ namespace BiblePathsCore.Pages.PBE
                         AnswerText += Answer.Answer;
                     }
                 }
-                else
+                else // the FITB Scenario.
                 {
                     Question = await Question.BuildQuestionForVerseAsync(_context, verse, 10, Question.BibleId);
                     foreach (QuizAnswer Answer in Question.QuizAnswers)
@@ -84,7 +91,7 @@ namespace BiblePathsCore.Pages.PBE
                     }
                 }
             }
-            else
+            else // This is setting up the non-builder scenario. 
             {
                 Question.BookNumber = BookNumber;
                 Question.Chapter = Chapter;
@@ -97,10 +104,12 @@ namespace BiblePathsCore.Pages.PBE
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
             Question.PopulatePBEQuestionInfo(PBEBook);
+            
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
 
             HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
+            // In the Commentary Scenario we have no real "Chapter" so will need to fake some properties like isCommentary
             IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (IsCommentary == false)
             {
@@ -108,10 +117,12 @@ namespace BiblePathsCore.Pages.PBE
             } 
             CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
-            
-            // and now we need a Verse Select List
+            // and now we need a Verse Select List, and a Section Select List
             ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+            if (IsCommentary) { ViewData["SectionSelectList"] = new SelectList(Question.Verses, "Verse", "SectionTitle"); }
+
             ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+            
             IsOpenAIEnabled = false;
             if(_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
 
@@ -124,6 +135,8 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+
+            IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (!ModelState.IsValid)
             {
                 // Setup our PBEBible Object
@@ -136,15 +149,16 @@ namespace BiblePathsCore.Pages.PBE
 
                 HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
-                IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)
                 {
                     ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
                 }
                 CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
-                // and now we need a Verse and Points Select List
+                // and now we need a Verse Select List, and a Section Select List
                 ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+                if (IsCommentary) { ViewData["SectionSelectList"] = new SelectList(Question.Verses, "Verse", "SectionTitle"); }
+
                 ViewData["PointsSelectList"] = Question.GetPointsSelectList();
                 return Page();
             }
@@ -173,6 +187,11 @@ namespace BiblePathsCore.Pages.PBE
                 // If the Question is in an Exclusion range we will show an Error
                 if (await emptyQuestion.IsQuestionInExclusionAsync(_context)) { return RedirectToPage("/error", new { errorMessage = "Sorry! One of the verses associated with this question is curently excluded from PBE Testing." }); }
 
+                // In the commentary scenario we want only one verse/section so we will set EndVerse = StartVerse to force this. 
+                if (IsCommentary)
+                {
+                    emptyQuestion.EndVerse = emptyQuestion.StartVerse;
+                }
                 emptyQuestion.Owner = PBEUser.Email;
                 if (emptyQuestion.Source == null) {emptyQuestion.Source = "BiblePaths.Net";}
                 emptyQuestion.Type = emptyQuestion.DetectQuestionType();

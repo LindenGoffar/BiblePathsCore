@@ -51,6 +51,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public List<BibleVerse> Verses { get; set; }
         [NotMapped]
+        public string CommentarySectionTitle { get; set; }
+        [NotMapped]
         public string LegalNote { get; set; }
 
         public static async Task<List<QuizQuestion>> GetQuestionListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, bool includeChallenged)
@@ -126,6 +128,8 @@ namespace BiblePathsCore.Models.DB
             {
                 IsCommentaryQuestion = true;
                 BookName = PBEBook.CommentaryTitle;
+                // This seems a little risk but in the commentary scenario we try to force a single verse. 
+                CommentarySectionTitle = Verses.FirstOrDefault().SectionTitle; 
             }
             else
             {
@@ -308,7 +312,7 @@ namespace BiblePathsCore.Models.DB
             // Handle the Commentary scenario
             if (IsCommentaryQuestion)
             {
-                tempstring += "According to the " + BookName;
+                tempstring += "According to the " + BookName + ", " + CommentarySectionTitle;
             }
             else
             {
@@ -356,19 +360,39 @@ namespace BiblePathsCore.Models.DB
             }
             else // COMMENTARY SCENARIO:
             {
-                CommentaryBook commentary = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
-                                                                            && c.BookNumber == BookNumber)
-                                                                          .FirstAsync();
-                BibleVerse CommentaryVerse = new BibleVerse
+                List<CommentaryBook> commentarySections = new();
+                if (inQuestionOnly)
                 {
-                    BibleId = BibleId,
-                    BookName = BookName,
-                    BookNumber = BookNumber,
-                    Chapter = Chapter,
-                    Verse = 1,
-                    Text = commentary.Text,
-                };
-                bibleVerses.Add(CommentaryVerse);
+                    // Grab only the section associated with StartVerse if there are multiple that's not so cool, but we try to protect from that in Add/EditQuestion. 
+                    commentarySections = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                                && c.BookNumber == BookNumber
+                                                                                && c.SectionNumber == StartVerse)
+                                                                      .ToListAsync();
+                }
+                else
+                {
+                    // Go Get all the Commentary Sections (aka CommentaryBooks) for this book/bible combo. 
+                    commentarySections = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                             && c.BookNumber == BookNumber)
+                                                                       .ToListAsync();
+                }
+
+                foreach (CommentaryBook Section in commentarySections)
+                {
+                    BibleVerse CommentaryVerse = new BibleVerse // Verse, Section it's all the same here. 
+                    {
+                        BibleId = BibleId,
+                        BookName = BookName,
+                        BookNumber = BookNumber,
+                        Chapter = Chapter,
+                        Verse = Section.SectionNumber,
+                        SectionTitle = Section.SectionTitle,
+                        Text = Section.Text
+                    };
+                    CommentaryVerse.QuestionCount = CommentaryVerse.GetQuestionCountWithQuestionList(Questions);
+                    CommentaryVerse.FITBPct = CommentaryVerse.GetFITBPctWithQuestionList(Questions);
+                    bibleVerses.Add(CommentaryVerse);
+                }
             }
             return bibleVerses;
         }

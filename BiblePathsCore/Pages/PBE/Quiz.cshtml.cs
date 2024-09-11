@@ -97,9 +97,9 @@ namespace BiblePathsCore.Pages.PBE
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-            Question.PopulatePBEQuestionInfo(PBEBook);
             Question.Verses = await Question.GetBibleVersesAsync(_context, true);
-            Question.LegalNote = Question.GetBibleLegalNote();
+            Question.PopulatePBEQuestionInfo(PBEBook);
+            // Not Needed already done in previous step. Question.LegalNote = Question.GetBibleLegalNote();
 
             // Build our Select List and set a default points value of -1 to require selection.
             ViewData["PointsSelectList"] = Question.GetQuestionPointsSelectList();

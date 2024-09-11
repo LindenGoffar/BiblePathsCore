@@ -65,7 +65,7 @@ public partial class BiblePathsCoreDbContext : DbContext
     {
         modelBuilder.Entity<Bible>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Bibles__3214EC2703F1D46A");
+            entity.HasKey(e => e.Id).HasName("PK__Bibles__3214EC2764A48835");
 
             entity.Property(e => e.Id)
                 .HasMaxLength(64)
@@ -91,7 +91,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleBooks)
                 .HasForeignKey(d => d.BibleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BibleBook__Bible__38996AB5");
+                .HasConstraintName("FK__BibleBook__Bible__5FB337D6");
         });
 
         modelBuilder.Entity<BibleChapter>(entity =>
@@ -103,7 +103,7 @@ public partial class BiblePathsCoreDbContext : DbContext
                 .HasColumnName("BibleID");
             entity.Property(e => e.Name).HasMaxLength(32);
 
-            entity.HasOne(d => d.B).WithMany(p => p.BibleChapters)
+            entity.HasOne(d => d.BibleBook).WithMany(p => p.BibleChapters)
                 .HasForeignKey(d => new { d.BibleId, d.BookNumber })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BibleID_BookNumber");
@@ -122,12 +122,12 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleNoiseWords)
                 .HasForeignKey(d => d.BibleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BibleNois__Bible__3B75D760");
+                .HasConstraintName("FK__BibleNois__Bible__628FA481");
         });
 
         modelBuilder.Entity<BibleVerse>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BibleVer__3214EC27F2458DA5");
+            entity.HasKey(e => e.Id).HasName("PK__BibleVer__3214EC27A361CFA4");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.BibleId)
@@ -139,12 +139,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleVerses)
                 .HasForeignKey(d => d.BibleId)
-                .HasConstraintName("FK__BibleVers__Bible__4222D4EF");
+                .HasConstraintName("FK__BibleVers__Bible__693CA210");
         });
 
         modelBuilder.Entity<BibleWordIndex>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC275AE49F70");
+            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC27DC9B060F");
 
             entity.ToTable("BibleWordIndex");
 
@@ -161,12 +161,12 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleWordIndices)
                 .HasForeignKey(d => d.BibleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BibleWord__Bible__01142BA1");
+                .HasConstraintName("FK__BibleWord__Bible__2B0A656D");
         });
 
         modelBuilder.Entity<CommentaryBook>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Commenta__3214EC279CBF6B26");
+            entity.HasKey(e => e.Id).HasName("PK__Commenta__3214EC27D8821800");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.BibleId)
@@ -175,15 +175,17 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.Property(e => e.BookName).HasMaxLength(32);
             entity.Property(e => e.CommentaryTitle).HasMaxLength(256);
             entity.Property(e => e.Owner).HasMaxLength(256);
+            entity.Property(e => e.SectionNumber).HasDefaultValue(1);
+            entity.Property(e => e.SectionTitle).HasMaxLength(256);
 
             entity.HasOne(d => d.Bible).WithMany(p => p.CommentaryBooks)
                 .HasForeignKey(d => d.BibleId)
-                .HasConstraintName("FK__Commentar__Bible__71D1E811");
+                .HasConstraintName("FK__Commentar__Bible__1BC821DD");
         });
 
         modelBuilder.Entity<GameGroup>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__GameGrou__3214EC276B79321A");
+            entity.HasKey(e => e.Id).HasName("PK__GameGrou__3214EC2787104F48");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(256);
@@ -192,12 +194,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Path).WithMany(p => p.GameGroups)
                 .HasForeignKey(d => d.PathId)
-                .HasConstraintName("FK__GameGroup__PathI__7B5B524B");
+                .HasConstraintName("FK__GameGroup__PathI__25518C17");
         });
 
         modelBuilder.Entity<GameTeam>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__GameTeam__3214EC27A6FE1D60");
+            entity.HasKey(e => e.Id).HasName("PK__GameTeam__3214EC2737A1A8CB");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CurrentStepId).HasColumnName("CurrentStepID");
@@ -208,12 +210,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.GameTeams)
                 .HasForeignKey(d => d.GroupId)
-                .HasConstraintName("FK__GameTeams__Group__7E37BEF6");
+                .HasConstraintName("FK__GameTeams__Group__282DF8C2");
         });
 
         modelBuilder.Entity<Path>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Paths__3214EC27EFFA7C68");
+            entity.HasKey(e => e.Id).HasName("PK__Paths__3214EC27ABDDAB21");
 
             entity.HasIndex(e => e.Name, "AK_Name").IsUnique();
 
@@ -232,7 +234,7 @@ public partial class BiblePathsCoreDbContext : DbContext
 
         modelBuilder.Entity<PathNode>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PathNode__3214EC275D616FC8");
+            entity.HasKey(e => e.Id).HasName("PK__PathNode__3214EC279935265A");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.EndVerse).HasColumnName("End_Verse");
@@ -243,12 +245,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Path).WithMany(p => p.PathNodes)
                 .HasForeignKey(d => d.PathId)
-                .HasConstraintName("FK__PathNodes__PathI__4CA06362");
+                .HasConstraintName("FK__PathNodes__PathI__74AE54BC");
         });
 
         modelBuilder.Entity<PathStat>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PathStat__3214EC270C7C2A2B");
+            entity.HasKey(e => e.Id).HasName("PK__PathStat__3214EC27D9C4D684");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.EventData).HasMaxLength(2048);
@@ -256,12 +258,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Path).WithMany(p => p.PathStats)
                 .HasForeignKey(d => d.PathId)
-                .HasConstraintName("FK__PathStats__PathI__4F7CD00D");
+                .HasConstraintName("FK__PathStats__PathI__787EE5A0");
         });
 
         modelBuilder.Entity<PredefinedQuiz>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Predefin__3214EC275CF1A7F5");
+            entity.HasKey(e => e.Id).HasName("PK__Predefin__3214EC27499DB2A5");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
@@ -270,24 +272,24 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.QuizUser).WithMany(p => p.PredefinedQuizzes)
                 .HasForeignKey(d => d.QuizUserId)
-                .HasConstraintName("FK__Predefine__QuizU__74AE54BC");
+                .HasConstraintName("FK__Predefine__QuizU__1EA48E88");
         });
 
         modelBuilder.Entity<PredefinedQuizQuestion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Predefin__3214EC274B1FABFC");
+            entity.HasKey(e => e.Id).HasName("PK__Predefin__3214EC275DF8A3C2");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.PredefinedQuizId).HasColumnName("PredefinedQuizID");
 
             entity.HasOne(d => d.PredefinedQuiz).WithMany(p => p.PredefinedQuizQuestions)
                 .HasForeignKey(d => d.PredefinedQuizId)
-                .HasConstraintName("FK__Predefine__Prede__787EE5A0");
+                .HasConstraintName("FK__Predefine__Prede__22751F6C");
         });
 
         modelBuilder.Entity<QuizAnswer>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizAnsw__3214EC27C1B01CF1");
+            entity.HasKey(e => e.Id).HasName("PK__QuizAnsw__3214EC27D06B892A");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Answer).HasMaxLength(1024);
@@ -296,12 +298,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.QuizAnswers)
                 .HasForeignKey(d => d.QuestionId)
-                .HasConstraintName("FK__QuizAnswe__Quest__5EBF139D");
+                .HasConstraintName("FK__QuizAnswe__Quest__08B54D69");
         });
 
         modelBuilder.Entity<QuizBookList>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizBook__3214EC271CEFBFF4");
+            entity.HasKey(e => e.Id).HasName("PK__QuizBook__3214EC274DE5D411");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.BookListName).HasMaxLength(2048);
@@ -310,7 +312,7 @@ public partial class BiblePathsCoreDbContext : DbContext
 
         modelBuilder.Entity<QuizBookListBookMap>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizBook__3214EC2757B43A66");
+            entity.HasKey(e => e.Id).HasName("PK__QuizBook__3214EC272BDFB87A");
 
             entity.ToTable("QuizBookListBookMap");
 
@@ -320,12 +322,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.BookList).WithMany(p => p.QuizBookListBookMaps)
                 .HasForeignKey(d => d.BookListId)
-                .HasConstraintName("FK__QuizBookL__BookL__6E01572D");
+                .HasConstraintName("FK__QuizBookL__BookL__17F790F9");
         });
 
         modelBuilder.Entity<QuizGroupStat>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizGrou__3214EC27C513EA3D");
+            entity.HasKey(e => e.Id).HasName("PK__QuizGrou__3214EC2783793436");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.GroupName).HasMaxLength(2048);
@@ -334,12 +336,12 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.QuizUser).WithMany(p => p.QuizGroupStats)
                 .HasForeignKey(d => d.QuizUserId)
-                .HasConstraintName("FK__QuizGroup__QuizU__66603565");
+                .HasConstraintName("FK__QuizGroup__QuizU__10566F31");
         });
 
         modelBuilder.Entity<QuizQuestion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizQues__3214EC2748892DB6");
+            entity.HasKey(e => e.Id).HasName("PK__QuizQues__3214EC27D5369106");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.BibleId)
@@ -350,21 +352,21 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.Property(e => e.EndVerse).HasColumnName("End_Verse");
             entity.Property(e => e.IsAnswered).HasColumnName("isAnswered");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
-            entity.Property(e => e.LastAsked).HasDefaultValueSql("('2001-01-01')");
+            entity.Property(e => e.LastAsked).HasDefaultValue(new DateTimeOffset(new DateTime(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -8, 0, 0, 0)));
             entity.Property(e => e.Owner).HasMaxLength(256);
-            entity.Property(e => e.Points).HasDefaultValueSql("((1))");
+            entity.Property(e => e.Points).HasDefaultValue(1);
             entity.Property(e => e.Question).HasMaxLength(2048);
             entity.Property(e => e.Source).HasMaxLength(256);
             entity.Property(e => e.StartVerse).HasColumnName("Start_Verse");
 
             entity.HasOne(d => d.Bible).WithMany(p => p.QuizQuestions)
                 .HasForeignKey(d => d.BibleId)
-                .HasConstraintName("FK__QuizQuest__Bible__571DF1D5");
+                .HasConstraintName("FK__QuizQuest__Bible__00200768");
         });
 
         modelBuilder.Entity<QuizQuestionStat>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizQues__3214EC277C06A385");
+            entity.HasKey(e => e.Id).HasName("PK__QuizQues__3214EC2760C95489");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.EventData).HasMaxLength(2048);
@@ -374,16 +376,16 @@ public partial class BiblePathsCoreDbContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.QuizQuestionStats)
                 .HasForeignKey(d => d.QuestionId)
-                .HasConstraintName("FK__QuizQuest__Quest__628FA481");
+                .HasConstraintName("FK__QuizQuest__Quest__0C85DE4D");
 
             entity.HasOne(d => d.QuizUser).WithMany(p => p.QuizQuestionStats)
                 .HasForeignKey(d => d.QuizUserId)
-                .HasConstraintName("FK__QuizQuest__QuizU__6383C8BA");
+                .HasConstraintName("FK__QuizQuest__QuizU__0D7A0286");
         });
 
         modelBuilder.Entity<QuizUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__QuizUser__3214EC27C566EFC6");
+            entity.HasKey(e => e.Id).HasName("PK__QuizUser__3214EC27418D3338");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Email).HasMaxLength(256);

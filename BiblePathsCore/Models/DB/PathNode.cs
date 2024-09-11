@@ -19,15 +19,15 @@ public partial class PathNode
 
     public int EndVerse { get; set; }
 
-    public DateTimeOffset? Created { get; set; }
-
-    public DateTimeOffset? Modified { get; set; }
-
     public string Text { get; set; }
 
     public string Owner { get; set; }
 
     public int Type { get; set; }
+
+    public DateTimeOffset? Created { get; set; }
+
+    public DateTimeOffset? Modified { get; set; }
 
     public virtual Path Path { get; set; }
 }

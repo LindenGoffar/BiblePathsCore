@@ -24,6 +24,8 @@ namespace BiblePathsCore.Models.DB
         public List<Path> RelatedPaths { get; set;  }
         [NotMapped]
         public int FITBPct { get; set; }
+        [NotMapped]
+        public string SectionTitle { get; set; } // in the Commentary Scenario a verse is a Section.
 
         // This one is expensive we shouldn't use this one if we can avoid.
         //public async Task<int> GetQuestionCountAsync(BiblePathsCoreDbContext context)
