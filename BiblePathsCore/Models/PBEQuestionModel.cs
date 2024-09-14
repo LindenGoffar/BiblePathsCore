@@ -122,14 +122,20 @@ namespace BiblePathsCore.Models.DB
                         .ToListAsync();
         }
 
+        // TODO: This method assumes Verses is populated, that's not a great assumption 
+        // we should remove this dependency. 
         public void PopulatePBEQuestionInfo(BibleBook PBEBook)
         {
             if (Chapter == Bible.CommentaryChapter)
             {
                 IsCommentaryQuestion = true;
                 BookName = PBEBook.CommentaryTitle;
-                // This seems a little risk but in the commentary scenario we try to force a single verse. 
-                CommentarySectionTitle = Verses.FirstOrDefault().SectionTitle; 
+                // This seems a little risky but in the commentary scenario we try to force a single verse. 
+                if (Verses != null)
+                {
+                    CommentarySectionTitle = Verses.FirstOrDefault().SectionTitle;
+                }
+                else { CommentarySectionTitle = ""; }
             }
             else
             {
@@ -321,6 +327,55 @@ namespace BiblePathsCore.Models.DB
             }
             tempstring += ", " + Question;
             return tempstring;
+        }
+
+        // The primary user of this is the commentary Scenario where we needed
+        // a cheaper way to go grab metadata importantly SectionTitle
+        public async Task<List<BibleVerse>> GetCommentaryMetadataAsVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)
+        {
+            List<BibleVerse> bibleVerses = new List<BibleVerse>();
+
+            if (Chapter != Bible.CommentaryChapter)
+            {
+                return null; // Thi is explicitly for Commentary Scenarios 
+            }
+            else // COMMENTARY SCENARIO:
+            {
+                List<CommentaryBook> commentarySections = new();
+                if (inQuestionOnly)
+                {
+                    // Grab only the section associated with StartVerse
+                    // if there are multiple that's not so cool,
+                    // but we try to protect from that in Add/EditQuestion. 
+                    commentarySections = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                                && c.BookNumber == BookNumber
+                                                                                && c.SectionNumber == StartVerse)
+                                                                      .ToListAsync();
+                }
+                else
+                {
+                    // Go Get all the Commentary Sections (aka CommentaryBooks) for this book/bible combo. 
+                    commentarySections = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                             && c.BookNumber == BookNumber)
+                                                                       .ToListAsync();
+                }
+
+                foreach (CommentaryBook Section in commentarySections)
+                {
+                    BibleVerse CommentaryVerse = new BibleVerse // Verse == Section it's all the same here. 
+                    {
+                        BibleId = BibleId,
+                        BookName = BookName,
+                        BookNumber = BookNumber,
+                        Chapter = Chapter,
+                        Verse = Section.SectionNumber,
+                        SectionTitle = Section.SectionTitle
+                        // Text = Section.Text This is the optimization in this method, we don't grab the verse text. 
+                    };
+                    bibleVerses.Add(CommentaryVerse);
+                }
+            }
+            return bibleVerses;
         }
 
         public async Task<List<BibleVerse>> GetBibleVersesAsync(BiblePathsCoreDbContext context, bool inQuestionOnly)

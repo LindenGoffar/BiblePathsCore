@@ -181,8 +181,8 @@
             <hr />
             <h4>Shared Templates</h4>
             <span class="text-muted">
-                These are templates that have been shared by their owners, you can copy a Shared Template for
-                use in hosting your own quizzes. 
+                These are templates that have been shared by their owners, you can copy a Shared Template
+                to host your own quizzes. 
             </span>
             <hr />
             @foreach (var SharedTemplate in Model.SharedTemplates)
@@ -192,7 +192,7 @@
                         <div class="row">
                             <div class="col-6">
                                 <span><strong>@SharedTemplate.QuizName</strong></span>
-                                <span cass="small"> [Owner: @SharedTemplate.QuizUser.Email]</span>
+@*                                 <span class="small"> [Owner: @SharedTemplate.QuizUser.Email]</span> *@
                             </div>
                             <div class="col-4">
                                 <a class="btn btn-outline-primary btn-sm" asp-page="QuizTemplates/CopyTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@SharedTemplate.Id">Copy Template</a>

@@ -55,7 +55,11 @@ namespace BiblePathsCore.Pages.PBE
 
             foreach (QuizQuestion Question in Questions)
             {
-                //_ = await Question.PopulatePBEQuestionAndBookInfoAsync(_context);
+                // Commentary scenario requires Verses be populated before calling PopulatePBEQuestionInfo.
+                if (Question.Chapter == Bible.CommentaryChapter)
+                {
+                    Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(_context, true);
+                }
                 Question.PopulatePBEQuestionInfo(PBEBook);
                 Question.CheckUserCanEdit(PBEUser);
             }

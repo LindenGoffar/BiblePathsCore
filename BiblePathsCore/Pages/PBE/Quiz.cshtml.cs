@@ -97,6 +97,7 @@ namespace BiblePathsCore.Pages.PBE
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
+            // Note: the Commentary Scenario requires Verses be populated before PopulatePBEQuestionInfo is called. 
             Question.Verses = await Question.GetBibleVersesAsync(_context, true);
             Question.PopulatePBEQuestionInfo(PBEBook);
             // Not Needed already done in previous step. Question.LegalNote = Question.GetBibleLegalNote();

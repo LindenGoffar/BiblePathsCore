@@ -44,6 +44,11 @@ namespace BiblePathsCore.Controllers
             for (int i = 1; i <= Count; i++)
             {
                 QuizQuestion Question = await TempQuiz.GetNextQuizQuestionFromBookAndChapterAsync(_context, BibleId, Book.BookNumber, Chapter);
+                // Commentary scenario requires Verses be populated before calling PopulatePBEQuestionInfo.
+                if (Question.Chapter == Bible.CommentaryChapter)
+                {
+                    Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(_context, true);
+                }
                 Question.PopulatePBEQuestionInfo(Book);
                 MinQuestion minQuestion = new MinQuestion(Question);
                 minQuestions.Add(minQuestion);

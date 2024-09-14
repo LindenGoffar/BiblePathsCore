@@ -57,9 +57,9 @@ namespace BiblePathsCore.Pages.PBE
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
             if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this PBE Book." }); }
 
-            Question.PopulatePBEQuestionInfo(PBEBook);
-
+            // the commentary scenario requires Verse info so doing this before we  Populate PBE Question info.
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+            Question.PopulatePBEQuestionInfo(PBEBook);
 
             HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
@@ -101,8 +101,9 @@ namespace BiblePathsCore.Pages.PBE
                 BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
                 if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-                Question.PopulatePBEQuestionInfo(PBEBook);
+                // the commentary scenario requires Verse info so doing this before we  Populate PBE Question info.
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+                Question.PopulatePBEQuestionInfo(PBEBook);
 
                 HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
                 // We should still have AnswerText
