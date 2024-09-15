@@ -3,8 +3,10 @@
     <script>
     function UpdateQuestionPreview() {
         var div = document.getElementById('QuestionPreview');
+        var StartVerse = document.getElementById('Question_StartVerse');
         if (@Model.Chapter == @BiblePathsCore.Models.DB.Bible.CommentaryChapter) {
-            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to the @Model.BookName, ' + $("#Question_StartVerse").val() + ', ' + $("#Question_Question").val() + '';
+            var SectionTitle = StartVerse.options[StartVerse.selectedIndex].text; //
+            div.innerHTML = '(' + $("#Question_Points").val() + 'pts) ' + 'According to the @Model.BookName, ' + SectionTitle + ', ' + $("#Question_Question").val() + '';
         }
         else {
             if ($("#Question_StartVerse").val() == $("#Question_EndVerse").val()) {

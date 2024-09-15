@@ -135,15 +135,22 @@
             if (Model.Question.EndVerse > Model.Question.StartVerse) { VerseRef += " - " + Model.Question.EndVerse; }
         }
         <div class="col-xs-12 col-sm-9">
-            @if (Model.Question.IsCommentaryQuestion) 
-            {           
-            }
+
             else
             {
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <span class="font-weight-bold">Verses for Reference </span><span>@VerseRef</span>
+                        @if (Model.Question.IsCommentaryQuestion)
+                        {
+                            <span class="font-weight-bold">Commentary for Reference </span>
+                            <span>@Model.Question.CommentarySectionTitle</span>
+                        }
+                        else
+                        {
+                            <span class="font-weight-bold">Verses for Reference </span>
+                            <span>@VerseRef</span>
+                        }
                         </div>
                         <div class="card-text">
                             @foreach (var Verse in Model.Question.Verses)
