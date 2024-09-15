@@ -18,6 +18,7 @@
                         <span class="input-group-text">Template Name</span>
                     </div>
                     <input asp-for="@Model.Template.QuizName" class="form-control" />
+                    <span asp-validation-for="@Model.Template.QuizName" class="text-danger"></span>
                 </div>
                 <div class="form-group form-check">
                     <label class="form-check-label">
@@ -27,7 +28,6 @@
                 </div>
                 <input type="hidden" asp-for="@Model.Template.Id" />
                 <input type="hidden" asp-for="@Model.Template.Type" />
-                <span asp-validation-for="@Model.Template.QuizName" class="text-danger"></span>
 
                 @for (var i = 0; i < Model.Questions.Count; i++)
                 {

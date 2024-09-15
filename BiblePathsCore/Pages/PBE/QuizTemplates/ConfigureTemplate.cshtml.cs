@@ -78,6 +78,13 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync(int Id)
         {
+            // Sanity check Step.Text
+            ContentReview CheckThis = new ContentReview(Template.QuizName);
+            if (CheckThis.FindBannedWords() > 0)
+            {
+                ModelState.AddModelError("Template.QuizName", "Please choose a Name that might be more inline with the mission of BiblePaths.");
+            }
+            
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
 

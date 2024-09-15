@@ -61,9 +61,16 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            // Sanity check Step.Text
+            ContentReview CheckThis = new ContentReview(Name);
+            if (CheckThis.FindBannedWords() > 0)
+            {
+                ModelState.AddModelError("Name", "Please choose a Name that might be more inline with the mission of BiblePaths.");
+            }
             if (!ModelState.IsValid)
             {
                 ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
+                ViewData["CountSelectList"] = PredefinedQuiz.GetCountSelectList();
                 return Page();
             }
 

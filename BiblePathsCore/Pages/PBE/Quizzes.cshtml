@@ -184,23 +184,27 @@
                 These are templates that have been shared by their owners, you can copy a Shared Template
                 to host your own quizzes. 
             </span>
-            <hr />
-            @foreach (var SharedTemplate in Model.SharedTemplates)
-            {
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-6">
-                                <span><strong>@SharedTemplate.QuizName</strong></span>
-@*                                 <span class="small"> [Owner: @SharedTemplate.QuizUser.Email]</span> *@
-                            </div>
-                            <div class="col-4">
-                                <a class="btn btn-outline-primary btn-sm" asp-page="QuizTemplates/CopyTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@SharedTemplate.Id">Copy Template</a>
+            <br />
+            <button data-toggle="collapse" data-target="#SharedTemplates" class="btn btn-sm btn-info">Show Shared Templates</button>
+            <div id="SharedTemplates" class="collapse">
+                <hr />
+                @foreach (var SharedTemplate in Model.SharedTemplates)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-8">
+                                    <span><strong>@SharedTemplate.QuizName</strong></span>
+                                    @* <span cass="small"> [Owner: @SharedTemplate.QuizUser.Email]</span> *@
+                                </div>
+                                <div class="col-4">
+                                    <a class="btn btn-outline-primary btn-sm" asp-page="./QuizTemplates/CopyTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@SharedTemplate.Id">Copy Template</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
 
         <div id="BookLists" class="container tab-pane fade">
