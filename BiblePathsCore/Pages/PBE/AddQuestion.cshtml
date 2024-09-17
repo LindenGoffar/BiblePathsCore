@@ -77,21 +77,25 @@
             </div>
         </div>
         <div class="col-5">
+           @if (Model.IsOpenAIEnabled)
+                {
+                    <a class="follow-scroll btn btn-sm btn-outline-primary" id="GenerateAIQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildAIQuestion=True">Generate AI Question (Experimental)</a>
+                }
             @if (!(Model.IsCommentary))
             {
                 @if (Model.IsFITBGenerationEnabled)
                 {
-                    <a class="follow-scroll" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate Question</a>
-                }
-                @if (Model.IsOpenAIEnabled)
-                {
-                    <br />
-                    <a class="follow-scroll" id="GenerateAIQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildAIQuestion=True">Generate AI Question (Experimental) </a>
+                            <a class="follow-scroll btn btn-sm btn-outline-primary" id="GenerateQuestionLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse&BuildQuestion=True">Generate FITB Question</a>
                 }
             }
+            @if (Model.IsGeneratedQuestion)
+                {
+                    <a class="follow-scroll btn btn-sm btn-outline-success" id="ResetFormLink" href="/PBE/AddQuestion?BibleId=@Model.Question.BibleId&BookNumber=@Model.Question.BookNumber&Chapter=@Model.Question.Chapter&VerseNum=@Model.Question.StartVerse">Reset Question</a>
+                }
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="container-fluid follow-scroll">
+                    <hr>
                     <div class="row">
                         <div class="input-group input-group-sm mb-0">
                             <div class="input-group-prepend">
@@ -111,8 +115,10 @@
                     <div class="row">
                         @if (Model.IsCommentary)
                         {
-                            <div class="mb-0 input-group input-group-sm form-inline form-group">
-                                <span>Commentary Section</span>
+                            <div class="mb-0 input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Section </span>
+                                </div>
                                 <input type="hidden" asp-for="Question.EndVerse" />
                                 <select asp-for="Question.StartVerse" asp-items="ViewBag.SectionSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
                             </div>

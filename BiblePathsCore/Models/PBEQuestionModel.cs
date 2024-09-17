@@ -522,7 +522,7 @@ namespace BiblePathsCore.Models.DB
             {
                 if (VerseCount.Value > 0)
                 {
-                    // Now Let's pick a rendom Verse and hope it's not excluded... 
+                    // Now Let's pick a random Verse and hope it's not excluded... 
                     Random rand = new Random();
                     int verseNum = rand.Next(1, (int)VerseCount);
                     ReturnVerse = await BibleVerse.GetVerseAsync(context, bibleId, BookNumber, Chapter, verseNum);

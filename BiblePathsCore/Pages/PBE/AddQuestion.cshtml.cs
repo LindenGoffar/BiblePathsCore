@@ -40,8 +40,10 @@ namespace BiblePathsCore.Pages.PBE
         public bool HasExclusion { get; set; }
         public int CommentaryQuestionCount { get; set; }
         public int ChapterQuestionCount { get; set; }
+        public int ChapterFITBPct { get; set; }
         public bool IsOpenAIEnabled { get; set; }
         public bool IsFITBGenerationEnabled { get; set; }
+        public bool IsGeneratedQuestion { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId, int BookNumber, int Chapter, int? VerseNum, bool? BuildQuestion, bool? BuildAIQuestion)
         {
@@ -90,6 +92,7 @@ namespace BiblePathsCore.Pages.PBE
                         AnswerText += Answer.Answer;
                     }
                 }
+                IsGeneratedQuestion = true;
             }
             else // This is setting up the non-builder scenario. 
             {
@@ -98,6 +101,7 @@ namespace BiblePathsCore.Pages.PBE
                 Question.StartVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
                 Question.EndVerse = VerseNum ?? 1; // set to 1 if VersNum is Null.
                 Question.Points = 0;
+                IsGeneratedQuestion = false;
             }
 
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
@@ -114,7 +118,14 @@ namespace BiblePathsCore.Pages.PBE
             if (IsCommentary == false)
             {
                 ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
-            } 
+                ChapterFITBPct = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().FITBPct;
+                if (ChapterFITBPct < 33) { IsFITBGenerationEnabled = true; }
+                else { IsFITBGenerationEnabled = false; }   
+            }
+            else
+            {
+                IsFITBGenerationEnabled = false;
+            }
             CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
             // and now we need a Verse Select List, and a Section Select List
@@ -125,8 +136,6 @@ namespace BiblePathsCore.Pages.PBE
             
             IsOpenAIEnabled = false;
             if(_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
-
-            IsFITBGenerationEnabled = true;
 
             return Page();
         }
@@ -153,6 +162,13 @@ namespace BiblePathsCore.Pages.PBE
                 if (IsCommentary == false)
                 {
                     ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
+                    ChapterFITBPct = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().FITBPct;
+                    if (ChapterFITBPct < 33) { IsFITBGenerationEnabled = true; }
+                    else { IsFITBGenerationEnabled = false; }
+                }
+                else
+                {
+                    IsFITBGenerationEnabled = false;
                 }
                 CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
@@ -161,6 +177,10 @@ namespace BiblePathsCore.Pages.PBE
                 if (IsCommentary) { ViewData["SectionSelectList"] = new SelectList(Question.Verses, "Verse", "SectionTitle"); }
 
                 ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+
+                IsOpenAIEnabled = false;
+                if (_openAIsettings.OpenAIEnabled == "True") { IsOpenAIEnabled = true; }
+
                 return Page();
             }
 

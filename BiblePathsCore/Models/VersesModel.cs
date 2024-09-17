@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace BiblePathsCore.Models.DB
 {
@@ -93,17 +94,43 @@ namespace BiblePathsCore.Models.DB
         public static async Task<BibleVerse> GetVerseAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int Verse)
         {
             BibleVerse bibleVerse = new BibleVerse();
-            try
+            // this seems an odd fit in the VersesModel but we need to 
+            // try and handle both the Bible Verse scenario as well as the
+            // Commentary Section model which presents as a Verse. 
+            if (Chapter != Bible.CommentaryChapter) // This is the Bible Verse Scenario
             {
-                bibleVerse = await context.BibleVerses.Where(v => v.BibleId == BibleId
-                                                                && v.BookNumber == BookNumber
-                                                                && v.Chapter == Chapter
-                                                                && v.Verse == Verse)
-                                                            .SingleAsync();
+                try
+                {
+                    bibleVerse = await context.BibleVerses.Where(v => v.BibleId == BibleId
+                                                                    && v.BookNumber == BookNumber
+                                                                    && v.Chapter == Chapter
+                                                                    && v.Verse == Verse)
+                                                                .SingleAsync();
+                }
+                catch
+                {
+                    return null;
+                }
             }
-            catch
+            else // The Commentary Section scenario
             {
-                return null;
+                try
+                {
+                    CommentaryBook commentarySection = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                                            && c.BookNumber == BookNumber
+                                                                                            && c.SectionNumber == Verse)
+                                                                                    .FirstOrDefaultAsync();
+                    bibleVerse.BibleId = BibleId;
+                    bibleVerse.BookNumber = BookNumber;
+                    bibleVerse.Chapter = Chapter;
+                    bibleVerse.Verse = commentarySection.SectionNumber;
+                    bibleVerse.SectionTitle = commentarySection.SectionTitle;
+                    bibleVerse.Text = commentarySection.Text;
+                }
+                catch
+                {
+                    return null;
+                }
             }
             return bibleVerse;
         }
