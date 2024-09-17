@@ -35,6 +35,8 @@ namespace BiblePathsCore.Pages.PBE
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
             Commentaries = await _context.CommentaryBooks.Where(C => C.BibleId == this.BibleId)
+                                                         .OrderBy(C  => C.BookNumber)
+                                                         .ThenBy(C => C.SectionNumber)
                                                     .ToListAsync();
 
             UserMessage = GetUserMessage(Message);
