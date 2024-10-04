@@ -32,11 +32,11 @@
                                 <span class="input-group-text">Book</span>
                             </div>
                             <input type="hidden" asp-for="@Model.Questions[i].QuestionNumber" />
-                            <select disabled asp-for="@Model.Questions[i].BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-@i"></select>
+                            <select asp-for="@Model.Questions[i].BookNumber" asp-items="ViewBag.BookSelectList" class="form-control" id="BookSelect-@i"></select>
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Chapter</span>
                             </div>
-                            <select disabled asp-for="@Model.Questions[i].Chapter" asp-items="@Model.Questions[i].ChapterSelectList" class="form-control" id="ChapterSelect-@i"></select>
+                            <select asp-for="@Model.Questions[i].Chapter" asp-items="@Model.Questions[i].ChapterSelectList" class="form-control" id="ChapterSelect-@i"></select>
                         </div>
                     </div>
                 }
@@ -57,5 +57,6 @@
 </div>
 
 @section Scripts {
+    <partial name="_DynamicChapterSelectForCopy" model="@Model" />
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
