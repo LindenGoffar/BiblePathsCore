@@ -53,7 +53,5 @@ namespace BiblePathsCore.Models
             }
             return FoundWords.Count;
         }
-
-
     }
 }

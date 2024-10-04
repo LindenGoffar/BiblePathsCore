@@ -10,7 +10,6 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="row">
@@ -44,22 +43,38 @@
                 </div>
 
                 <div class="row">
+                    <p class="text-info">Section Number and Title, the heading of the supplied commentary section, and number used to order the sections.</p>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Section Number</span>
+                    </div>
+                    <input asp-for="Commentary.SectionNumber" placeholder="1" min="1" max="10" width="3" />
+                    <span asp-validation-for="Commentary.SectionNumber" class="text-danger"></span>
+
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Section Title</span>
+                    </div>
+                    <input asp-for="Commentary.SectionTitle" class="form-control" placeholder="Title and Authorship" />
+                    <span asp-validation-for="Commentary.SectionTitle" class="text-danger"></span>
+                </div>
+                </div>
+
+                <div class="row">
                     <div class="mb-0 input-group input-group-sm form-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text">Commentary Text</span>
+                            <span class="input-group-text">Commentary Section Text</span>
                         </div>
-                        <textarea asp-for="Commentary.Text" rows="4" placeholder="Paste Commentary Text Here" class="scroll-box"> </textarea>
+                        <textarea asp-for="Commentary.Text" rows="20" placeholder="Paste Commentary Text Here" class="scroll-box"> </textarea>
                         <span asp-validation-for="Commentary.Text" class="text-danger"></span>
                     </div>
                 </div>
 
                 <br />
-                <div class="form-group input-group">
+                <div>
                     <input type="hidden" asp-for="Commentary.BibleId" />
                     <input type="submit" value="Save Commentary" class="btn btn-primary" />
                 </div>
             </form>
-        </div>
     </div>
     <div class="row">
         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#DeleteModal">
@@ -96,7 +111,7 @@
     <hr />
     <a asp-page="Commentaries" asp-route-BibleId="@Model.Commentary.BibleId">Back to Commentary Lists</a>
     <br />
-    <a asp-page="Index">PBE Home</a>
+    <a asp-page="../Index">PBE Home</a>
 </div>
 
 @section Scripts {

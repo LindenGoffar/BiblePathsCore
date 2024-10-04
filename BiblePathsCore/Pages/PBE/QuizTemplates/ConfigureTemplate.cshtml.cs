@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text.Json;
+using Microsoft.AspNetCore.Routing.Template;
 
 namespace BiblePathsCore.Pages.PBE
 {
@@ -26,6 +27,7 @@ namespace BiblePathsCore.Pages.PBE
             _userManager = userManager;
             _context = context;
         }
+        [BindProperty]
         public PredefinedQuiz Template { get; set; }
         public List<MinBook> TemplateBooks { get; set; }
         public string JSONBooks { get; set; }
@@ -35,6 +37,9 @@ namespace BiblePathsCore.Pages.PBE
 
         [BindProperty] 
         public String BibleId { get; set; }
+
+        [BindProperty]
+        public bool isShared { get; set; }
         public QuizUser PBEUser { get; set; }
 
 
@@ -52,7 +57,7 @@ namespace BiblePathsCore.Pages.PBE
 
             //Initialize Our Template
             _context.Entry(Template).Collection(T => T.PredefinedQuizQuestions).Load();
-            Questions = Template.IntiQuestionListForAddEdit();
+            Questions = Template.InitQuestionListForAddEdit();
             // Initialize Template Books
             TemplateBooks = await Template.GetTemplateBooksAsync(_context, this.BibleId);
             JSONBooks = JsonSerializer.Serialize(TemplateBooks);
@@ -62,6 +67,10 @@ namespace BiblePathsCore.Pages.PBE
                 Question.AddChapterSelectList(TemplateBooks);
             }
             ViewData["BookSelectList"] = MinBook.GetMinBookSelectListFromList(TemplateBooks);
+
+            if (Template.Type == (int)QuizTemplateType.Shared) { isShared = true; }
+            else { isShared = false; }
+
             return Page();
         }
 
@@ -69,6 +78,13 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync(int Id)
         {
+            // Sanity check Step.Text
+            ContentReview CheckThis = new ContentReview(Template.QuizName);
+            if (CheckThis.FindBannedWords() > 0)
+            {
+                ModelState.AddModelError("Template.QuizName", "Please choose a Name that might be more inline with the mission of BiblePaths.");
+            }
+            
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
 
@@ -82,15 +98,15 @@ namespace BiblePathsCore.Pages.PBE
 
             _context.Entry(TemplateToUpdate).Collection(T => T.PredefinedQuizQuestions).Load();
 
-            // We need a copy of the Questions list to compare to while the origonal is being updated.
+            // We need a copy of the Questions list to compare to while the original is being updated.
             List<PredefinedQuizQuestion> CompareQuestions = TemplateToUpdate.PredefinedQuizQuestions.ToList();
 
             if (!ModelState.IsValid)
             {
                 //Initialize Our Template Questions
-                Questions = TemplateToUpdate.IntiQuestionListForAddEdit();
+                Questions = TemplateToUpdate.InitQuestionListForAddEdit();
                 // Initialize Template Books
-                TemplateBooks = await Template.GetTemplateBooksAsync(_context, this.BibleId);
+                TemplateBooks = await TemplateToUpdate.GetTemplateBooksAsync(_context, this.BibleId);
                 JSONBooks = JsonSerializer.Serialize(TemplateBooks);
                 // Build Select Lists
                 foreach (PredefinedQuizQuestion Question in Questions)
@@ -98,11 +114,21 @@ namespace BiblePathsCore.Pages.PBE
                     Question.AddChapterSelectList(TemplateBooks);
                 }
                 ViewData["BookSelectList"] = MinBook.GetMinBookSelectListFromList(TemplateBooks);
+
+                if (Template.Type == (int)QuizTemplateType.Shared) { isShared = true; }
+                else { isShared = false; }
+
                 return Page();
             }
 
+            // First let's update our Template
             _context.Attach(TemplateToUpdate);
             TemplateToUpdate.Modified = DateTime.Now;
+            TemplateToUpdate.QuizName = Template.QuizName;
+            if (TemplateToUpdate.Type != (int)QuizTemplateType.Shared && isShared) { 
+                TemplateToUpdate.Type = (int)QuizTemplateType.Shared; 
+            }
+            await _context.SaveChangesAsync();
 
             // Iterate through each of our Questions and make appropriate changes. 
             foreach (PredefinedQuizQuestion Question in Questions)
@@ -151,7 +177,7 @@ namespace BiblePathsCore.Pages.PBE
                 await _context.SaveChangesAsync();
 
             }
-            return RedirectToPage("./Quizzes", "", new { BibleId = this.BibleId, Message = String.Format("Quiz Template {0} configured successfuly.", TemplateToUpdate.QuizName) }, "Templates");
+            return RedirectToPage("../Quizzes", "", new { BibleId = this.BibleId, Message = String.Format("Quiz Template {0} configured successfuly.", TemplateToUpdate.QuizName) }, "Templates");
         }
     }
 }

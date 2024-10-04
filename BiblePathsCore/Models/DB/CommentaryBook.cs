@@ -13,8 +13,6 @@ public partial class CommentaryBook
 
     public string BookName { get; set; }
 
-    public string Text { get; set; }
-
     public string CommentaryTitle { get; set; }
 
     public string Owner { get; set; }
@@ -22,6 +20,12 @@ public partial class CommentaryBook
     public DateTimeOffset? Created { get; set; }
 
     public DateTimeOffset? Modified { get; set; }
+
+    public string Text { get; set; }
+
+    public int SectionNumber { get; set; }
+
+    public string SectionTitle { get; set; }
 
     public virtual Bible Bible { get; set; }
 }

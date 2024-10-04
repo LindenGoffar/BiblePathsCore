@@ -25,6 +25,7 @@ namespace BiblePathsCore.Pages.PBE
         }
 
         public List<PredefinedQuiz> Templates { get;set; }
+        public List<PredefinedQuiz> SharedTemplates { get; set; }
         public List<QuizBookList> BookLists { get; set; }
         public List<QuizGroupStat> Quizzes { get; set; }
         public QuizUser PBEUser { get; set; }
@@ -42,6 +43,11 @@ namespace BiblePathsCore.Pages.PBE
             Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
                                                          .OrderByDescending(T => T.Created)
                                                          .ToListAsync();
+
+            SharedTemplates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false 
+                                                                    && T.Type == (int)QuizTemplateType.Shared)
+                                                                .OrderByDescending(T => T.Created)
+                                                                .ToListAsync();
 
             BookLists = await _context.QuizBookLists.Include(L => L.QuizBookListBookMaps)
                                                     .Where(L => L.IsDeleted == false)

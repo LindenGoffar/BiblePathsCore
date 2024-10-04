@@ -61,15 +61,25 @@ namespace BiblePathsCore.Services
         public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
         {
 
-            string QnASystemRequest = "You are a teacher preparing a quiz. " + 
+            string QnASystemRequest001 = "You are a teacher preparing a quiz. " + 
                 "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
                 "you will write a question from this text that can be answered from the same text, and provide the answer. " +
-                "You will also need to determine how many points the anser will be worth, points will be an integer between 1 and 6, " +
-                "where each independant clause in the answer is worth 1 point." +
+                "You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
+                "where each independent clause in the answer is worth 1 point." +
                 "Use a default of 1 if points cannot be determined. " +
                 "The output, including question, answer, and points should be in the schema specified " +
                 "The question should be brief and not include the phrase 'according to'. " +
                 "The Answer should be short and not include the contents of the question, or restate the question.";
+
+            string QnASystemRequest = "You are a Bible teacher preparing a quiz for students. " +
+    "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
+    "you will write a question from this text that can be answered from the same text, and provide the answer. " +
+    "You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
+    "where each independent clause in the answer is worth 1 point." +
+    "Use a default of 1 if points cannot be determined. " +
+    "The output, including question, answer, and points should be in the schema specified " +
+    "The question should not include the phrase 'according to'. " +
+    "The Answer should be short and not restate any portion of the question.";
 
 
             string QnAUserRequest = "<Verse>"

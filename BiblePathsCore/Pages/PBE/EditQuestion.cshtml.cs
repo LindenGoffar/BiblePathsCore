@@ -40,24 +40,26 @@ namespace BiblePathsCore.Pages.PBE
         public async Task<IActionResult> OnGetAsync(int QuestionId, string Caller)
         {
             ReturnPath = Caller;
+            // User Checks.
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); 
             if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit a PBE question" }); }
 
+            // Go grab the question in question. 
             Question = await _context.QuizQuestions.FindAsync(QuestionId);
             if (Question == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Question" }); }
 
             // 11/19/2023 We are having edit problems so only letting owner or moderators do question edits.
             if ((PBEUser.Email != Question.Owner) && !(PBEUser.IsQuizModerator())) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit this PBE question" }); }
             
-            // Setup our PBEBook Object
+            // Setup our PBEBook Object after validating BibleId.
             Question.BibleId = await QuizQuestion.GetValidBibleIdAsync(_context, Question.BibleId);
-
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
-            if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
+            if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this PBE Book." }); }
 
-            Question.PopulatePBEQuestionInfo(PBEBook);
+            // the commentary scenario requires Verse info so doing this before we  Populate PBE Question info.
             Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+            Question.PopulatePBEQuestionInfo(PBEBook);
 
             HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
 
@@ -70,6 +72,7 @@ namespace BiblePathsCore.Pages.PBE
             }
             else { AnswerText = "";  }
 
+            // In the Commentary Scenario we have no real "Chapter" so will need to fake some properties like isCommentary
             IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (IsCommentary == false)
             {
@@ -77,9 +80,12 @@ namespace BiblePathsCore.Pages.PBE
             }
             CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
-            // and now we need a Verse Select List
+            // and now we need a Verse Select List, and a Section Select List
             ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+            if (IsCommentary) { ViewData["SectionSelectList"] = new SelectList(Question.Verses, "Verse", "SectionTitle"); }
+
             ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+
             return Page();
         }
 
@@ -87,6 +93,7 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
             if (!ModelState.IsValid)
             {
                 // Setup our PBEBible Object
@@ -94,31 +101,38 @@ namespace BiblePathsCore.Pages.PBE
                 BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, Question.BibleId, Question.BookNumber, Question.Chapter);
                 if (PBEBook == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find the PBE Book." }); }
 
-                Question.PopulatePBEQuestionInfo(PBEBook);
+                // the commentary scenario requires Verse info so doing this before we  Populate PBE Question info.
                 Question.Verses = await Question.GetBibleVersesAsync(_context, false);
+                Question.PopulatePBEQuestionInfo(PBEBook);
 
                 HasExclusion = Question.Verses.Any(v => v.IsPBEExcluded == true);
                 // We should still have AnswerText
 
-                IsCommentary = (Question.Chapter == Bible.CommentaryChapter);
                 if (IsCommentary == false)
                 {
                     ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
                 }
                 CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
 
-                // and now we need a Verse and Points Select List
+                // and now we need a Verse Select List, and a Section Select List
                 ViewData["VerseSelectList"] = new SelectList(Question.Verses, "Verse", "Verse");
+                if (IsCommentary) { ViewData["SectionSelectList"] = new SelectList(Question.Verses, "Verse", "SectionTitle"); }
+
                 ViewData["PointsSelectList"] = Question.GetPointsSelectList();
+
                 return Page();
             }
 
             // confirm our user is a valid PBE User. 
             IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit a PBE question" }); }
+            if (User != null)
+            {
+                PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
+                if (!PBEUser.IsValidPBEQuestionBuilder()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit this PBE question" }); }
+            }
+            else { return RedirectToPage("/error", new { errorMessage = "Oops! We were unable to get our User Object from the UserManager, this question cannot be added!" }); }
 
-            // Now let's create an empty question and put only our validated properties onto it. 
+            // Now let's grab our question and put only our validated properties onto it. 
             QuizQuestion QuestionToUpdate = await _context.QuizQuestions.FindAsync(Question.Id);
             if (QuestionToUpdate == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Question" }); }
 
@@ -130,6 +144,12 @@ namespace BiblePathsCore.Pages.PBE
                 "Question",   // Prefix for form value.
                 Q => Q.BibleId, Q => Q.Points, Q => Q.StartVerse, Q => Q.EndVerse, Q => Q.Question, Q => Q.Challenged, Q => Q.ChallengeComment))
             {
+
+                // In the commentary scenario we want only one verse/section so we will set EndVerse = StartVerse to force this. 
+                if (IsCommentary)
+                {
+                    QuestionToUpdate.EndVerse = QuestionToUpdate.StartVerse;
+                }
                 QuestionToUpdate.Modified = DateTime.Now;
                 QuestionToUpdate.Type = QuestionToUpdate.DetectQuestionType();
                 // We've got some bad edits happening so logging to challengeComment

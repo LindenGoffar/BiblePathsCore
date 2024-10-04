@@ -135,27 +135,44 @@
             if (Model.Question.EndVerse > Model.Question.StartVerse) { VerseRef += " - " + Model.Question.EndVerse; }
         }
         <div class="col-xs-12 col-sm-9">
-            @if (Model.Question.IsCommentaryQuestion) { }
-            else
-            {
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title">
-                            <span class="font-weight-bold">Verses for Reference </span><span>@VerseRef</span>
-                        </div>
-                        <div class="card-text">
+            <div class="card">
+                <div class="card-body">
+                    <div class="card-title">
+                        @if (Model.Question.IsCommentaryQuestion)
+                        {
+                            <span class="font-weight-bold">Commentary for Reference </span>
+                            <span>@Model.Question.CommentarySectionTitle</span>
+                        }
+                        else
+                        {
+                            <span class="font-weight-bold">Verses for Reference </span>
+                            <span>@VerseRef</span>
+                        }
+                    </div>
+                    <div class="card-text scroll-box">
+                        @if (Model.Question.IsCommentaryQuestion)
+                        {
                             @foreach (var Verse in Model.Question.Verses)
                             {
-                                <sup>@Verse.Verse</sup>@Verse.Text<br />
+                                @Verse.Text
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var Verse in Model.Question.Verses)
+                            {
+                                <sup>@Verse.Verse</sup>
+                                @Verse.Text
+                                <br />
                             }
                             <br />
                             <div class="text-muted">
                                 @Model.Question.LegalNote
                             </div>
-                        </div>
+                        }
                     </div>
                 </div>
-            }
+            </div>
         </div>
         <div class="col-xs-12 col-sm-3">
             <span class="font-weight-bold">Quiz Stats</span><br />

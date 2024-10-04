@@ -45,6 +45,11 @@ namespace BiblePathsCore.Controllers
             //                                                    && Q.IsAnswered == true).ToListAsync();
             foreach (QuizQuestion Question in Questions)
             {
+                // Commentary scenario requires Verses be populated before calling PopulatePBEQuestionInfo.
+                if (Question.Chapter == Bible.CommentaryChapter)
+                {
+                    Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(_context, true);
+                }
                 Question.PopulatePBEQuestionInfo(Book);
                 MinQuestion minQuestion = new MinQuestion(Question);
                 minQuestions.Add(minQuestion);
@@ -66,6 +71,11 @@ namespace BiblePathsCore.Controllers
             await _context.Entry(quizQuestion).Collection(q => q.QuizAnswers).LoadAsync();
 
             BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(_context, quizQuestion.BibleId, quizQuestion.BookNumber, quizQuestion.Chapter);
+            // Commentary scenario requires Verses be populated before calling PopulatePBEQuestionInfo.
+            if (quizQuestion.Chapter == Bible.CommentaryChapter)
+            {
+                quizQuestion.Verses = await quizQuestion.GetCommentaryMetadataAsVersesAsync(_context, true);
+            }
             quizQuestion.PopulatePBEQuestionInfo(PBEBook);
             MinQuestion minQuestion = new MinQuestion(quizQuestion);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Humanizer.Localisation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,20 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int QuestionCount { get; set; }
         [NotMapped]
+        public int FITBQuestionCount { get; set; }
+        [NotMapped]
+        public int FITBPct { get; set; }
+        [NotMapped]
         public bool IsCommentary { get; set; }
         [NotMapped]
         public bool HasChallenge { get; set; }
 
+
         public bool AddPBEChapterProperties(List<QuizQuestion> Questions)
         {
             QuestionCount = GetQuestionCount(Questions);
+            FITBQuestionCount = GetFITBQuestionCount(Questions);
+            FITBPct = GetFITBPctWithQuestionList(Questions);
             HasChallenge = HasChallengedQuestion(Questions);
             IsCommentary = (ChapterNumber == Bible.CommentaryChapter);
             return true;
@@ -33,6 +41,25 @@ namespace BiblePathsCore.Models.DB
                                 && (Q.BibleId == BibleId || Q.BibleId == null)
                                 && Q.IsDeleted == false)
                         .Count();
+        }
+
+        public int GetFITBQuestionCount(List<QuizQuestion> Questions)
+        {
+            return Questions.Where(Q => Q.BookNumber == BookNumber
+                                && Q.Chapter == ChapterNumber
+                                && (Q.BibleId == BibleId || Q.BibleId == null)
+                                && Q.Type == (int)QuestionType.FITB
+                                && Q.IsDeleted == false)
+                        .Count();
+        }
+
+        public int GetFITBPctWithQuestionList(List<QuizQuestion> Questions)
+        {
+            if (QuestionCount > 0 && FITBQuestionCount > 0)
+            {
+                return (FITBQuestionCount / QuestionCount) * 100;
+            }
+            return 0;
         }
 
         public bool HasChallengedQuestion(List<QuizQuestion> Questions)

@@ -51,6 +51,11 @@ namespace BiblePathsCore.Pages.PBE
         // more details see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            // confirm our user is a valid PBE User. 
+            IdentityUser user = await _userManager.GetUserAsync(User);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
+            if (!PBEUser.IsValidPBEQuizHost()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz" }); }
+
             if (Quiz.BookNumber == 0 && Quiz.PredefinedQuiz == 0)
             {
                 ModelState.AddModelError("Quiz.BookNumber", "You must select either a Book/BookList or a Template.");
@@ -63,11 +68,6 @@ namespace BiblePathsCore.Pages.PBE
                 ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
                 return Page();
             }
-
-            // confirm our user is a valid PBE User. 
-            IdentityUser user = await _userManager.GetUserAsync(User);
-            PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-            if (!PBEUser.IsValidPBEQuizHost()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to add a PBE Quiz" }); }
 
             // Now let's create an empty Quiz
             var emptyQuiz = new QuizGroupStat

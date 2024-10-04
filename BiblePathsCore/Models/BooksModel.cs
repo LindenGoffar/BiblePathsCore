@@ -97,7 +97,8 @@ namespace BiblePathsCore.Models.DB
             if (PBEBook == null) { return null; }
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
-            //       So that a simple ANY would work vs. having to retrieve all of these.  
+            //       So that a simple ANY would work vs. having to retrieve all of these.
+            // TODO: how important really is the inBookList check? 
             List<QuizBookList> BookLists = await context.QuizBookLists
                                                 .Include(L => L.QuizBookListBookMaps)
                                                 .Where(L => L.IsDeleted == false)
@@ -169,9 +170,11 @@ namespace BiblePathsCore.Models.DB
             List<BibleBook> Books = await context.BibleBooks
                                       .Where(B => B.BibleId == BibleId)
                                       .ToListAsync();
-            List<CommentaryBook> commentaryBooks = await context.CommentaryBooks
-                                                     .Where(C => C.BibleId == BibleId)
-                                                     .ToListAsync();
+
+            // Removing a bunch of older logic that restricted to a single Commentary per Book.
+            //List<CommentaryBook> commentaryBooks = await context.CommentaryBooks
+            //                                         .Where(C => C.BibleId == BibleId)
+            //                                         .ToListAsync();
 
             // Add a Default entry 
             BookSelectList.Add(new SelectListItem
@@ -185,8 +188,8 @@ namespace BiblePathsCore.Models.DB
                 // If there is already a Commentary entry for this book we skip it...
                 // unless IncludeBooksWithCommentary is true
                 // or unless this is the Book for the commentary we are editing the Booknum > 0 case
-                bool CommentaryExists = commentaryBooks.Where(C => C.BibleId == BibleId && C.BookNumber == Book.BookNumber).Any();
-                if (!CommentaryExists || IncludeBooksWithCommentary || Book.BookNumber == BookNum)
+                // bool CommentaryExists = commentaryBooks.Where(C => C.BibleId == BibleId && C.BookNumber == Book.BookNumber).Any();
+                //if (!CommentaryExists || IncludeBooksWithCommentary || Book.BookNumber == BookNum)
                 BookSelectList.Add(new SelectListItem
                 {
                     Text = Book.Name,
@@ -270,21 +273,18 @@ namespace BiblePathsCore.Models.DB
             if (Questions == null)
             {
                 Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, BookNumber);
-                // Switch to Static method
-                //Questions = await context.QuizQuestions
-                //        .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
-                //                && Q.BookNumber == BookNumber 
-                //                && Q.IsDeleted == false
-                //                && Q.Type == (int)QuestionType.Standard)
-                //        .ToListAsync();
             }
+
+            //TODO: Find out where and how often this is used... Seems super wasteful. 
             InBookList = IsInBooklist(context, BookLists);
             QuestionCount = GetQuestionCount(Questions);
             HasChallenge = HasChallengedQuestion(Questions);
+
+            // This check uses an Any will work fine with the multi Commentary books scenario 
             HasCommentary = await HasCommentaryAsync(context);
             if (HasCommentary)
             {
-                CommentaryTitle = await GetFullCommentaryTitleAsync(context);
+                CommentaryTitle = await GetFullCommentaryTitleAsync(context); // Uses a FirstAsync will work with multi-commentary books.
                 CommentaryQuestionCount = GetCommentaryQuestionCount(Questions);
                 CommentaryHasChallenge = CommentaryHasChallengedQuestion(Questions);
             }
@@ -298,6 +298,11 @@ namespace BiblePathsCore.Models.DB
                     Chapter.AddPBEChapterProperties(Questions);
                     this.BibleChapters.Add(Chapter);
                 }
+                else // What if it is a Commentary? 
+                {
+                    // in the commentary scenario there is no Chapter in the DB so no actions make good sense here. 
+                }
+                
             }
             else
             {

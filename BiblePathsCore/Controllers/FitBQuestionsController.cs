@@ -47,6 +47,15 @@ namespace BiblePathsCore.Controllers
             QuizQuestion Question = new QuizQuestion();
 
             Question = await Question.BuildQuestionForVerseAsync(_context, verse, 8, BibleId);
+            // We should never call this without verses in the Commentary Scenario
+            // So we'll protect from this, but this function
+            // doesn't really work with commentary anyways. 
+
+            // Commentary scenario requires Verses be populated before calling PopulatePBEQuestionInfo.
+            if (Question.Chapter == Bible.CommentaryChapter)
+            {
+                Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(_context, true);
+            }
             Question.PopulatePBEQuestionInfo(Book);
             MinQuestion minQuestion = new MinQuestion(Question);
 

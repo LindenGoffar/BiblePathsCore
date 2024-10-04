@@ -109,6 +109,7 @@
                 </div>
             </div>
         </div>
+
         <div id="Templates" class="container tab-pane fade">
             <br />
             <h4>My Quiz Templates</h4>
@@ -121,7 +122,7 @@
                 <div class="col-12">
                     <br />
                     <h6>
-                        <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                        <a asp-page="QuizTemplates/AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
                     </h6>
                     <br />
                 </div>
@@ -136,7 +137,7 @@
                                 <span><strong>@Template.QuizName</strong></span>
                             </div>
                             <div class="col-4">
-                                <a class="btn btn-outline-primary btn-sm" asp-page="ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
+                                <a class="btn btn-outline-primary btn-sm" asp-page="QuizTemplates/ConfigureTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@Template.Id">Configure Template</a>
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@Template.Id">
                                     Delete
                                 </button>
@@ -155,7 +156,7 @@
                                                 <p class="font-italic">By deleting this template any Quizzes that reference this will no longer function and you will be unable to calculate statistics.</p>
                                             </div>
                                             <div class="modal-footer">
-                                                <form asp-page="/PBE/DeleteTemplate" method="post">
+                                                <form asp-page="/PBE/QuizTemplates/DeleteTemplate" method="post">
                                                     <input type="hidden" name="id" value="@Template.Id" />
                                                     <input type="submit" value="Confirm" class="btn btn-danger" />
                                                 </form>
@@ -173,11 +174,39 @@
                 <div class="col-12">
                     <br />
                     <h6>
-                        <a asp-page="AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
+                        <a asp-page="QuizTemplates/AddTemplate" asp-route-BibleId="@Model.BibleId">Add a Template</a>
                     </h6>
                 </div>
             </div>
+            <hr />
+            <h4>Shared Templates</h4>
+            <span class="text-muted">
+                These are templates that have been shared by their owners, you can copy a Shared Template
+                to host your own quizzes. 
+            </span>
+            <br />
+            <button data-toggle="collapse" data-target="#SharedTemplates" class="btn btn-sm btn-info">Show Shared Templates</button>
+            <div id="SharedTemplates" class="collapse">
+                <hr />
+                @foreach (var SharedTemplate in Model.SharedTemplates)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-8">
+                                    <span><strong>@SharedTemplate.QuizName</strong></span>
+                                    @* <span cass="small"> [Owner: @SharedTemplate.QuizUser.Email]</span> *@
+                                </div>
+                                <div class="col-4">
+                                    <a class="btn btn-outline-primary btn-sm" asp-page="./QuizTemplates/CopyTemplate" asp-route-BibleId="@Model.BibleId" asp-route-Id="@SharedTemplate.Id">Copy Template</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
+
         <div id="BookLists" class="container tab-pane fade">
             <br />
             <h4>Book Lists</h4>

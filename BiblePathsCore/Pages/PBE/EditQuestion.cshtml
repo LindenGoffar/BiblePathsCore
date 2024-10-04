@@ -46,7 +46,10 @@
             @foreach (var Verse in Model.Question.Verses)
             {
                 <div class="text-verse" id="text-@Verse.Verse" onclick="SelectVerse(@Verse.Verse)">
-
+                    @if (Model.IsCommentary)
+                    {
+                        <span class="font-weight-bold">@Verse.SectionTitle</span>
+                    }
                     @if (!Verse.IsPBEExcluded)
                     {
                         <span style="white-space: pre-line"><sup>@Verse.Verse </sup>@Verse.Text </span>
@@ -55,24 +58,18 @@
                     {
                         <span style="white-space: pre-line" class="text-muted"><s><sup>@Verse.Verse </sup>@Verse.Text </s></span>
                     }
-
-                    @if (Model.IsCommentary == false)
+                    @if (Verse.QuestionCount > 0)
                     {
-                        @if (Verse.QuestionCount > 0)
-                        {
-                            <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter" asp-route-Verse="@Verse.Verse">
+                        <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter" asp-route-Verse="@Verse.Verse">
+                            @if (Verse.FITBPct > 75)
+                            {
+                                <span class="badge badge-warning">@Verse.QuestionCount</span>
+                            }
+                            else
+                            {
                                 <span class="badge badge-secondary">@Verse.QuestionCount</span>
-                            </a>
-                        }
-                    }
-                    else
-                    {
-                        @if (Model.CommentaryQuestionCount > 0)
-                        {
-                            <a asp-page="Questions" asp-route-BibleId="@Model.Question.BibleId" asp-route-BookNumber="@Model.Question.BookNumber" asp-route-Chapter="@Model.Question.Chapter" asp-route-Verse="@Verse.Verse">
-                                <span class="badge badge-secondary">@Model.CommentaryQuestionCount</span>
-                            </a>
-                        }
+                            }
+                        </a>
                     }
                 </div>
             }
@@ -99,21 +96,24 @@
                     else
                     {<span>According to <strong>@Model.Question.BookName @Model.Question.Chapter</strong></span>}
                     </div>
+                    <div class="row">
                     @if (Model.IsCommentary)
-                    {
-                        <input type="hidden" asp-for="Question.StartVerse" />
-                        <input type="hidden" asp-for="Question.EndVerse" />
-                    }
-                    else
-                    {
-                        <div class="row">
+                        {
                             <div class="mb-0 input-group input-group-sm form-inline form-group">
-                                <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
-                                <span> - </span>
-                                <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control" onchange="UpdateQuestionPreview()"></select>
+                                <span>Commentary Section</span>
+                                <input type="hidden" asp-for="Question.EndVerse" />
+                                <select asp-for="Question.StartVerse" asp-items="ViewBag.SectionSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
                             </div>
-                        </div>
-                    }
+                        }
+                        else
+                        {
+                            <div class="mb-0 input-group input-group-sm form-inline form-group">
+                                <select asp-for="Question.StartVerse" asp-items="ViewBag.VerseSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
+                                <span> - </span>
+                                <select asp-for="Question.EndVerse" asp-items="ViewBag.VerseSelectList" class="form-control small" onchange="UpdateQuestionPreview()"></select>
+                            </div>
+                        }
+                    </div>
                     <div class="row">
                         <div class="mb-0 input-group input-group-sm form-group">
                             <textarea asp-for="Question.Question" rows="4" onkeyup="UpdateQuestionPreview()" placeholder="Question" class="scroll-box"> </textarea>
@@ -136,6 +136,7 @@
                     {
                         <div class="row">
                             <div class="mb-0 input-group input-group-sm form-group">
+                                <p class="text-warning">Remember to unchek this box to clear the challenge.</p>
                                 <input type="checkbox" asp-for="@Model.Question.Challenged" />
                                 <label asp-for="@Model.Question.Challenged">Challenged</label>
                                 <textarea asp-for="Question.ChallengeComment" rows="2" placeholder="Comment" class="scroll-box"> </textarea>

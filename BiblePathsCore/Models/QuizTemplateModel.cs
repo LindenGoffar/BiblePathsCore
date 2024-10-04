@@ -9,13 +9,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
+namespace BiblePathsCore.Models
+{
+    // Enums generally used in the PBE Quiz App
+    public enum QuizTemplateType { Standard, Shared }
+}
+
 namespace BiblePathsCore.Models.DB
 {
     public partial class PredefinedQuiz
     {
         public const int MaxTemplateQuestions = 45;
 
-        public List<PredefinedQuizQuestion> IntiQuestionListForAddEdit()
+        public List<PredefinedQuizQuestion> InitQuestionListForAddEdit()
         {
             List<PredefinedQuizQuestion> ReturnQuestions = new List<PredefinedQuizQuestion>();
             

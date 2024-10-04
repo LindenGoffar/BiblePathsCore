@@ -10,12 +10,24 @@
 
 <div class="container-fluid">
     <div class="row">
-        <span><strong>@Model.Template.QuizName</strong></span>
-    </div>
-    <div class="row">
         <div class="col">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Template Name</span>
+                    </div>
+                    <input asp-for="@Model.Template.QuizName" class="form-control" />
+                    <span asp-validation-for="@Model.Template.QuizName" class="text-danger"></span>
+                </div>
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="@Model.isShared" /> <span>Share this template with others?</span>
+                    </label>
+                    <span class="small">Other users will be able to view and make copies of this quiz template.</span>
+                </div>
+                <input type="hidden" asp-for="@Model.Template.Id" />
+                <input type="hidden" asp-for="@Model.Template.Type" />
 
                 @for (var i = 0; i < Model.Questions.Count; i++)
                 {
@@ -69,9 +81,9 @@
 
 <div>
     <hr />
-    <a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" asp-route-Tab="Templates">Back to My Quizzes</a>
+    <a asp-page="../Quizzes" asp-route-BibleId="@Model.BibleId" asp-route-Tab="#Templates">Back to My Quizzes</a>
     <br />
-    <a asp-page="Index">PBE Home</a>
+    <a asp-page="../Index">PBE Home</a>
 </div>
 
 @section Scripts {
