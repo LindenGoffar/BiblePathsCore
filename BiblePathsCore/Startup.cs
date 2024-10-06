@@ -54,12 +54,13 @@ namespace BiblePathsCore
             services.AddTransient<IEmailSender, EmailSender>();
             services.Configure<AuthMessageSenderOptions>(Configuration);
 
+            // Facebook has become a challenge for us because we can't remain validated due to needing Business Validation, we are not a Business. 
             services.AddAuthentication()
-                    .AddFacebook(facebookOptions =>
-                        {
-                            facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
-                            facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
-                        })
+                    //.AddFacebook(facebookOptions =>
+                    //    {
+                    //        facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+                    //        facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
+                    //    })
                     .AddGoogle(googleOptions =>
                      {
                          IConfigurationSection googleAuthNSection =
