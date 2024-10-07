@@ -80,12 +80,12 @@ namespace BiblePathsCore.Models.DB
             
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List<QuizBookList> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMaps)
-                                                .Where(L => L.IsDeleted == false)
-                                                .ToListAsync();
+            //List<QuizBookList> BookLists = await context.QuizBookLists
+            //                                    .Include(L => L.QuizBookListBookMaps)
+            //                                    .Where(L => L.IsDeleted == false)
+            //                                    .ToListAsync();
 
-            await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null, BookLists);
+            await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null);
             return PBEBook;
         }
 
@@ -99,15 +99,15 @@ namespace BiblePathsCore.Models.DB
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.
             // TODO: how important really is the inBookList check? 
-            List<QuizBookList> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMaps)
-                                                .Where(L => L.IsDeleted == false)
-                                                .ToListAsync();
+            //List<QuizBookList> BookLists = await context.QuizBookLists
+            //                                    .Include(L => L.QuizBookListBookMaps)
+            //                                    .Where(L => L.IsDeleted == false)
+            //                                    .ToListAsync();
 
-            await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null, BookLists);
+            await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null);
             return PBEBook;
         }
-        public static async Task<IList<BibleBook>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId)
+        public static async Task<IList<BibleBook>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId, bool recent = true)
         {
             IList<BibleBook> PBEBooks = await context.BibleBooks
                                                   .Include(B => B.BibleChapters)
@@ -116,23 +116,18 @@ namespace BiblePathsCore.Models.DB
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
             // Switch to Static Method
-            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId);
-            //List<QuizQuestion> Questions = await context.QuizQuestions
-            //                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-            //                                                    && Q.IsDeleted == false
-            //                                                    && Q.Type == (int)QuestionType.Standard)
-            //                                            .ToListAsync();
+            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, recent);
 
             // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
             //       So that a simple ANY would work vs. having to retrieve all of these.  
-            List <QuizBookList> BookLists = await context.QuizBookLists
-                                                .Include(L => L.QuizBookListBookMaps)
-                                                .Where(L => L.IsDeleted == false)
-                                                .ToListAsync();
+            //List <QuizBookList> BookLists = await context.QuizBookLists
+            //                                    .Include(L => L.QuizBookListBookMaps)
+            //                                    .Where(L => L.IsDeleted == false)
+            //                                    .ToListAsync();
 
             foreach (BibleBook Book in PBEBooks)
             {
-                await Book.AddPBEBookPropertiesAsync(context, null, Questions, BookLists);
+                await Book.AddPBEBookPropertiesAsync(context, null, Questions);
             }
             return PBEBooks;
         }
@@ -268,15 +263,17 @@ namespace BiblePathsCore.Models.DB
             return ReturnBooks;
         }
 
-        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum, List<QuizQuestion> Questions, List<QuizBookList> BookLists)
+        public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum, List<QuizQuestion> Questions)
         {
             if (Questions == null)
             {
                 Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, BookNumber);
             }
 
-            //TODO: Find out where and how often this is used... Seems super wasteful. 
-            InBookList = IsInBooklist(context, BookLists);
+            //TODO: Find out where and how often this is used... Seems super wasteful.
+            InBookList = await IsInBookListAsync(context);
+            //InBookList = IsInBooklist(context, BookLists);
+
             QuestionCount = GetQuestionCount(Questions);
             HasChallenge = HasChallengedQuestion(Questions);
 
@@ -327,6 +324,12 @@ namespace BiblePathsCore.Models.DB
             }
 
             return false;
+        }
+
+        public async Task<bool> IsInBookListAsync(BiblePathsCoreDbContext context)
+        {
+            return await context.QuizBookListBookMaps.
+                Where(B => B.BookNumber == BookNumber).AnyAsync();
         }
 
         public async Task<bool> HasCommentaryAsync(BiblePathsCoreDbContext context)

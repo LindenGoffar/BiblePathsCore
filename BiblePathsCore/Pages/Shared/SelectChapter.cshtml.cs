@@ -38,7 +38,7 @@ namespace BiblePathsCore.Pages.Shared
             this.PathId = PathId.HasValue ? PathId.Value : 0;
 
             this.TargetPage = TargetPage;
-            // Let's see if the scnario is PBE?
+            // Let's see if the scenario is PBE?
             if (TargetPage.Contains("PBE"))
             {
                 IsPBE = true;

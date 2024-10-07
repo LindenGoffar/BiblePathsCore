@@ -111,6 +111,27 @@ namespace BiblePathsCore.Models.DB
                                                                     || Q.Type == (int)QuestionType.FITB))
                                                         .ToListAsync();
         }
+        public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId, bool recent = true)
+        {
+            DateTime EighteenMonthsAgo = DateTime.Now.AddMonths(-18);
+            if (recent)
+            {
+                return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                    && Q.IsDeleted == false
+                                                    && Q.Modified >= EighteenMonthsAgo
+                                                    && (Q.Type == (int)QuestionType.Standard
+                                                        || Q.Type == (int)QuestionType.FITB))
+                                            .ToListAsync();
+            }
+            else
+            {
+                return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                    && Q.IsDeleted == false
+                                                    && (Q.Type == (int)QuestionType.Standard
+                                                        || Q.Type == (int)QuestionType.FITB))
+                                            .ToListAsync();
+            }
+        }
         public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber)
         {
             return await context.QuizQuestions

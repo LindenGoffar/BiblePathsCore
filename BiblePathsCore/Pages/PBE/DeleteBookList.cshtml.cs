@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
+using NuGet.Packaging.Signing;
 
 namespace BiblePathsCore
 {
@@ -54,23 +55,23 @@ namespace BiblePathsCore
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
             if (!PBEUser.IsQuizModerator()) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to delete a PBE BookList" }); }
 
-            // We only ever soft delete a BookList but we do delete the maps. 
+            // 10/16/2024 Removed Soft Delete... now we just whack em it's more effecient.
+ 
 
             // First we need to iterate through each BookList Map and delete them, these are a leaf node so this should be OK.
             foreach (QuizBookListBookMap book in BookList.QuizBookListBookMaps)
             {
+                _context.Attach(book);
                 _context.QuizBookListBookMaps.Remove(book);
             }
             await _context.SaveChangesAsync();
             // Let's track this event 
             // _ = await Path.RegisterEventAsync(_context, EventType.PathDeleted, Path.Id.ToString());
-
-            // Then we set the BookList to isDeleted
+            //Now let's go ahead and delete this BookMap
             if (BookList != null)
             {
                 _context.Attach(BookList).State = EntityState.Modified;
-                BookList.Modified = DateTime.Now;
-                BookList.IsDeleted = true;
+                _context.QuizBookLists.Remove(BookList);
                 await _context.SaveChangesAsync();
             }
             return RedirectToPage("./BookLists");

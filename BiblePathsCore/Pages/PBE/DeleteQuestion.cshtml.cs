@@ -67,7 +67,7 @@ namespace BiblePathsCore
                 // break; not needed unreachable
 
                 case "ChallengedQuestions":
-                    return RedirectToPage("ChallengedQuestions", new { BibleId = Question.BibleId });
+                    return RedirectToPage("ChallengedQuestions", new { BibleId = Question.BibleId, BookNumber = Question.BookNumber, Chapter = Question.Chapter });
                 // break; not needed unreachable
 
                 default:
