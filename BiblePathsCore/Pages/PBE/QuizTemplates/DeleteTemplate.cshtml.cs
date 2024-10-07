@@ -58,6 +58,7 @@ namespace BiblePathsCore
             // First we need to iterate through each Step and delete them one by one, steps are a leaf node so this should be OK.
             foreach (PredefinedQuizQuestion Question in Template.PredefinedQuizQuestions)
             {
+                _context.Attach(Question);
                 _context.PredefinedQuizQuestions.Remove(Question);
             }
             await _context.SaveChangesAsync();
