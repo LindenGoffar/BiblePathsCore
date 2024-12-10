@@ -61,18 +61,24 @@
                             </td>
                             <td>@quiz.BookOrTemplateName</td>
                             <td>
-                                <span>
-                                    Questions Answered - @quiz.QuestionsAsked <br />
-                                    Score - @quiz.Percentage%
-                                </span>
+                                <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id">
+                                    <span>
+                                        Questions Answered - @quiz.QuestionsAsked <br />
+                                        Score - @quiz.Percentage%
+                                    </span>
+                                </a>
                             </td>
                             <td>
-                                <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
-                                    Stats
+                                <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Mock Quiz (No Points Awarded)
                                 </a>
                                 <br />
+@*                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Stats
+                                </a>
+                                <br />*@
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@quiz.Id">
-                                    Delete
+                                    Delete Quiz
                                 </button>
                                 <div class="modal fade" id="DeleteModal-@quiz.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Path" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">

@@ -102,6 +102,7 @@ namespace BiblePathsCore.Models.DB
             List<SelectListItem> TemplateSelectList = new List<SelectListItem>();
             List<PredefinedQuiz> Templates = await context.PredefinedQuizzes
                                       .Where(T => T.QuizUser == QuizUser && T.IsDeleted == false)
+                                      .OrderByDescending(L => L.Modified)
                                       .ToListAsync();
 
             // Add a Default entry 

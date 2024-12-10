@@ -10,35 +10,45 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col">
+        <div class="col-xs-12 col-sm-9">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name</span>
+                <div class="card">
+                    <div class="card-body form-group input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input asp-for="Quiz.GroupName" class="form-control" />
+                        <span asp-validation-for="Quiz.GroupName" class="text-danger"></span>
                     </div>
-                    <input asp-for="Quiz.GroupName" class="form-control" />
-                    <span asp-validation-for="Quiz.GroupName" class="text-danger"></span>
                 </div>
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Book or Book List</span>
+               
+                <div class="card">
+                    <div class="card-header">
+                        Select either a Book/Book List or a Quiz Template
                     </div>
-                    <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
-                    <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
-                </div>
-                <p>or</p>
-                <div class="form-group input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Quiz Template</span>
+                    <div class="card-body">
+                        <div class="form-group input-group">
+                            <p class="text-info">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Book or Book List</span>
+                            </div>
+                            <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
+                            <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
+                        </div>
+                        <p>or</p>
+                        <div class="form-group input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Quiz Template</span>
+                            </div>
+                            <select asp-for="Quiz.PredefinedQuiz" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
+                            <span asp-validation-for="Quiz.PredefinedQuiz" class="text-danger"></span>
+                        </div>
+                        <div class="form-group input-group">
+                            <input type="hidden" asp-for="BibleId" />
+                            <input type="submit" value="Save Quiz" class="btn btn-primary" />
+                        </div>
                     </div>
-                    <select asp-for="Quiz.PredefinedQuiz" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
-                    <span asp-validation-for="Quiz.PredefinedQuiz" class="text-danger"></span>
-                </div>
-                <p class="font-italic">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
-                <div class="form-group input-group">
-                    <input type="hidden" asp-for="BibleId" />
-                    <input type="submit" value="Save Quiz" class="btn btn-primary" />
                 </div>
             </form>
         </div>

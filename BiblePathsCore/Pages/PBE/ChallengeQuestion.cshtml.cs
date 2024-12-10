@@ -83,6 +83,10 @@ namespace BiblePathsCore
                     return RedirectToPage("./Quiz", new { BibleId = QuestionToUpdate.BibleId, QuizId = ReturnQuizID, Message = "Previous Question Challenged!"});
                 // break; not needed unreachable
 
+                case "MockQuiz/MockQuiz":
+                    return RedirectToPage("./MockQuiz/MockQuiz", new { BibleId = QuestionToUpdate.BibleId, QuizId = ReturnQuizID, Message = "Previous Question Challenged!" });
+                // break; not needed unreachable
+
                 default:
                     return RedirectToPage("./Questions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter });
                     // break; not needed unreachable

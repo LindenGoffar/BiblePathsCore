@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using static BiblePathsCore.Models.DB.QuizQuestion;
 
@@ -58,6 +59,25 @@ namespace BiblePathsCore.Models.DB
             }
             QuestionNumber = QuestionsAsked + 1;
             CalculateQuizStats();
+            return retval;
+        }
+
+        public async Task<bool> AddMockQuizPropertiesAsync(BiblePathsCoreDbContext context, string bibleId)
+        {
+            bool retval = true;
+            // If we're using a Template we'll use that name, otherwise well use 
+            // a Book or Booklist name. 
+            if (PredefinedQuiz > 0) // Template Scenario
+            {
+                PredefinedQuiz Template = await context.PredefinedQuizzes.FindAsync(PredefinedQuiz);
+                if (Template != null) { BookOrTemplateName = Template.QuizName; }
+                else { BookOrTemplateName = "Unknown"; }
+            }
+            else
+            {
+                BookOrTemplateName = await BibleBook.GetBookorBookListNameAsync(context, bibleId, BookNumber);
+            }
+            QuestionNumber = QuestionsAsked + 1;
             return retval;
         }
 
@@ -131,18 +151,6 @@ namespace BiblePathsCore.Models.DB
             QuestionToUpdate.Type = QuestionToUpdate.DetectQuestionType();
             QuestionToUpdate.LastAsked = DateTime.Now;
 
-            // We've had some challenges with users challenging many questions often with no comment.
-            // We will do a user check and make sure our user isn't blocked, if they are we silently fail the challenge.
-            // TODO: We should revisit the silent fail if it becomes a problem. 
-            // UPDATE: 12/13/2023 Quiz Challenge has been split from awarding points so this is 
-            // deprecated code
-            //if (Question.Challenged && !PBEUser.IsQuestionBuilderLocked)
-            //{
-            //    QuestionToUpdate.Challenged = true;
-            //    QuestionToUpdate.ChallengeComment = Question.ChallengeComment;
-            //    QuestionToUpdate.ChallengedBy = PBEUser.Email;
-            //}
-
             // Save the changes to both the Quiz and Question objects. 
             await context.SaveChangesAsync();
 
@@ -151,6 +159,46 @@ namespace BiblePathsCore.Models.DB
             await QuestionToUpdate.RegisterEventAsync(context, QuestionEventType.QuestionPointsAwarded, PBEUser.Id, null, Id, PointsToAward);
             return retval;
         }
+
+        public async Task<QuizQuestion> GetOrBuildNextQuizQuestionAsync(BiblePathsCoreDbContext context, string bibleId, IOpenAIResponder openAIResponder, QuizUser pbeUser)
+        {
+
+            QuizQuestion question = new QuizQuestion();
+
+            // We're going to take 3 swings at this for the scenario where we don't have enough questions. 
+            int iterations = 0;
+            do
+            {
+                question = await GetNextQuizQuestionAsync(context, bibleId);
+                iterations++;
+            }
+            while (iterations < 3 && question.QuestionSelected == false);
+
+            // This is the no questions found scenario, let's try an AI Generated Question.
+            // the previous attempts at finding a question should have supplied the Book and Chapter on the question Object. 
+            if (question.QuestionSelected == false)
+            {
+                // We need to select a random Verse to build a temporary question for. 
+                // this should account correctly for Excluded verses by not returning them. 
+                BibleVerse bibleVerse = await question.GetRandomVerseAsync(context);
+            
+                QuizQuestion BuiltQuestion = new();
+                BuiltQuestion = await question.BuildAIQuestionForVerseAsync(context, bibleVerse, openAIResponder);
+                if (BuiltQuestion != null)
+                {
+                    question = BuiltQuestion;
+                    question.Type = (int)QuestionType.AIProposed; // this is a temporary type so we can make appropriate decisions.
+                    question.Challenged = true; // We start these out challenged, because we don't fully trust them, if points are assigned by the user then we remove the challenge. 
+                    question.ChallengeComment = "System: This was an AI Proposed Question, that was not accepted";
+                    question.Owner = pbeUser.Email;
+                    question.Id = await question.SaveQuestionObjectAsync(context);
+                    question.BibleId = bibleId;
+                    question.QuestionSelected = true;
+                }               //At this point if we've still failed we could resort to an FITB But let's stop here for now. 
+            }
+            return question;
+        }
+
 
         public async Task<QuizQuestion> GetNextQuizQuestionAsync(BiblePathsCoreDbContext context, string bibleId)
         {

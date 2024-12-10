@@ -473,6 +473,44 @@ namespace BiblePathsCore.Models.DB
             return bibleVerses;
         }
 
+
+        public async Task<List<int>> GetNonExcludedVerseListForQuestionChapter(BiblePathsCoreDbContext context)
+        {
+            List<BibleVerse> bibleVerses = new List<BibleVerse>();
+            List<int> IncludedVerses = new List<int>();
+            // Go grab all of the questions and Exclusions for this Chapter once
+            // So we can count them as we iterate through each verse
+            List<QuizQuestion> Exclusions = await context.QuizQuestions
+                                                        .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+                                                                && Q.BookNumber == BookNumber
+                                                                && Q.Chapter == Chapter
+                                                                && Q.Type == (int)QuestionType.Exclusion
+                                                                && Q.IsDeleted == false)
+                                                        .ToListAsync();
+            if (Chapter != Bible.CommentaryChapter)
+            {
+                bibleVerses = await context.BibleVerses.Where(v => v.BibleId == BibleId && v.BookNumber == BookNumber && v.Chapter == Chapter).OrderBy(v => v.Verse).ToListAsync();
+                foreach (BibleVerse verse in bibleVerses)
+                {
+                    if (verse.IsVerseInExclusionList(Exclusions) == false) { IncludedVerses.Add(verse.Verse); }
+                }
+            }
+            else // COMMENTARY SCENARIO:
+            {
+                List<CommentaryBook> commentarySections = new();
+
+                // Go Get all the Commentary Sections (aka CommentaryBooks) for this book/bible combo. 
+                commentarySections = await context.CommentaryBooks.Where(c => c.BibleId == BibleId
+                                                                             && c.BookNumber == BookNumber)
+                                                                       .ToListAsync();
+                foreach (CommentaryBook section in commentarySections)
+                {
+                    IncludedVerses.Add(section.SectionNumber);
+                }
+            }
+            return IncludedVerses;
+        }
+
         public List<SelectListItem> GetPointsSelectList()
         {
             List<SelectListItem> PointsSelectList = new List<SelectListItem>();
@@ -521,44 +559,18 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
-        public async Task<BibleVerse> GetRandomVerseAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber, int Chapter)
+        public async Task<BibleVerse> GetRandomVerseAsync(BiblePathsCoreDbContext context)
         {
-            BibleVerse ReturnVerse = new();
-            // First we've got to pick a random verse from the chapter, which means finding out how many there are?
-            int? VerseCount = 0;
-            try
-            {
-                VerseCount = await context.BibleChapters.Where(C => C.BibleId == bibleId
-                                                                && C.BookNumber == BookNumber
-                                                                && C.ChapterNumber == Chapter)
-                                                        .Select(C => C.Verses)
-                                                        .FirstAsync();
-            }
-            catch
-            {
-                // This is the couldn't find the Chapter scenario, we'll return null. 
-                return null;
-            }
-            if (VerseCount.HasValue)
-            {
-                if (VerseCount.Value > 0)
-                {
-                    // Now Let's pick a random Verse and hope it's not excluded... 
-                    Random rand = new Random();
-                    int verseNum = rand.Next(1, (int)VerseCount);
-                    ReturnVerse = await BibleVerse.GetVerseAsync(context, bibleId, BookNumber, Chapter, verseNum);
-                    if (ReturnVerse == null)
-                    {
-                        return null;
-                    }
-                }
-                else
-                {
-                    // this is the Chapter had no Verses scenario, shouldn't be real but let's return null regardless. 
-                    return null;
-                }
-            }
-            return ReturnVerse;
+            List<int> IncludedVerses = await GetNonExcludedVerseListForQuestionChapter(context);
+            int IncludedVerseCount = IncludedVerses.Count;
+
+            // Let's pick a random verse from our List of NonExcludedVerses
+            // Now Let's pick a random Verse and hope it's not excluded... 
+            Random rand = new Random();
+            int verseIndex = rand.Next(0, IncludedVerseCount);
+            int VerseNum = IncludedVerses[verseIndex];
+            BibleVerse ReturnVerse = await BibleVerse.GetVerseAsync(context, BibleId, BookNumber, Chapter, VerseNum);
+            return ReturnVerse; 
         }
 
         public async Task<QuizQuestion> BuildAIQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, IOpenAIResponder openAIResponder)

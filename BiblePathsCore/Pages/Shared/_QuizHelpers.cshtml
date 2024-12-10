@@ -1,16 +1,90 @@
-﻿<!-- This function enables the Submit button when PointsAwarded is selected-->
+﻿
 <script>
-    $(document).ready(function () {
-        $('#AwardPoints').prop('disabled', true);
-        // $('#Question_Challenged').change(function () {
-        //     if (this.checked) {
-        //         $('div.HideUnHide').fadeIn('fast');
-        //     }
-        //     else {
-        //         $('div.HideUnHide').fadeOut('fast');
-        //     }
-        // });
+
+    // This function disables the Submit button until PointsAwarded is selected (does not apply to Mock Quizzes)
+    // also sets initial focus to Start Timer. 
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check if the current URL contains a specific string
+        const targetString = '/MockQuiz/';
+        if (window.location.href.indexOf(targetString) !== -1) {
+            //console.log('This is a Mock Quiz');
+            var nextQuestionButon = document.getElementById('btnNextQuestion');
+            // Set the disabled property to true
+            nextQuestionButon.disabled = true;
+
+        } else {
+            //console.log('This is not a Mock Quiz');
+            // Select the element 
+            var awardPointsElement = document.getElementById('AwardPoints'); 
+            // Set the disabled property to true 
+            awardPointsElement.disabled = true;
+            // Old JQuery Code: $('#AwardPoints').prop('disabled', true);
+        }
+        document.getElementById('StartTimerButton').focus();
     });
+
+    // Function to handle keydown events across the page. 
+    function handleKeydown(event) {
+        const challengeTextarea = document.getElementById('ChallengeTextArea');
+        if (document.activeElement === challengeTextarea) {
+            if (event.key === 'Enter') { 
+                event.preventDefault(); // just shift focus, don't click the button.
+                document.getElementById('btnConfirmChallenge').focus(); 
+            }
+        }
+        else {
+            if (event.key === 'c' || event.key === 'C') {
+                challengeTextarea.focus();
+                event.preventDefault();
+            }
+            if (event.key === 't' || event.key === 'T') {
+                document.getElementById('StartTimerButton').click();
+            }
+            if (event.key === 's' || event.key === 'S') {
+                document.getElementById('ShowAnswersButton').click();
+            }
+            if (event.key === 'n' || event.key === 'N') {
+                document.getElementById('btnNextQuestion').click();
+            }
+            if (event.key === 'a' || event.key === 'A') {
+                document.getElementById('AwardPoints').click();
+            }
+        }
+    }
+    // Attach the keydown event listener to the document
+    document.addEventListener('keydown', handleKeydown);
+
+    // This function ensures certain key strokes apply on the selected button. 
+    // allowing for tab selection. 
+    document.querySelectorAll('.button').forEach(button => {
+        button.addEventListener('keydown', (event) => { 
+            if (event.key === 'Enter' || event.key === ' ') { button.click(); }
+        }); 
+    });
+
+    // Function to enable the Challenge Button if a challenge comment is entered and the button is disabled.
+    function onTextInput() {
+        const ConfirmChallengeButton = document.getElementById("btnConfirmChallenge");
+        const textarea = document.getElementById('ChallengeTextArea');
+        const charCount = textarea.value.length;
+
+        console.log('Checking State of ChellengeButton');
+
+        if (ConfirmChallengeButton.disabled == true && charCount > 0) {
+            console.log('Enabling ChallengeButton');
+            ConfirmChallengeButton.disabled = false;
+        }
+        if (ConfirmChallengeButton.disabled == false && charCount == 0) {
+            console.log('Disabling ChallengeButton');
+            ConfirmChallengeButton.disabled = true;
+        }
+
+    }
+
+    // Attach the input event listener to the textarea
+    document.getElementById('ChallengeTextArea').addEventListener('input', onTextInput);
+
+
     // When there is a change to the Points DropDown we determine whether to enable the button or not.
     $('#Question_PointsAwarded').change(function () {
         console.log("Points Changed")
@@ -18,55 +92,40 @@
         if (parseInt($("#Question_PointsAwarded").val()) >= 0) {
             $('#AwardPoints').prop('disabled', false);
             document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
-            document.getElementById("BtnChallengeQuestion").innerText = "Challenge and Award Points";
+            document.getElementById("btnConfirmChallenge").innerHTML = "<u>C</u>hallenge and Award Points";
         }
         else {
             $('#AwardPoints').prop('disabled', true);
             document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
-            document.getElementById("BtnChallengeQuestion").innerText = "Challenge Question";
+            document.getElementById("btnConfirmChallenge").innerHTML = "<u>C</u>hallenge Question";
         }
     });
-    // $('#Question_Challenged').change(function () {
-    //     console.log("Checkbox Changed")
-    //     console.log(isChallengedNoComment())
-    //     if (parseInt($("#Question_PointsAwarded").val()) >= 0 && !isChallengedNoComment()) {
-    //         $('#AwardPoints').prop('disabled', false);
-    //     }
-    //     else {
-    //         $('#AwardPoints').prop('disabled', true);
-    //     }
-    // });
-    // $('#Question_ChallengeComment').change(function () {
-    //     console.log("Comment Changed")
-    //     console.log(isChallengedNoComment())
-    //     if (parseInt($("#Question_PointsAwarded").val()) >= 0 && !isChallengedNoComment()) {
-    //         $('#AwardPoints').prop('disabled', false);
-    //     }
-    //     else {
-    //         $('#AwardPoints').prop('disabled', true);
-    //     }
-    // });
 
-    // If a question is challenged, we want to force a comment. 
-    function isChallengedNoComment() {
-        const cb = document.getElementById('Question_Challenged');
-        console.log("IsChallenged")
-        console.log(cb.checked)
-        if (cb.checked) {
-            if ($("#Question_ChallengeComment").val().length === 0) {
-                console.log("Empty Challenge Comment")
-                return true;
-            }
+    function ShowAnswers() {
+        // Check if we're in a Mock Quiz or not.
+        const targetString = '/MockQuiz/';
+        if (window.location.href.indexOf(targetString) !== -1) {
+            // Once this is clicked once we'll enable the Next Question button
+            var nextQuestionButon = document.getElementById('btnNextQuestion');
+            // Set the disabled property to false
+            nextQuestionButon.disabled = false;
+            //And we'll set focus to it.
+            nextQuestionButon.focus();
+
+        } else {
+            // Once this is clicked once we'll enable the Next Question button
+            var PointsSelector = document.getElementById('Question_PointsAwarded');
+            // Set the disabled property to false
+            PointsSelector.focus();
         }
-        return false;
     }
 
     function StartTimer(timeLeft) {
         var elem = document.getElementById('StartTimerButton');
-        // document.getElementById('StartTimerButton').remove();
-        // var TimerCard = document.getElementById('QuestionTimer');
         var timerId = setInterval(countdown, 1000);
         $('#StartTimerButton').prop('disabled', true)
+        // Let's also change focus to the show answer button
+        document.getElementById('ShowAnswersButton').focus();
 
         function countdown() {
             if (timeLeft >= 10 ) {
