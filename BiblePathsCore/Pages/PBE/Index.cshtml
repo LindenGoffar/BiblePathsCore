@@ -8,25 +8,24 @@
     <h1 class="display-4">Welcome to the @ViewData["Title"]</h1>
     <small>powered by <strong>BiblePaths.Net</strong></small>
     <br />
-    <p>The Pathfinder Bible Experience (PBE) quiz app is designed for use by teams preparing for Pathfinder Bible Experience, for more information on this youth program see: <a href="https://nadpbe.org/">https://nadpbe.org/</a></p>
+    <p>The Pathfinder Bible Experience (PBE) quiz app is designed for use by teams preparing for <strong>Pathfinder Bible Experience</strong>, for more information on this youth program see: <a href="https://nadpbe.org/">https://nadpbe.org/</a></p>
 </div>
 <br />
 <div class="list-group list-group-flush">
-    <span class="list-group-item"><a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold" >Host a Quiz</a> Start or continue a quiz and review results</span>
+    <span class="list-group-item"><a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold" >Host a Quiz</a> Start or continue a Quiz, host a Mock Quiz, review Quiz statistics</span>
     <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="btn btn-light btn-sm font-weight-bold">Add PBE Questions</a> Choose a Book and Chapter then add some PBE Questions for all to use</span>
-    <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="btn btn-light btn-sm font-weight-bold">PBE Question List</a> Choose a Book and Chapter to review qustions and resolve challenges to questions</span>
+    <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="btn btn-light btn-sm font-weight-bold">PBE Question List</a> Choose a Book and Chapter to review questions, edit them and resolve challenges</span>
+    <span class="list-group-item"><a asp-page="QuizTemplates/Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold">My Quiz Templates</a> Customize your Quizzes by specifying the order and specific book/chapter combinations</span>
 </div>
 <br />
 <div>
     @if (User.Identity.IsAuthenticated)
     {
-        <a asp-page="QuizTemplates/Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">My Quiz Templates</a>
-        <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/ChallengedQuestions" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>
-@*        <a asp-page="ChallengedQuestions" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>*@
         @if (Model.PBEUser != null)
         {
             @if (Model.PBEUser.IsModerator)
             {
+                <a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/ChallengedQuestions" class="btn btn-outline-primary btn-sm">Review Challenged Questions</a>
                 <a asp-page="BookLists" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Manage PBE Book Lists</a>
                 <a asp-page="Commentary/Commentaries" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">Manage Commentary Books</a>
                 <a asp-page="PBEUsers" class="btn btn-outline-primary btn-sm">Manage PBE Users</a>
@@ -39,6 +38,11 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col">
+            <div class="card mb-2">
+                <div class="card-body">
+                    @await Component.InvokeAsync("RecentBookLists")
+                </div>
+            </div>
             <div class="card">
                 <div class="card-body">
                     @await Component.InvokeAsync("BookQuestionCounts")

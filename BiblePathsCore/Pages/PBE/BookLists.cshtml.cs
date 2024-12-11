@@ -37,6 +37,7 @@ namespace BiblePathsCore.Pages.PBE
 
             BookLists = await _context.QuizBookLists.Include(L => L.QuizBookListBookMaps)
                                                     .Where(L => L.IsDeleted == false)
+                                                    .OrderByDescending(L => L.Created)
                                                     .ToListAsync();
 
             foreach (QuizBookList BookList in BookLists)

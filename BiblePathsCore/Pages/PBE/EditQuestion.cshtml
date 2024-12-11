@@ -122,7 +122,7 @@
                     </div>
                     <div class="row d-none d-md-block">
                         <div class="text-muted">
-                            <span>PBE Question Preiew:</span>
+                            <span>PBE Question Preview:</span>
                             <div id="QuestionPreview" class="text-success"></div>
                         </div>
                     </div>
@@ -132,23 +132,6 @@
                             <span asp-validation-for="AnswerText" class="text-danger"></span>
                         </div>
                     </div>
-                    @if (Model.Question.Challenged)
-                    {
-                        <div class="row">
-                            <div class="mb-0 input-group input-group-sm form-group">
-                                <p class="text-warning">Remember to unchek this box to clear the challenge.</p>
-                                <input type="checkbox" asp-for="@Model.Question.Challenged" />
-                                <label asp-for="@Model.Question.Challenged">Challenged</label>
-                                <textarea asp-for="Question.ChallengeComment" rows="2" placeholder="Comment" class="scroll-box"> </textarea>
-                                <span asp-validation-for="Question.ChallengeComment" class="text-danger"></span>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <input type="hidden" asp-for="Question.Challenged" />
-                        <input type="hidden" asp-for="Question.ChallengeComment" />
-                    }
                     <div classs="row">
                         <div class="form-group">
                             <input type="hidden" asp-for="Question.Id" />
@@ -156,7 +139,24 @@
                             <input type="hidden" asp-for="Question.Chapter" />
                             <input type="hidden" asp-for="Question.BibleId" />
                             <input type="hidden" asp-for="ReturnPath" />
-                            <input type="submit" value="Update Question" class="btn btn-primary" />
+                            @if (Model.Question.Challenged)
+                            {
+                                <div class="row">
+                                    <div class="mb-1 mt-1">
+                                        <span>Challenge Comment</span>
+                                        <input type="hidden" asp-for="Question.Challenged" value="false" />
+                                        <textarea asp-for="Question.ChallengeComment" rows="2" placeholder="Comment" class="scroll-box"> </textarea>
+                                        <span asp-validation-for="Question.ChallengeComment" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <input type="submit" value="Update and Remove Challenge" class="btn btn-primary" />
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="Question.Challenged" />
+                                <input type="hidden" asp-for="Question.ChallengeComment" />
+                                <input type="submit" value="Update Question" class="btn btn-primary" />
+                            }
                         </div>
                     </div>
                 </div>

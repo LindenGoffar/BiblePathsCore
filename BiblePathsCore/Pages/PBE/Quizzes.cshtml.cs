@@ -24,9 +24,9 @@ namespace BiblePathsCore.Pages.PBE
             _context = context;
         }
 
-        public List<PredefinedQuiz> Templates { get;set; }
-        public List<PredefinedQuiz> SharedTemplates { get; set; }
-        public List<QuizBookList> BookLists { get; set; }
+        //public List<PredefinedQuiz> Templates { get;set; }
+        //public List<PredefinedQuiz> SharedTemplates { get; set; }
+        //public List<QuizBookList> BookLists { get; set; }
         public List<QuizGroupStat> Quizzes { get; set; }
         public QuizUser PBEUser { get; set; }
         public string BibleId { get; set; }
@@ -40,27 +40,27 @@ namespace BiblePathsCore.Pages.PBE
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
-                                                         .OrderByDescending(T => T.Created)
-                                                         .ToListAsync();
+            //Templates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false && T.QuizUser == PBEUser)
+            //                                             .OrderByDescending(T => T.Created)
+            //                                             .ToListAsync();
 
-            SharedTemplates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false 
-                                                                    && T.Type == (int)QuizTemplateType.Shared)
-                                                                .OrderByDescending(T => T.Created)
-                                                                .ToListAsync();
+            //SharedTemplates = await _context.PredefinedQuizzes.Where(T => T.IsDeleted == false 
+            //                                                        && T.Type == (int)QuizTemplateType.Shared)
+            //                                                    .OrderByDescending(T => T.Created)
+            //                                                    .ToListAsync();
 
-            BookLists = await _context.QuizBookLists.Include(L => L.QuizBookListBookMaps)
-                                                    .Where(L => L.IsDeleted == false)
-                                                    .OrderByDescending(L => L.Created)
-                                                    .ToListAsync();
+            //BookLists = await _context.QuizBookLists.Include(L => L.QuizBookListBookMaps)
+            //                                        .Where(L => L.IsDeleted == false)
+            //                                        .OrderByDescending(L => L.Created)
+            //                                        .ToListAsync();
 
-            foreach (QuizBookList BookList in BookLists)
-            {
-                foreach (QuizBookListBookMap BookMap in BookList.QuizBookListBookMaps)
-                {
-                    _ = await BookMap.AddBookNameAsync(_context, this.BibleId);
-                }
-            }
+            //foreach (QuizBookList BookList in BookLists)
+            //{
+            //    foreach (QuizBookListBookMap BookMap in BookList.QuizBookListBookMaps)
+            //    {
+            //        _ = await BookMap.AddBookNameAsync(_context, this.BibleId);
+            //    }
+            //}
 
             Quizzes = await _context.QuizGroupStats.Where(G => G.QuizUser == PBEUser
                                                            && G.IsDeleted == false)

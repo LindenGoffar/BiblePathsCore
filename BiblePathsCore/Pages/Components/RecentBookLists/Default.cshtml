@@ -1,0 +1,15 @@
+﻿@model List<BiblePathsCore.Models.DB.QuizBookList>
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+<strong>Recent Book Lists</strong>
+<br />
+@foreach (var item in Model)
+{
+    <em>@item.BookListName - </em> 
+    @foreach (var Book in @item.QuizBookListBookMaps)
+    {
+        <span>@Book.BookName </span>
+    }
+    <br />
+}
