@@ -358,7 +358,7 @@ namespace BiblePathsCore.Models.DB
 
             if (Chapter != Bible.CommentaryChapter)
             {
-                return null; // Thi is explicitly for Commentary Scenarios 
+                return null; // This is explicitly for Commentary Scenarios 
             }
             else // COMMENTARY SCENARIO:
             {

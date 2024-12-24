@@ -7,9 +7,15 @@
 @foreach (var item in Model)
 {
     <em>@item.BookListName - </em> 
+    bool isFirst = true;
     @foreach (var Book in @item.QuizBookListBookMaps)
     {
-        <span>@Book.BookName </span>
+        if (!isFirst)
+        {
+            <small>, </small>
+        }
+        <small>@Book.BookName</small>
+        isFirst = false;
     }
     <br />
 }

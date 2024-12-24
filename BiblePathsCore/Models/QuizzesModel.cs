@@ -114,6 +114,13 @@ namespace BiblePathsCore.Models.DB
                         bookStat.ChapterStats = new List<QuizChapterStats>();
                         bookStats.Add(bookStat);
                     }
+
+                    // Special case for Commentary we need that Section Title. 
+                    if (Question.Chapter == Bible.CommentaryChapter)
+                    {
+                        Question.BookName = bookStat.BookName; // set this cause we need it for the Commentary scenario
+                        Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(context, true);
+                    }
                     // Now let's go update this bookStat
                     bookStat.AddQuestionToBookStat(Stat, Question);
 
@@ -181,7 +188,7 @@ namespace BiblePathsCore.Models.DB
                 // We need to select a random Verse to build a temporary question for. 
                 // this should account correctly for Excluded verses by not returning them. 
                 BibleVerse bibleVerse = await question.GetRandomVerseAsync(context);
-            
+
                 QuizQuestion BuiltQuestion = new();
                 BuiltQuestion = await question.BuildAIQuestionForVerseAsync(context, bibleVerse, openAIResponder);
                 if (BuiltQuestion != null)
@@ -483,6 +490,7 @@ namespace BiblePathsCore.Models.DB
                 {
                     // Need to add a new chapter stat object.
                     chapterStat.Chapter = question.Chapter;
+                    chapterStat.QuestionStats = new List<QuizQuestionStats>();
                     ChapterStats.Add(chapterStat);
                 }
                 // Now let's go update this chapterStat
@@ -511,6 +519,7 @@ namespace BiblePathsCore.Models.DB
             public int PointsPossible { get; set; }
             public int PointsAwarded { get; set; }
             public float Percentage { get; set; }
+            public List<QuizQuestionStats> QuestionStats { get; set; }
             public QuizChapterStats()
             {
                 Chapter = 0;
@@ -522,6 +531,14 @@ namespace BiblePathsCore.Models.DB
 
             public void AddQuestionToChapterStat(QuizQuestionStat stat, QuizQuestion question)
             {
+                // Let's add our Question to our Chapter QuestionStats
+                QuizQuestionStats QuestionStat = new QuizQuestionStats();
+                QuestionStat.QuestionId = question.Id;
+                QuestionStats.Add(QuestionStat);
+                // Now let's go update this chapterStat
+                QuestionStat.AddQuestionToQuestionStat(stat, question);
+
+                // Now let's deal with ChapterStats
                 QuestionsAsked++;
                 if (stat.Points.HasValue) { PointsAwarded += stat.Points.Value; }
                 PointsPossible += question.Points;
@@ -534,6 +551,37 @@ namespace BiblePathsCore.Models.DB
                 {
                     Percentage = 0;
                 }
+            }
+        }
+        public class QuizQuestionStats
+        {
+            public int QuestionId { get; set; }
+            public int PointsPossible { get; set; }
+            public int PointsAwarded { get; set; }
+            public string QuestionType { get; set; }
+            public int VerseNum { get; set; }
+            public string VerseSectionName { get; set; }
+            public string QuestionPath { get; set; }
+            public QuizQuestionStats()
+            {
+                PointsPossible = 0;
+                PointsAwarded = 0;
+                QuestionType = Models.QuestionType.Standard.ToString();
+                VerseNum = 0;
+            }
+
+            public void AddQuestionToQuestionStat(QuizQuestionStat stat, QuizQuestion question)
+            {
+                if (stat.Points.HasValue) { PointsAwarded = (int)stat.Points; }
+                if (question.Chapter == Bible.CommentaryChapter)
+                {
+                    // Let's grab the title of the first verse as there should be only one
+                    VerseSectionName = question.Verses[0].SectionTitle;
+                }
+                else { VerseSectionName = question.EndVerse.ToString(); }
+                PointsPossible += question.Points;
+                QuestionType = question.Type.ToString();
+                VerseNum = question.EndVerse;
             }
         }
     }

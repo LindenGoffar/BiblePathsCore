@@ -24,19 +24,9 @@
                 </div>
                
                 <div class="card">
-                    <div class="card-header">
-                        Select either a Book/Book List or a Quiz Template
-                    </div>
                     <div class="card-body">
-                        <div class="form-group input-group">
-                            <p class="text-info">Note: Selecting a Quiz Template will override the selection of a Book or Book List.</p>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Book or Book List</span>
-                            </div>
-                            <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
-                            <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
-                        </div>
-                        <p>or</p>
+                        <h5 class="card-title">Quiz Template</h5>
+                        <p class="card-subtitle text-info">Selecting a Quiz Template will override selection of a book or book list</p>
                         <div class="form-group input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Quiz Template</span>
@@ -44,11 +34,25 @@
                             <select asp-for="Quiz.PredefinedQuiz" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
                             <span asp-validation-for="Quiz.PredefinedQuiz" class="text-danger"></span>
                         </div>
+                    </div>
+                </div>
+                <h5>or</h5>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Bible Book or Book List</h5>
+                        <p class="card-subtitle text-info">This will only take effect if a Quiz Template has not been selected</p>
                         <div class="form-group input-group">
-                            <input type="hidden" asp-for="BibleId" />
-                            <input type="submit" value="Save Quiz" class="btn btn-primary" />
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Book or Book List</span>
+                            </div>
+                            <select asp-for="Quiz.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
+                            <span asp-validation-for="Quiz.BookNumber" class="text-danger"></span>
                         </div>
                     </div>
+                </div>
+                <div class="form-group input-group">
+                    <input type="hidden" asp-for="BibleId" />
+                    <input type="submit" value="Save Quiz" class="btn btn-primary" />
                 </div>
             </form>
         </div>

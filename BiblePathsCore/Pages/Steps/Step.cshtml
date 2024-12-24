@@ -125,19 +125,40 @@
                 }
                 else
                 {
-            <span class="text-verse">
+                <span class="text-verse">
                 @foreach (var item in Model.Step.Verses)
                 {
                     if (Model.Scenario == StepModel.StepScenarios.Study)
                     {
                         if (item.InRelatedPaths)
                         {
-                            <br /><sup>@item.Verse</sup>
-                            <mark>@item.Text</mark>
-                            foreach (var relatedPath in item.RelatedPaths)
-                            {
-                                <small class="float-right"><a asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a></small>
+                                    <br />
+                                    <sup>@item.Verse</sup>
+                                    <mark>@item.Text</mark>
+                               if (item.RelatedPaths.Count > 0)
+                               {
+                                    <br />
+                                    <small>{</small>
+                                    bool isFirst = true;
+                                    foreach (var relatedPath in item.RelatedPaths)
+                                    {
+                                        if (!isFirst)
+                                        {
+                                            <small> - </small>
+                                        }
+                                        if (@relatedPath.Type == (int)@BiblePathsCore.Models.PathType.Commented)
+                                        {
+                                            <a class="small text-primary" asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name (commented)</a>
+                                        }
+                                        else
+                                        {
+                                            <a class="small text-primary" asp-page="/Steps/Step" asp-route-id="@relatedPath.FirstStepId">@relatedPath.Name</a>
+                                        }
+                                        isFirst = false;
+                                    }
+                                    <small>}</small>
                             }
+
                         }
                         else
                         {

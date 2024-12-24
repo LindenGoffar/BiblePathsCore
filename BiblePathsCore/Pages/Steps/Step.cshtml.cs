@@ -49,7 +49,7 @@ namespace BiblePathsCore
             
             // There are three distinct scenarios to account for here: 
             // 1. Step Scenario, we have an id of a step but no BookNumber or Chapter, this is the most basic step scenario.
-            //    a) Standad Step, we'll go grab the step details and display the step
+            //    a) Standard Step, we'll go grab the step details and display the step
             //    b) Commented Step, we'll send the reader back to the path reader experience. 
             // 2. Context Scenario, we have an id of a step and a BookNumber and Chapter, user is navigating for context.
             // 3. Study Scenario, we have no id of a step, but have Booknumber and Chapter, user is reading the Bible.
@@ -58,11 +58,15 @@ namespace BiblePathsCore
             {
                 Step = await _context.PathNodes.FindAsync(id);
                 if (Step == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Step" }); }
-                
-                // If the requested Step is a Commented Step then we need to redirected to the CommentedPaths reading experience
-                if (Step.Type == (int)StepType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Step.PathId, StepId = Step.Id }); }
-                
+
+                // We need to see if this Step belongs to a Commented Path as well, and if so redirect to that so let's
+                // go and grab the rest of the properties now 
                 _ = await Step.AddPathStepPropertiesAsync(_context);
+
+                // If the requested Step is a Commented Step then we need to redirected to the CommentedPaths reading experience
+                if (Step.PathType == (int)PathType.Commented) { return RedirectToPage("/CommentedPaths/Read", new { PathId = Step.PathId, StepId = Step.Id }); }
+                
+
                 Scenario = StepScenarios.Step;
                 hasValidStepId = true;
                 StepBookNumber = Step.BookNumber;

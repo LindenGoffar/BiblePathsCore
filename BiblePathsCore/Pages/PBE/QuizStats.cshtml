@@ -48,7 +48,39 @@
                                         { @ChapterStat.Chapter }
 
                                     </td>
-                                    <td>@ChapterStat.QuestionsAsked</td>
+                                    <td>
+                                        @ChapterStat.QuestionsAsked
+                                        <div class="card">
+                                            <div class="card-body">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                @if (ChapterStat.Chapter == BiblePathsCore.Models.DB.Bible.CommentaryChapter)
+                                                                {
+                                                                    <th>Section</th>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <th>Verse</th>
+                                                                }
+                                                                <th>Awarded</th>
+                                                                <th>Possible</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var QuestionStat in ChapterStat.QuestionStats.OrderBy(Q => Q.VerseNum))
+                                                            {
+                                                                <tr>
+                                                                    <td><small>@QuestionStat.VerseSectionName</small></td>
+                                                                    <td><small>@QuestionStat.PointsAwarded</small></td>
+                                                                    <td><small>@QuestionStat.PointsPossible</small></td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td>@ChapterStat.Percentage%</td>
                                 </tr>
                                 }
