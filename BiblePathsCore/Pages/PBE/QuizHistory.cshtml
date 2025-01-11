@@ -1,0 +1,47 @@
+﻿@page
+@model BiblePathsCore.Pages.PBE.QuizHistoryModel
+
+@{
+    ViewData["Title"] = "History: " + Model.Quiz.GroupName;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <span>Questions - @Model.Quiz.QuestionsAsked</span><br />
+            <span>Points Awarded - @Model.Quiz.PointsAwarded</span><br />
+            <span>Points Possible - @Model.Quiz.PointsPossible</span><br />
+            <span>Score - @Model.Quiz.Percentage%</span><br />
+        </div>
+    </div>
+    <table class="table">
+        <tr>
+            <th></th>
+            <th>Question</th>
+            <th>Possible</th>
+            <th>Awarded</th>
+            <th></th>
+        </tr>
+        @foreach (var Question in Model.Quiz.QuizHistory.OrderBy(Q => Q.QuestionNumber))
+        {
+            <tr>
+                <td>@Question.QuestionNumber</td>
+                <td>
+                    <div>@Question.Question.PBEQuestion</div>
+                </td>
+                <td>@Question.Question.Points</td>
+                <td>@Question.PointsAwarded</td>
+                <td></td>
+            </tr>
+        }
+    </table>
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Quizzes">Back to Quizzes</a>
+    <br />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>

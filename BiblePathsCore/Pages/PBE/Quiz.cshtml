@@ -37,7 +37,7 @@
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="mt-2 form-group input-group">
-                    <select asp-for="Question.PointsAwarded" asp-items="ViewBag.PointsSelectList" class="form-control"></select>
+                    <select disabled asp-for="Question.PointsAwarded" asp-items="ViewBag.PointsSelectList" class="form-control"></select>
                 </div>
                 <div class="form-group input-group">
                     <input type="hidden" asp-for="BibleId" />

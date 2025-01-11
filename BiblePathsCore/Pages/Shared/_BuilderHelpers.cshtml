@@ -1,21 +1,28 @@
 ﻿<!-- This function disables all Add/Delete buttons when a Comment change is made, user needs to save changes -->
 <script>
-    // Let's go ahead and scroll to the hightlighted text on page ready.
-    $(document).ready(function () {
-        var i = parseInt(@Model.ReqStepPosition)
-        $('html, body').animate({
-            scrollTop: $('#StepPosition-' + i).offset().top - 300
-        }, 300);
+    // Let's go ahead and scroll to the highlighted text on page ready.
+    document.addEventListener('DOMContentLoaded', function () {
+        var i = parseInt(@Model.ReqStepPosition);
+        var targetElement = document.getElementById('StepPosition-' + i);
+        if (targetElement) {
+            window.scrollTo({
+                top: targetElement.offsetTop - 300,
+                behavior: 'smooth'
+            });
+        }
     });
 
     // As soon as a change is made, we want to shut off all add/delete step options. 
     function ChangeMadeDisableButtons() {
-        console.log("Called");
-            document.querySelectorAll(".DisabledOnEdit").forEach(elem => {
-                elem.disabled = true;
-                elem.classList.add("disabled");
-                console.log("here");
-            });
-        }
+        let MessageBar = document.getElementById('TopCenterMessage')
+        MessageBar.classList.remove('d-none')
+        MessageBar.innerHTML = "A Change has been made to a Comment please select Update Path to save your changes."
+        //console.log("Called");
+        document.querySelectorAll(".DisabledOnEdit").forEach(elem => {
+            elem.disabled = true;
+            elem.classList.add("disabled");
+            elem.classList.add("d-none");
+            //console.log("here");
+        });
+    }
 </script>
-

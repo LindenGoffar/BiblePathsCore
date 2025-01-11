@@ -35,4 +35,12 @@
     <Folder Include="Test\" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Content Update="Pages\PBE\QuizHistory.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

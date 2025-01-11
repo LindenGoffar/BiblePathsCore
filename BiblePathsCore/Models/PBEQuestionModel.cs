@@ -754,8 +754,10 @@ namespace BiblePathsCore.Models.DB
         }
     }
 
-    // The MinQuestion Class is used to overcome some JSON ReferenceLoop issues that occur
+    // The MinQuestion Class is used in two scenarios,
+    // 1. to overcome some JSON ReferenceLoop issues that occur
     // when a QuizQuestion is passed back through an API call. 
+    // 2. to provide a minimal Question object for the quiz History scenario
     public class MinQuestion
     {
         public const string FITBString = "fill in the blanks";

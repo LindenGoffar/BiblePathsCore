@@ -19,7 +19,7 @@
             <span class="text-muted">
                 Quizzes can be single-use or span multiple sessions, they can be for a PBE Team or an individual. A Quiz can be on a Book, 
                 Book List or a Template. In a standard <strong>Quiz</strong> the host determines the number of points awarded for each question. In a
-                <strong>Mock Quiz</strong> no points are awarded, this can be useful in a multiple team setting. In each case, per book/chapter statistics are maintained alongside of the Quiz.
+                <strong>Mock Quiz</strong> no points are awarded, this can be useful in a multiple team setting. In each case, per book/chapter statistics and history are maintained alongside of the Quiz.
             </span>
             <div class="row">
                 <div class="col-12">
@@ -54,10 +54,18 @@
                                         Score - @quiz.Percentage%
                                     </span>
                                 </a>
+                                <br />
+                                <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Details
+                                </a>
                             </td>
                             <td>
                                 <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Mock Quiz
+                                </a>
+                                <br />
+                                <a asp-page="/PBE/QuizHistory" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Quiz History
                                 </a>
                                 <br />
 @*                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">

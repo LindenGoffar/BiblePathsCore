@@ -96,14 +96,6 @@ namespace BiblePathsCore.Models.DB
                                                   .SingleAsync();
             if (PBEBook == null) { return null; }
 
-            // TODO: This is not ideal, we should be simply be deleting rather than soft deleting these
-            //       So that a simple ANY would work vs. having to retrieve all of these.
-            // TODO: how important really is the inBookList check? 
-            //List<QuizBookList> BookLists = await context.QuizBookLists
-            //                                    .Include(L => L.QuizBookListBookMaps)
-            //                                    .Where(L => L.IsDeleted == false)
-            //                                    .ToListAsync();
-
             await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null);
             return PBEBook;
         }

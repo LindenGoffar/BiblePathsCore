@@ -50,36 +50,41 @@
                                     </td>
                                     <td>
                                         @ChapterStat.QuestionsAsked
-                                        <div class="card">
-                                            <div class="card-body">
-                                                    <table class="table table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                @if (ChapterStat.Chapter == BiblePathsCore.Models.DB.Bible.CommentaryChapter)
-                                                                {
-                                                                    <th>Section</th>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <th>Verse</th>
-                                                                }
-                                                                <th>Awarded</th>
-                                                                <th>Possible</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var QuestionStat in ChapterStat.QuestionStats.OrderBy(Q => Q.VerseNum))
-                                                            {
+                                            <button data-toggle="collapse" data-target="#Verses-@BookStat.BookNumber-@ChapterStat.Chapter" class="btn btn-outline-primary btn-sm">
+                                                Show Verses
+                                            </button>
+                                            <div id="Verses-@BookStat.BookNumber-@ChapterStat.Chapter" class="collapse">
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <table class="table table-sm">
+                                                            <thead>
                                                                 <tr>
-                                                                    <td><small>@QuestionStat.VerseSectionName</small></td>
-                                                                    <td><small>@QuestionStat.PointsAwarded</small></td>
-                                                                    <td><small>@QuestionStat.PointsPossible</small></td>
+                                                                    @if (ChapterStat.Chapter == BiblePathsCore.Models.DB.Bible.CommentaryChapter)
+                                                                    {
+                                                                        <th>Section</th>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <th>Verse</th>
+                                                                    }
+                                                                    <th>Awarded</th>
+                                                                    <th>Possible</th>
                                                                 </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach (var QuestionStat in ChapterStat.QuestionStats.OrderBy(Q => Q.VerseNum))
+                                                                {
+                                                                    <tr>
+                                                                        <td><small>@QuestionStat.VerseSectionName</small></td>
+                                                                        <td><small>@QuestionStat.PointsAwarded</small></td>
+                                                                        <td><small>@QuestionStat.PointsPossible</small></td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
                                     </td>
                                     <td>@ChapterStat.Percentage%</td>
                                 </tr>

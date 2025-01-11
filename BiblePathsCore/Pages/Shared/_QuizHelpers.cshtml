@@ -1,7 +1,7 @@
 ﻿
 <script>
-
-    // This function disables the Submit button until PointsAwarded is selected (does not apply to Mock Quizzes)
+    // This function disables the Submit button until PointsAwarded is selected 
+    // does not apply to Mock Quizzes
     // also sets initial focus to Start Timer. 
     document.addEventListener('DOMContentLoaded', function () {
         // Check if the current URL contains a specific string
@@ -86,22 +86,23 @@
 
 
     // When there is a change to the Points DropDown we determine whether to enable the button or not.
-    $('#Question_PointsAwarded').change(function () {
+    document.getElementById('Question_PointsAwarded').addEventListener('change', function () {
         console.log("Points Changed")
         // console.log(isChallengedNoComment())
-        if (parseInt($("#Question_PointsAwarded").val()) >= 0) {
-            $('#AwardPoints').prop('disabled', false);
-            document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
+        if (parseInt(document.getElementById('Question_PointsAwarded').value) >= 0) {
+            document.getElementById('AwardPoints').disabled = false;
+            document.getElementById("PointsToAward").value = document.getElementById('Question_PointsAwarded').value;
             document.getElementById("btnConfirmChallenge").innerHTML = "<u>C</u>hallenge and Award Points";
         }
         else {
-            $('#AwardPoints').prop('disabled', true);
-            document.getElementById("PointsToAward").value = $("#Question_PointsAwarded").val();
+            document.getElementById('AwardPoints').disabled = true;
+            document.getElementById("PointsToAward").value = document.getElementById('Question_PointsAwarded').value;
             document.getElementById("btnConfirmChallenge").innerHTML = "<u>C</u>hallenge Question";
         }
     });
 
     function ShowAnswers() {
+     
         // Check if we're in a Mock Quiz or not.
         const targetString = '/MockQuiz/';
         if (window.location.href.indexOf(targetString) !== -1) {
@@ -113,8 +114,9 @@
             nextQuestionButon.focus();
 
         } else {
-            // Once this is clicked once we'll enable the Next Question button
+            // Once this is clicked once we'll enable the Points Selector and set focus to it. 
             var PointsSelector = document.getElementById('Question_PointsAwarded');
+            PointsSelector.disabled = false;
             // Set the disabled property to false
             PointsSelector.focus();
         }
@@ -123,7 +125,7 @@
     function StartTimer(timeLeft) {
         var elem = document.getElementById('StartTimerButton');
         var timerId = setInterval(countdown, 1000);
-        $('#StartTimerButton').prop('disabled', true)
+        elem.disabled = true;
         // Let's also change focus to the show answer button
         document.getElementById('ShowAnswersButton').focus();
 

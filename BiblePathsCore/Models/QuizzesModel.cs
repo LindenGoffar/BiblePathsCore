@@ -28,6 +28,8 @@ namespace BiblePathsCore.Models.DB
         public List<QuizBookStats> BookStats { get; set; }
         [NotMapped]
         public int QuestionNumber { get; set; }
+        [NotMapped]
+        public List<QuestionHistory> QuizHistory { get; set; }
 
         public void CalculateQuizStats()
         {
@@ -132,6 +134,49 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             BookStats = bookStats;
+            return retval;
+        }
+
+        public async Task<bool> AddQuizHistoryAsync(BiblePathsCoreDbContext context, string bibleId)
+        {
+            bool retval = true;
+            
+            List<QuestionHistory> quizHistory = new List<QuestionHistory>();    
+
+            // We need to retrieve all QuizQuestionStat Objects for this Quiz to date.
+            List<QuizQuestionStat> QuestionStats = await context.QuizQuestionStats.Where(S => S.QuizGroupId == Id &&
+                                                                                         S.EventType == (int)QuizQuestion.QuestionEventType.QuestionPointsAwarded)
+                                                                                    .OrderBy(S => S.EventWritten)
+                                                                                    .ToListAsync();
+            // Then we can iterate across each Question adding it to history.
+            int QNumber = 1;
+            foreach (QuizQuestionStat Stat in QuestionStats)
+            {
+                QuizQuestion Question = await context.QuizQuestions.FindAsync(Stat.QuestionId);
+                if (Question == null)
+                {
+                    // That's problematic and will mess up our history but nothing we can do about it now. 
+                }
+                else
+                {
+                    QuestionHistory QuestionAsked = new QuestionHistory();
+
+                    //We can't simply add a question, first we must populate some info on the question.
+                    BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(context, bibleId, Question.BookNumber, Question.Chapter);
+                    if (Question.Chapter == Bible.CommentaryChapter)
+                    {
+                        Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(context, true);
+                    }
+                    Question.PopulatePBEQuestionInfo(PBEBook);
+
+
+                    QuestionAsked.AddQuestionToQuestionHistory(Stat, Question);
+                    QuestionAsked.QuestionNumber = QNumber;
+                    quizHistory.Add(QuestionAsked);
+                    QNumber++;
+                }
+            }
+            QuizHistory = quizHistory;
             return retval;
         }
 
@@ -582,6 +627,23 @@ namespace BiblePathsCore.Models.DB
                 PointsPossible += question.Points;
                 QuestionType = question.Type.ToString();
                 VerseNum = question.EndVerse;
+            }
+        }
+        public class QuestionHistory
+        {
+            public MinQuestion Question { get; set; }
+            public int PointsAwarded { get; set; }
+            public int QuestionNumber { get; set; }
+            public QuestionHistory()
+            {
+                PointsAwarded = 0;
+                QuestionNumber = 0;
+            }
+
+            public void AddQuestionToQuestionHistory(QuizQuestionStat stat, QuizQuestion question)
+            {
+                if (stat.Points.HasValue) { PointsAwarded = (int)stat.Points; }
+                Question = new MinQuestion(question);
             }
         }
     }
