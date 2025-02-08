@@ -1,0 +1,72 @@
+﻿@page
+@model BiblePathsCore.Pages.Play.MyGamesModel
+
+@{
+    ViewData["Title"] = "My Games";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <a asp-page="AddGame">Add a Game</a>
+        </div>
+    </div>
+    <hr />
+    @foreach (var Game in Model.Games)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                            <a asp-page="Group" asp-route-Id="@Game.Id">
+                                <strong>@Game.Name</strong>
+                            </a>
+                            @foreach (var Team in Game.GameTeams)
+                            {
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@Team.Name</h5>
+                                        <p class="card-text">Points = @Team.StepNumber</p>
+                                    </div>
+                                </div>
+                            }
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@Game.Id">
+                            Delete
+                        </button>
+                        <div class="modal fade" id="DeleteModal-@Game.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Game" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Game?</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="font-weight-bold">@Game.Name</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form asp-page="/Play/DeleteGroup" method="post">
+                                            <input type="hidden" name="id" value="@Game.Id" />
+                                            <input type="submit" value="Confirm" class="btn btn-danger" />
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div>
+    <hr />
+    <a asp-page="/PBE/Index">Back to PBE Home</a>
+</div>

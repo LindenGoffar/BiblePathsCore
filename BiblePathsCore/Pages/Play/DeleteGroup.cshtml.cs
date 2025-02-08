@@ -55,14 +55,14 @@ namespace BiblePathsCore.Pages.Play
             IdentityUser user = await _userManager.GetUserAsync(User);
             if (Group.Owner != user.Email) { return RedirectToPage("/error", new { errorMessage = "Sorry! Only a Group Owner may delete a Group" }); }
 
-            // First we need to iterate through each Step and delete them one by one, steps are a leaf node so this should be OK.
+            // First we need to iterate through each Team and delete them one by one, Teams are a leaf node so this should be OK.
             foreach (GameTeam team in Group.GameTeams)
             {
                 _context.GameTeams.Remove(team);
             }
             _context.GameGroups.Remove(Group);
             await _context.SaveChangesAsync();
-            return RedirectToPage("./MyGroups");
+            return RedirectToPage("./MyGames");
         }
     }
 }

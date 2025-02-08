@@ -13,6 +13,7 @@ namespace BiblePathsCore.Models.DB
     public partial class GameGroup
     {
         public enum GameGroupState { Open, InPlay, SelectPath, Closed}
+        public enum GameGroupType { Original, PBEWords}
         public static async Task<List<SelectListItem>> GetPathSelectListAsync(BiblePathsCoreDbContext context)
         {
             List<SelectListItem> PathSelectList = new List<SelectListItem>();
@@ -45,6 +46,7 @@ namespace BiblePathsCore.Models.DB
     public partial class GameTeam
     {
         public enum GameBoardState { Initialize, WordSelect, WordSelectOffPath, StepSelect, StepSelectOffPath, Completed, Closed }
+        public enum GameTeamType { Original, PBEWords }
 
         [NotMapped]
         public List<PathNode> Steps { get; set; }
