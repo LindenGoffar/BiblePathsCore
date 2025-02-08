@@ -576,7 +576,7 @@ namespace BiblePathsCore.Models.DB
         public async Task<QuizQuestion> BuildAIQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, IOpenAIResponder openAIResponder)
         {
             // First let's go query OpenAI
-            QandAObj qandAObj = await openAIResponder.GetAIQuestionAsync2(verse.Text);
+            QandAObj qandAObj = await openAIResponder.GetAIQuestionAsync(verse.Text);
             if (qandAObj == null)
             {
                 return null;
