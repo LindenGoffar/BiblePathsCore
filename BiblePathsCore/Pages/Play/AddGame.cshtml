@@ -26,14 +26,14 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Quiz Template</h5>
-                        <p class="card-subtitle text-info">The Quiz Template determines which Books/Chapters are included in the Game.</p>
+                        <h5 class="card-title">Book or Book List</h5>
+                        <p class="card-subtitle text-info">Select the Book or Book List you would like to pull Words from.</p>
                         <div class="form-group input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Quiz Template</span>
                             </div>
-                            <select asp-for="Game.PathId" asp-items="ViewBag.TemplateSelectList" class="form-control"></select>
-                            <span asp-validation-for="Game.PathId" class="text-danger"></span>
+                            <select asp-for="Game.BookNumber" asp-items="ViewBag.BookSelectList" class="form-control"></select>
+                            <span asp-validation-for="Game.BookNumber" class="text-danger"></span>
                         </div>
                     </div>
                 </div>

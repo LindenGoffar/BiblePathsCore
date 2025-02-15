@@ -42,7 +42,8 @@ namespace BiblePathsCore.Pages.Play
 
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
+            // "The Word" Game requires a Booknumber or BookList ID
+            ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, this.BibleId);
             return Page();
         }
 
@@ -68,13 +69,14 @@ namespace BiblePathsCore.Pages.Play
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
                 GroupState = (int)GameGroup.GameGroupState.Open,
+                GroupType = (int)GameGroup.GameGroupType.PBEWords,
                 Owner = user.Email
             };
 
             if (await TryUpdateModelAsync<GameGroup>(
                 emptyGame,
                 "Game",   // Prefix for form value.
-                g => g.Name, g => g.PathId)) // PathId is used to reference the Template Used
+                g => g.Name, g => g.BookNumber)) // PathId is used to reference the Template Used
             {
                 _context.GameGroups.Add(emptyGame);
                 await _context.SaveChangesAsync();

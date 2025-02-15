@@ -21,6 +21,8 @@ public partial class GameGroup
 
     public DateTimeOffset? Modified { get; set; }
 
+    public int BookNumber { get; set; }
+
     public virtual ICollection<GameTeam> GameTeams { get; set; } = new List<GameTeam>();
 
     public virtual Path Path { get; set; }

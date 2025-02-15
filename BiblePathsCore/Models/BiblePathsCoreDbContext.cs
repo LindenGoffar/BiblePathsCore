@@ -144,7 +144,7 @@ public partial class BiblePathsCoreDbContext : DbContext
 
         modelBuilder.Entity<BibleWordIndex>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC27DC9B060F");
+            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC275CD3C632");
 
             entity.ToTable("BibleWordIndex");
 
@@ -161,7 +161,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleWordIndices)
                 .HasForeignKey(d => d.BibleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BibleWord__Bible__2B0A656D");
+                .HasConstraintName("FK__BibleWord__Bible__40F9A68C");
         });
 
         modelBuilder.Entity<CommentaryBook>(entity =>

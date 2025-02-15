@@ -1,6 +1,8 @@
 ﻿<# 
-Description: This script retrieves all verses for a given BibleId along with the existing NoiseWords from the NoiseWords Table and builds an index of all 
+Description: This long running script retrieves all verses for a given BibleId along with the existing NoiseWords from the NoiseWords Table and builds an index of all 
 Non-Noise words in the given Bible 
+
+This script will typically run to ~234000 - Words added to DB so it requires a good long run time. 
 
 This script also uses the contents of stopwords-en.txt to skip Stop/Noise words.
 #>
@@ -76,6 +78,8 @@ If ($BibleContents.Count -lt 30000 -or $BibleContents.Count -gt 31105){
     Exit 
 }
 
+Write-Host "Processing $VerseCount verses..."
+
 # We need to build a Hash of all of our non-noise words
         $QueryNonNoiseWords = @"
             SELECT * FROM [dbo].BibleNoiseWords
@@ -89,6 +93,7 @@ Foreach ($NonNoiseWord in $NonNoiseWords){
 }
 
 $WordsAdded = 0
+$VersesProcessed = 0
 $BookNumber = 1
 $TestamentNumber = 1
 
@@ -112,12 +117,15 @@ foreach ($BibleVerse in $BibleContents){
                 if ($AddWords){
                     $TheWord = $VerseWord
                     $VerseID = $BibleVerse.ID
+                    $VerseBookNumber = $BibleVerse.BookNumber
+                    $VerseChapter = $BibleVerse.Chapter
+                    $Verse = $BibleVerse.Verse
                     $ParameterHash = @{"@Word" = $TheWord}
 
                     $InsertWord = @"
-                                    INSERT INTO BibleWordIndex (BibleID, Word, VerseID)
-                                    VALUES ('$BibleID', @Word, '$VerseID')
-"@
+                                    INSERT INTO BibleWordIndex (BibleID, Word, VerseID, BookNumber, Chapter, Verse)
+                                    VALUES ('$BibleID', @Word, '$VerseID', '$VerseBookNumber', '$VerseChapter', '$Verse')
+"@ 
                     Invoke-SqlOnConnection -Connection $SQLConnection -Query $InsertWord -ParameterHash $ParameterHash
 
                     $WordsAdded++
@@ -127,6 +135,10 @@ foreach ($BibleVerse in $BibleContents){
                 }
             }
         }
+    }
+    $VersesProcessed++
+    If ($VersesProcessed % 1000 -eq 0){
+        write-host "    $VersesProcessed - Verses Processed"
     }
 }
 

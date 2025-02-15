@@ -91,6 +91,19 @@ namespace BiblePathsCore.Models.DB
             return RetVal;
         }
 
+        public static bool IsBookChapterVerseInExclusionList(List<QuizQuestion> ExclusionQuestions, int BookNumber, int Chapter, int Verse)
+        {
+            bool RetVal = false;
+            RetVal = ExclusionQuestions.Any(E => E.BookNumber == BookNumber
+                                           && E.Chapter == Chapter
+                                           && E.Type == (int)QuestionType.Exclusion
+                                           && E.IsDeleted == false
+                                           && E.StartVerse <= Verse
+                                           && E.EndVerse >= Verse
+                                           );
+            return RetVal;
+        }
+
         public static async Task<BibleVerse> GetVerseAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int Verse)
         {
             BibleVerse bibleVerse = new BibleVerse();

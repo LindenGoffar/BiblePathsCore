@@ -1,0 +1,63 @@
+﻿@page
+@model BiblePathsCore.Pages.Play.TheVersesModel
+
+@{
+    ViewData["Title"] = "TheVerses: " + Model.Group.Name;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<h4>@ViewData["Title"]</h4>
+<h2>@Model.TheWord</h2>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            @foreach (var Verse in Model.Verses)
+            {
+                <p>
+                    @Verse.BookName @Verse.Chapter:@Verse.Verse @Verse.Text <br>
+                </p>
+            }
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        @foreach (var team in Model.Group.GameTeams)
+        {
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        @team.Name
+                    </div>
+                    <div class="Card-Body">
+                        <span class="card-link">
+                            <a asp-page="Team" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
+                                Team Link
+                            </a>
+                        </span>
+                        <span class="card-link">
+                            <a asp-page="Guide" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
+                                Guide Link
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_TheWordHelpers" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
