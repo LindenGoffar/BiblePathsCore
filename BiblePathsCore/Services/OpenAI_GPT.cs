@@ -174,7 +174,7 @@ namespace BiblePathsCore.Services
             ChatCompletionOptions options = new()
             {
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                name: "QandAObj",
+                jsonSchemaFormatName: "QandAObj",
                 jsonSchema: BinaryData.FromString("""
                     {
                         "type": "object",
@@ -187,7 +187,7 @@ namespace BiblePathsCore.Services
                         "additionalProperties": false
                     }
                     """),
-                    strictSchemaEnabled: true),
+                    jsonSchemaIsStrict: true),
                 Temperature = (float)1.2,
             };
 
@@ -221,7 +221,7 @@ namespace BiblePathsCore.Services
             if (chatCompletion.Content.Count >= 1)
             {
                 // Very oddly the response may show up on one of two properties. 
-                string JSONResponseString = chatCompletion.Content[0].ToString();
+                string JSONResponseString = chatCompletion.Content[0].Text;
                 // OK sometimes we may not get back a well formed JSON String... let's handle that. 
                 try
                 {
