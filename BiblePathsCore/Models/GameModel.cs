@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,53 @@ namespace BiblePathsCore.Models.DB
     public partial class GameGroup
     {
         public enum GameGroupState { Open, InPlay, SelectPath, Closed}
-        public enum GameGroupType { Original, PBEWords}
+        public enum GameGroupType { Original, TheWord}
+
+        [NotMapped]
+        public string GameName { get; set; }
+
+        [NotMapped]
+        public List<BibleBook> Books { get; set; }
+
+        public async Task<bool> AddBookListAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            Books = new List<BibleBook>();
+
+            // BookList Scenario
+            if (BookNumber >= Bible.MinBookListID)
+            {
+                QuizBookList BookList = await context.QuizBookLists.Include(L => L.QuizBookListBookMaps).Where(L => L.Id == BookNumber).FirstAsync();
+                foreach (QuizBookListBookMap Map in BookList.QuizBookListBookMaps)
+                {
+                    BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == Map.BookNumber).FirstAsync();
+                    Books.Add(Book);
+                }
+            }
+            else
+            {
+                BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber).FirstAsync();
+                Books.Add(Book);
+            }
+
+            return true;
+        }
+
+        public bool AddGameName()
+        {
+            switch (GroupType)
+            {
+                case (int)GameGroupType.Original:
+                    GameName = "Original Path Game";
+                    break;
+                case (int)GameGroupType.TheWord:
+                    GameName = "The Word";
+                    break;
+                default:
+                    GameName = "Unknown Game";
+                    break;
+            }
+            return true;
+        }
         public static async Task<List<SelectListItem>> GetPathSelectListAsync(BiblePathsCoreDbContext context)
         {
             List<SelectListItem> PathSelectList = new List<SelectListItem>();
@@ -46,7 +93,7 @@ namespace BiblePathsCore.Models.DB
     public partial class GameTeam
     {
         public enum GameBoardState { Initialize, WordSelect, WordSelectOffPath, StepSelect, StepSelectOffPath, Completed, Closed }
-        public enum GameTeamType { Original, PBEWords }
+        public enum GameTeamType { Original, TheWord }
 
         [NotMapped]
         public List<PathNode> Steps { get; set; }

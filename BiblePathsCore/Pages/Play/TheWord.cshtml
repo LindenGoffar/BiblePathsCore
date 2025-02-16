@@ -37,17 +37,8 @@
                     <div class="card-header">
                         @team.Name
                     </div>
-                    <div class="Card-Body">
-                        <span class="card-link">
-                            <a asp-page="Team" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
-                                Team Link
-                            </a>
-                        </span>
-                        <span class="card-link">
-                            <a asp-page="Guide" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
-                                Guide Link
-                            </a>
-                        </span>
+                    <div class="Card-Body ml-3">
+                        <p>Points = @team.StepNumber</p>
                     </div>
                 </div>
             </div>

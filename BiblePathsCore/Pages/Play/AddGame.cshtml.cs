@@ -69,7 +69,7 @@ namespace BiblePathsCore.Pages.Play
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
                 GroupState = (int)GameGroup.GameGroupState.Open,
-                GroupType = (int)GameGroup.GameGroupType.PBEWords,
+                GroupType = (int)GameGroup.GameGroupType.TheWord,
                 Owner = user.Email
             };
 
@@ -90,9 +90,9 @@ namespace BiblePathsCore.Pages.Play
                         {
                             var emptyTeam = new GameTeam
                             {
-                                TeamType = (int)GameTeam.GameTeamType.PBEWords,
+                                TeamType = (int)GameTeam.GameTeamType.TheWord,
                                 BoardState = (int)GameTeam.GameBoardState.WordSelect,
-                                StepNumber = 0, // this is used as Points in PBEWords 
+                                StepNumber = 0, // this is used as Points in TheWord 
                                 Created = DateTime.Now,
                                 Modified = DateTime.Now,
                             };

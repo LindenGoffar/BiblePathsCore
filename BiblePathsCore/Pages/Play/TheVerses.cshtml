@@ -1,8 +1,8 @@
-﻿@page
+﻿@page "/TheVerses"
 @model BiblePathsCore.Pages.Play.TheVersesModel
 
 @{
-    ViewData["Title"] = "TheVerses: " + Model.Group.Name;
+    ViewData["Title"] = "The Word Is: " + Model.TheWord;
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
@@ -12,17 +12,20 @@
 }
 
 <h4>@ViewData["Title"]</h4>
-<h2>@Model.TheWord</h2>
+
+<input type="text" id="searchInput" onkeyup="filterVerses()" placeholder="Search..." class="form-control mb-3" />
 
 <div class="container-fluid">
     <div class="row">
         <div class="col">
-            @foreach (var Verse in Model.Verses)
-            {
-                <p>
-                    @Verse.BookName @Verse.Chapter:@Verse.Verse @Verse.Text <br>
-                </p>
-            }
+            <div id="versesContainer">
+                @foreach (var Verse in Model.Verses)
+                {
+                    <p class="verse">
+                        <span class="book-name">@Verse.BookName</span> <span class="chapter">@Verse.Chapter</span>:<span class="verse-number">@Verse.Verse</span> <span class="verse-text">@Verse.Text</span> <br>
+                    </p>
+                }
+            </div>
         </div>
     </div>
     <hr />
@@ -34,17 +37,14 @@
                     <div class="card-header">
                         @team.Name
                     </div>
-                    <div class="Card-Body">
-                        <span class="card-link">
-                            <a asp-page="Team" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
-                                Team Link
-                            </a>
-                        </span>
-                        <span class="card-link">
-                            <a asp-page="Guide" asp-route-GroupId="@team.GroupId" asp-route-TeamId="@team.Id">
-                                Guide Link
-                            </a>
-                        </span>
+                    <div class="Card-Body ml-3">
+                        <p>Points = @team.StepNumber</p>
+                        <form asp-page="/Play/AwardPoints" method="post">
+                            <input type="hidden" name="GroupId" value="@Model.Group.Id" />
+                            <input type="hidden" name="TeamId" value="@team.Id" />
+                            <input type="hidden" name="Points" value="1" />
+                            <input type="submit" value="Award Point" class="btn btn-info" />
+                        </form>
                     </div>
                 </div>
             </div>
@@ -53,6 +53,7 @@
 </div>
 
 <div>
+    <a asp-page="TheWord" asp-route-Id="@Model.Group.Id">Back to the Words</a>
     <hr />
     <a asp-page="Index">PBE Home</a>
 </div>

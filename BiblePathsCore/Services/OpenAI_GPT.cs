@@ -57,106 +57,6 @@ namespace BiblePathsCore.Services
             _openAIsettings = openAISettings.Value;
         }
 
-    // 09-05-2024 This method is rewritten to use the OpenAI .NET Library directly. 
-    //    public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
-    //    {
-
-    //        string QnASystemRequest001 = "You are a teacher preparing a quiz. " + 
-    //            "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
-    //            "you will write a question from this text that can be answered from the same text, and provide the answer. " +
-    //            "You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
-    //            "where each independent clause in the answer is worth 1 point." +
-    //            "Use a default of 1 if points cannot be determined. " +
-    //            "The output, including question, answer, and points should be in the schema specified " +
-    //            "The question should be brief and not include the phrase 'according to'. " +
-    //            "The Answer should be short and not include the contents of the question, or restate the question.";
-
-    //        string QnASystemRequest = "You are a Bible teacher preparing a quiz for students. " +
-    //"you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
-    //"you will write a question from this text that can be answered from the same text, and provide the answer. " +
-    //"You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
-    //"where each independent clause in the answer is worth 1 point." +
-    //"Use a default of 1 if points cannot be determined. " +
-    //"The output, including question, answer, and points should be in the schema specified " +
-    //"The question should not include the phrase 'according to'. " +
-    //"The Answer should be short and not restate any portion of the question.";
-
-
-    //        string QnAUserRequest = "<Verse>"
-    //                            + text
-    //                            + "</Verse>";
-
-    //        ChatClient client = new(OpenAIAPI, key);
-
-    //        ChatCompletionOptions options = new()
-    //        {
-    //            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-    //            name: "QandAObj",
-    //            jsonSchema: BinaryData.FromString("""
-    //                {
-    //                    "type": "object",
-    //                    "properties": {
-    //                        "question": { "type": "string" },
-    //                        "answer": { "type": "string" },
-    //                        "points": { "type": "integer"}
-    //                    },
-    //                    "required": ["question", "answer", "points"],
-    //                    "additionalProperties": false
-    //                }
-    //                """),
-    //                strictSchemaEnabled: true),
-    //            Temperature = (float)1.2,
-    //        };
-
-    //        QandAObj qandAObj = new();
-
-    //        ChatCompletion chatCompletion = await client.CompleteChatAsync( 
-    //            [new SystemChatMessage(QnASystemRequest),
-    //            new UserChatMessage(QnAUserRequest)],
-    //            options);
-
-    //        //// Handling some errors
-    //        if (chatCompletion == null)
-    //        {
-    //            qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
-    //            return qandAObj;
-    //        }
-    //        //if (chatCompletion.     GetRawResponse().Status != 200)
-    //        //{
-    //        //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
-    //        //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
-    //        //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
-    //        //    return qandAObj;
-    //        //}
-    //        if (chatCompletion.Content == null)
-    //        {
-    //            qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
-    //            return qandAObj;
-    //        }
-
-    //        if (chatCompletion.Content.Count >= 1)
-    //        {
-    //            // Very oddly the response may show up on one of two properties. 
-    //            string JSONResponseString = chatCompletion.Content[0].ToString();
-    //            // OK sometimes we may not get back a well formed JSON String... let's handle that. 
-    //            try
-    //            {
-    //                qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
-    //            }
-    //            catch
-    //            {
-    //                qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
-    //                qandAObj.question += JSONResponseString;
-    //            }
-    //        }
-    //        else
-    //        {
-    //            qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
-    //        }
-
-    //        return qandAObj;
-    //    }
-
         public async Task<QandAObj> GetAIQuestionAsync(string text)
         {
 
@@ -205,13 +105,7 @@ namespace BiblePathsCore.Services
                 qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
                 return qandAObj;
             }
-            //if (chatCompletion.     GetRawResponse().Status != 200)
-            //{
-            //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
-            //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
-            //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
-            //    return qandAObj;
-            //}
+
             if (chatCompletion.Content == null)
             {
                 qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
