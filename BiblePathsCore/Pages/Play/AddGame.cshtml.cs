@@ -49,7 +49,7 @@ namespace BiblePathsCore.Pages.Play
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string BibleID)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
@@ -103,7 +103,7 @@ namespace BiblePathsCore.Pages.Play
                     }
                 }
                 await _context.SaveChangesAsync();
-                return RedirectToPage("MyGames");
+                return RedirectToPage("TheWord", new {Id = emptyGame.Id, BibleId = this.BibleId});
             }
 
             return Page();

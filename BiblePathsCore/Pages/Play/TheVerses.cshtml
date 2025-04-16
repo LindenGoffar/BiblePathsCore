@@ -37,7 +37,7 @@
                     <div class="card-header">
                         @team.Name
                     </div>
-                    <div class="Card-Body ml-3">
+                    <div class="Card-Body m-3">
                         <p>Points = @team.StepNumber</p>
                         <form asp-page="/Play/AwardPoints" method="post">
                             <input type="hidden" name="GroupId" value="@Model.Group.Id" />
@@ -55,7 +55,7 @@
 <div>
     <a asp-page="TheWord" asp-route-Id="@Model.Group.Id">Back to the Words</a>
     <hr />
-    <a asp-page="Index">PBE Home</a>
+    <a asp-page="../PBE/Index">PBE Home</a>
 </div>
 
 @section Scripts {

@@ -48,7 +48,9 @@
 
 <div>
     <hr />
-    <a asp-page="Index">PBE Home</a>
+    <a asp-page="MyGames" asp-route-BibleId="@Model.BibleId">Back to My Games</a>
+    <br />
+    <a asp-page="../PBE/Index">PBE Home</a>
 </div>
 
 @section Scripts {

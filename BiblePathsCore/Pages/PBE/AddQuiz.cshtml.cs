@@ -91,8 +91,7 @@ namespace BiblePathsCore.Pages.PBE
                 _context.QuizGroupStats.Add(emptyQuiz);
                 await _context.SaveChangesAsync();
             }
-
-            return RedirectToPage("./Quizzes", new { BibleId = this.BibleId, Message = String.Format("Quiz {0} successfully created...", emptyQuiz.GroupName) });
+            return RedirectToPage("/PBE/Quiz", new { BibleId = this.BibleId, QuizID = emptyQuiz.Id, Message = String.Format("Quiz {0} successfully created...", emptyQuiz.GroupName) });
         }
     }
 }
