@@ -48,7 +48,7 @@ namespace BiblePathsCore.Services
     public class OpenAIResponder : IOpenAIResponder
 
     {
-        public const string OpenAIAPI = "gpt-4o-mini";
+        public const string OpenAIAPI = "o4-mini";
         private readonly OpenAISettings _openAIsettings;
         //private readonly HttpClient _httpClient;
 
@@ -88,7 +88,7 @@ namespace BiblePathsCore.Services
                     }
                     """),
                     jsonSchemaIsStrict: true),
-                Temperature = (float)1.2,
+                Temperature = (float)1,
             };
 
             QandAObj qandAObj = new();

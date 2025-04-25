@@ -26,20 +26,25 @@ namespace BiblePathsCore.Models.DB
         {
             Books = new List<BibleBook>();
 
-            // BookList Scenario
-            if (BookNumber >= Bible.MinBookListID)
+            // Book number = 0 is due to lack of validation but it exists.
+            if (BookNumber > 0)
             {
-                QuizBookList BookList = await context.QuizBookLists.Include(L => L.QuizBookListBookMaps).Where(L => L.Id == BookNumber).FirstAsync();
-                foreach (QuizBookListBookMap Map in BookList.QuizBookListBookMaps)
+
+                // BookList Scenario
+                if (BookNumber >= Bible.MinBookListID)
                 {
-                    BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == Map.BookNumber).FirstAsync();
+                    QuizBookList BookList = await context.QuizBookLists.Include(L => L.QuizBookListBookMaps).Where(L => L.Id == BookNumber).FirstAsync();
+                    foreach (QuizBookListBookMap Map in BookList.QuizBookListBookMaps)
+                    {
+                        BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == Map.BookNumber).FirstAsync();
+                        Books.Add(Book);
+                    }
+                }
+                else
+                {
+                    BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber).FirstAsync();
                     Books.Add(Book);
                 }
-            }
-            else
-            {
-                BibleBook Book = await context.BibleBooks.Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber).FirstAsync();
-                Books.Add(Book);
             }
 
             return true;
