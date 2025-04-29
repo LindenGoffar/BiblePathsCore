@@ -9,6 +9,7 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -30,6 +31,13 @@ namespace BiblePathsCore.Pages.Play
         public String BibleId { get; set; }
         [BindProperty]
         public GameGroup Game { get; set; }
+
+        [Required(ErrorMessage = "The Name field is required.")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "The Book or Book List field is required.")]
+        public int? BookNumber { get; set; }
+
         [BindProperty]
         public List<GameTeam> Teams { get; set; }
         public QuizUser PBEUser { get; set; }
@@ -76,7 +84,7 @@ namespace BiblePathsCore.Pages.Play
             if (await TryUpdateModelAsync<GameGroup>(
                 emptyGame,
                 "Game",   // Prefix for form value.
-                g => g.Name, g => g.BookNumber)) // PathId is used to reference the Template Used
+                g => g.Name, g => g.BookNumber)) 
             {
                 _context.GameGroups.Add(emptyGame);
                 await _context.SaveChangesAsync();
