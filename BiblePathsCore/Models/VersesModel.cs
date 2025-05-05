@@ -22,7 +22,7 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public bool InRelatedPaths { get; set; }
         [NotMapped]
-        public List<Path> RelatedPaths { get; set;  }
+        public List<Path> RelatedPaths { get; set; }
         [NotMapped]
         public int FITBPct { get; set; }
         [NotMapped]
@@ -81,7 +81,7 @@ namespace BiblePathsCore.Models.DB
         public bool IsVerseInExclusionList(List<QuizQuestion> ExclusionQuestions)
         {
             bool RetVal = false;
-            RetVal =  ExclusionQuestions.Any(E => E.BookNumber == BookNumber
+            RetVal = ExclusionQuestions.Any(E => E.BookNumber == BookNumber
                                            && E.Chapter == Chapter
                                            && E.Type == (int)QuestionType.Exclusion
                                            && E.IsDeleted == false
@@ -147,6 +147,16 @@ namespace BiblePathsCore.Models.DB
             }
             return bibleVerse;
         }
+        public static async Task<List<BibleVerse>> GetVersesAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int Chapter, int StartVerse, int EndVerse)
+        {
+            List<BibleVerse> bibleVerses = new List<BibleVerse>();
+            for (int v = StartVerse; v <= EndVerse; v++)
+            {
+                BibleVerse bibleVerse = await GetVerseAsync(context, BibleId, BookNumber, Chapter, v);
+            }
+
+            return bibleVerses;
+        }
 
         public async Task<bool> GetRelatedPathsAsync(BiblePathsCoreDbContext context)
         {
@@ -175,7 +185,28 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             RelatedPaths = relatedPaths;
-            return true;                                                                    
+            return true;
         }
+    }
+
+    public partial class BibleVerseTongue
+    {
+
+        public BibleVerse BibleVerse { get; set; }
+
+        // This constructor is used to create a new BibleVerseTongue object provided a bibleVerse and Bible obj
+        public BibleVerseTongue(BibleVerse bibleVerse, Bible bible, string toLanguage)
+        {
+            FromBibleId = bible.Id;
+            FromLanguage = bible.Language;
+            ToLanguage = toLanguage;
+            BookNumber = bibleVerse.BookNumber;
+            Chapter = bibleVerse.Chapter;
+            Verse = bibleVerse.Verse;
+            BibleVerse = bibleVerse;
+        }
+
+
+
     }
 }

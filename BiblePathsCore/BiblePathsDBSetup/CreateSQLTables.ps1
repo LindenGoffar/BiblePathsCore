@@ -112,6 +112,7 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
 		[switch] $CreateGameTables,
+		[switch] $CreateBibleVerseTonguesTable,
 		[switch] $LocalDB,
         [switch] $ProductionDB,
         [switch] $StagingDB,
@@ -527,4 +528,24 @@ If ($CreateBibleWordIndexTable){
 "@
 	Write-Host "Creating BibleWordIndex Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleWordIndexQuery -Username $User -Password $Password
+}
+If ($CreateBibleVerseTonguesTable){
+	$CreateBibleVerseTonguesQuery = @"
+		CREATE TABLE BibleVerseTongues
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			FromBibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
+			FromLanguage nvarchar(64) NOT NULL,
+			ToLanguage nvarchar(64) NOT NULL,
+			VerseID int NOT NULL,
+			BookNumber int NOT NULL,
+			Chapter int NOT NULL,
+			Verse int NOT NULL,
+			TonguesJSON nvarchar(4000),
+			Created datetimeoffset,
+			Modified datetimeoffset,
+		)	
+"@
+	Write-Host "Creating BibleVerseTongues Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleVerseTonguesQuery -Username $User -Password $Password
 }
