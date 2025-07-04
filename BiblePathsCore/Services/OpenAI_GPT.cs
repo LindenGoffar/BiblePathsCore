@@ -158,13 +158,16 @@ namespace BiblePathsCore.Services
             string TongueSystemRequest = "You are a Bible Scholar with a background in linguistics. " +
                 "You will be provided a Bible verse in the User Message delimited by an xml <Verse> tag." +
                 "Please review the entire User Message before formulating a response." +
-                "Your task is to provide an ordered list of words from the verse, their order in the verse," + 
-                "their translation in " +
+                "Your task is to provide an ordered list of words from the verse, their order in the verse," +
+                "and persist any punctuation with the word it is associated with." +
+                "You will also return the words translation in " +
                 ToLanguage +
-                "and their pronunciation in " +
+                "and the words pronunciation in " +
                 FromLanguage +
 
-                "The output should be in the schema specified in the Function request.";
+                "The output will include the the word with punctuation, it's position (order), a translation, and pronunciation. " +
+                "These should be returned in the schema specified in the Function request.";
+               
 
             string TongueUserRequest = "<Verse>"
                                 + verse.Text
@@ -198,7 +201,7 @@ namespace BiblePathsCore.Services
                           }
                         }
                       },
-                      "required": ["words"],
+                      "required": ["usermessage", "words"],
                       "additionalProperties": false
                     }
                     

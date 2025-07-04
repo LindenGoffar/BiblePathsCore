@@ -130,6 +130,12 @@
                 {
                     if (Model.Scenario == StepModel.StepScenarios.Study)
                     {
+                        @* <a class="small text-primary" asp-page="/Tongues/Verses" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@item.BookNumber" asp-route-Chapter="@item.Chapter" asp-route-VerseNum="@item.Verse" asp-route-toLanguage="English">Tongues</a> *@
+                            @* <a class="small text-primary" *@
+                            @*    href="/tongues/verses/@Model.BibleId/@item.BookNumber/@item.Chapter/@item.Verse/English"> *@
+                            @*     Tongues *@
+                            @* </a> *@
+
                         if (item.InRelatedPaths)
                         {
                                     <br />

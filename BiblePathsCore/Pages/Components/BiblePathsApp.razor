@@ -1,6 +1,14 @@
-﻿@page "/BiblePathsApp"
-<h3>BiblePathsApp</h3>
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using BiblePathsCore.Pages.Shared
 
-@code {
-
-}
+<Router AppAssembly="@typeof(BiblePathsCore.Pages.Components.BiblePathsApp).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p>Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>

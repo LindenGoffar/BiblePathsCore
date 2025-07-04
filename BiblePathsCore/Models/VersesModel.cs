@@ -1,10 +1,13 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using BiblePathsCore.Services;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 using static System.Collections.Specialized.BitVector32;
 
 namespace BiblePathsCore.Models.DB
@@ -153,6 +156,7 @@ namespace BiblePathsCore.Models.DB
             for (int v = StartVerse; v <= EndVerse; v++)
             {
                 BibleVerse bibleVerse = await GetVerseAsync(context, BibleId, BookNumber, Chapter, v);
+                bibleVerses.Add(bibleVerse);
             }
 
             return bibleVerses;
@@ -191,22 +195,49 @@ namespace BiblePathsCore.Models.DB
 
     public partial class BibleVerseTongue
     {
+        [NotMapped]
+        public VerseTongueObj VerseTongueObj { get; set; }
 
-        public BibleVerse BibleVerse { get; set; }
-
-        // This constructor is used to create a new BibleVerseTongue object provided a bibleVerse and Bible obj
-        public BibleVerseTongue(BibleVerse bibleVerse, Bible bible, string toLanguage)
+        public async Task<BibleVerseTongue> GetVerseTongueAsync(BiblePathsCoreDbContext context, Bible fromBible, BibleVerse verse, string toLanguage, IOpenAIResponder openAIResponder)
         {
-            FromBibleId = bible.Id;
-            FromLanguage = bible.Language;
-            ToLanguage = toLanguage;
-            BookNumber = bibleVerse.BookNumber;
-            Chapter = bibleVerse.Chapter;
-            Verse = bibleVerse.Verse;
-            BibleVerse = bibleVerse;
+            BibleVerseTongue bibleVerseTongue = new BibleVerseTongue();
+            try
+            {
+                // Let's see if we have a stored VerseTongue object.
+                bibleVerseTongue = await context.BibleVerseTongues.Where(v => v.FromBibleId == verse.BibleId
+                                                                    && v.BookNumber == verse.BookNumber
+                                                                    && v.Chapter == verse.Chapter
+                                                                    && v.Verse == verse.Verse
+                                                                    && v.ToLanguage == toLanguage
+                                                                    )
+                                                                .FirstAsync();
+            }
+            catch
+            {
+                // Nope we don't have one, let's create and save one. 
+                VerseTongueObj verseTongueObj = await openAIResponder.GetAIVerseTongueAsync(verse, fromBible.Language, toLanguage);
+
+                // We need to serialize our JSON Object in order to store it. 
+                string json = JsonSerializer.Serialize(verseTongueObj);
+
+                // Now let's build and store this verseToungue object.
+                bibleVerseTongue.TonguesJson = json;
+                bibleVerseTongue.FromBibleId = verse.BibleId;
+                bibleVerseTongue.FromLanguage = fromBible.Language;
+                bibleVerseTongue.ToLanguage = toLanguage;
+                bibleVerseTongue.BookNumber = verse.BookNumber;
+                bibleVerseTongue.Chapter = verse.Chapter;
+                bibleVerseTongue.Verse = verse.Verse;
+                bibleVerseTongue.Created = DateTime.Now;
+                bibleVerseTongue.Modified = DateTime.Now;
+                bibleVerseTongue.VerseId = verse.Id;
+                context.BibleVerseTongues.Add(bibleVerseTongue);
+                await context.SaveChangesAsync();
+            }
+
+
+            return bibleVerseTongue;
         }
-
-
 
     }
 }

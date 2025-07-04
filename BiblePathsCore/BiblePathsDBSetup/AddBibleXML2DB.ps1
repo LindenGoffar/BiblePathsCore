@@ -18,7 +18,7 @@ Param(
         [Switch] $Validate,
         [Switch] $SkipRefCheck,
         [switch] $LocalDB,
-        #[switch] $ProductionDB,
+        [switch] $ProductionDB,
         [switch] $StagingDB,
         [switch] $DevDB
       )
