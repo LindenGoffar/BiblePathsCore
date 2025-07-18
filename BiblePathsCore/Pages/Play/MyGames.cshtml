@@ -2,69 +2,89 @@
 @model BiblePathsCore.Pages.Play.MyGamesModel
 
 @{
-    ViewData["Title"] = "My Games";
+    ViewData["Title"] = "My Games - The Word";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h4>@ViewData["Title"]</h4>
+<span class="text-info">
+    The Word - is a PBE Memorization game. A host selects a Book or Book list and defines the teams. 
+    After selecting a Game, or pressing Play, you will be presented a list of words of different sizes based on how often
+    they occur in the text. <br />
+    <ul>
+        <li>Selecting a word, will present the host with all of the verses containing that word.</li>
+        <li>The first player who stands up, raises their hands etc. will need to recite a verse containing the word, and where it's found.'</li>
+        <li>Points can be awarded to the team that is able to recite one of the verses containing the word.</li>
+    </ul>
+</span>
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <a asp-page="AddGame">Add a Game</a>
+            <a asp-page="AddGame">Add a new Game</a>
         </div>
     </div>
     <hr />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Game</th>
+                <th>Name</th>
+                <th>Books</th>
+                <th>Teams</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
     @foreach (var Game in Model.Games)
     {
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6">
-                            <a asp-page="Group" asp-route-Id="@Game.Id">
-                                <strong>@Game.Name</strong>
-                            </a>
-                            @foreach (var Team in Game.GameTeams)
-                            {
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">@Team.Name</h5>
-                                        <p class="card-text">Points = @Team.StepNumber</p>
-                                    </div>
+            <tr>
+                <td><span>@Game.GameName</span></td>
+                <td><a asp-page="TheWord" asp-route-Id="@Game.Id">@Game.Name</a></td>
+                <td>
+                    @foreach (var Team in Game.GameTeams)
+                    {
+                        <span>@Team.Name: @Team.StepNumber</span><br />
+                    }
+                </td>
+                <td>
+                        @foreach (var Book in Game.Books)
+                        {
+                                <span>@Book.Name</span><br />
+                        }
+                </td>
+                <td>
+                    <a asp-page="TheWord" asp-route-Id="@Game.Id" class="btn btn-outline-info btn-sm">Play</a>
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@Game.Id">
+                        Delete
+                    </button>
+                    <div class="modal fade" id="DeleteModal-@Game.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Game" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">Delete this Game?</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
                                 </div>
-                            }
-                    </div>
-                    <div class="col-4">
-                        <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@Game.Id">
-                            Delete
-                        </button>
-                        <div class="modal fade" id="DeleteModal-@Game.Id" tabindex="-1" role="dialog" aria-labelledby="Delete Game" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="exampleModalLongTitle">Delete this Game?</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p class="font-weight-bold">@Game.Name</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <form asp-page="/Play/DeleteGroup" method="post">
-                                            <input type="hidden" name="id" value="@Game.Id" />
-                                            <input type="submit" value="Confirm" class="btn btn-danger" />
-                                        </form>
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                    </div>
+                                <div class="modal-body">
+                                    <p class="font-weight-bold">@Game.Name</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form asp-page="/Play/DeleteGroup" method="post">
+                                        <input type="hidden" name="id" value="@Game.Id" />
+                                        <input type="submit" value="Confirm" class="btn btn-danger" />
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </td>
+            </tr>
     }
+        </tbody>
+    </table>
 </div>
 <div>
     <hr />

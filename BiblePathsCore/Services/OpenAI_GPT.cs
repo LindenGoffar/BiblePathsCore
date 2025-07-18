@@ -38,17 +38,35 @@ namespace BiblePathsCore.Services
         [JsonProperty("points", Required = Required.Always)]
         public int points { get; set; }
     }
+    public class WordTongueObj
+    {
+        [JsonProperty("order", Required = Required.Always)]
+        public int order { get; set; }
+        [JsonProperty("word", Required = Required.Always)]
+        public string word { get; set; }
+        [JsonProperty("translation", Required = Required.Always)]
+        public string translation { get; set; }
+        [JsonProperty("pronunciation", Required = Required.Always)]
+        public string pronunciation { get; set; }
+    }
+    public class VerseTongueObj
+    {
+        [JsonProperty("usermessage", Required = Required.Default)]
+        public string usermessage { get; set; }
+        [JsonProperty("words", Required = Required.Always)]
+        public List<WordTongueObj> words { get; set; }
+    }
 
     public interface IOpenAIResponder
     {
         // public Task<QandAObj> GetAIQuestionAsync(string text, string key);
         public Task<QandAObj> GetAIQuestionAsync(string text);
+        public Task<VerseTongueObj> GetAIVerseTongueAsync(BibleVerse verse, string FromLanguage, string ToLanguage);
     }
 
     public class OpenAIResponder : IOpenAIResponder
-
     {
-        public const string OpenAIAPI = "gpt-4o-mini";
+        public const string OpenAIAPI = "o4-mini";
         private readonly OpenAISettings _openAIsettings;
         //private readonly HttpClient _httpClient;
 
@@ -56,106 +74,6 @@ namespace BiblePathsCore.Services
         {
             _openAIsettings = openAISettings.Value;
         }
-
-    // 09-05-2024 This method is rewritten to use the OpenAI .NET Library directly. 
-    //    public async Task<QandAObj> GetAIQuestionAsync(string text, string key)
-    //    {
-
-    //        string QnASystemRequest001 = "You are a teacher preparing a quiz. " + 
-    //            "you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
-    //            "you will write a question from this text that can be answered from the same text, and provide the answer. " +
-    //            "You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
-    //            "where each independent clause in the answer is worth 1 point." +
-    //            "Use a default of 1 if points cannot be determined. " +
-    //            "The output, including question, answer, and points should be in the schema specified " +
-    //            "The question should be brief and not include the phrase 'according to'. " +
-    //            "The Answer should be short and not include the contents of the question, or restate the question.";
-
-    //        string QnASystemRequest = "You are a Bible teacher preparing a quiz for students. " +
-    //"you will be provided a snippet of Bible text, delimited by an xml <Verse> tag, " +
-    //"you will write a question from this text that can be answered from the same text, and provide the answer. " +
-    //"You will also need to determine how many points the answer will be worth, points will be an integer between 1 and 6, " +
-    //"where each independent clause in the answer is worth 1 point." +
-    //"Use a default of 1 if points cannot be determined. " +
-    //"The output, including question, answer, and points should be in the schema specified " +
-    //"The question should not include the phrase 'according to'. " +
-    //"The Answer should be short and not restate any portion of the question.";
-
-
-    //        string QnAUserRequest = "<Verse>"
-    //                            + text
-    //                            + "</Verse>";
-
-    //        ChatClient client = new(OpenAIAPI, key);
-
-    //        ChatCompletionOptions options = new()
-    //        {
-    //            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-    //            name: "QandAObj",
-    //            jsonSchema: BinaryData.FromString("""
-    //                {
-    //                    "type": "object",
-    //                    "properties": {
-    //                        "question": { "type": "string" },
-    //                        "answer": { "type": "string" },
-    //                        "points": { "type": "integer"}
-    //                    },
-    //                    "required": ["question", "answer", "points"],
-    //                    "additionalProperties": false
-    //                }
-    //                """),
-    //                strictSchemaEnabled: true),
-    //            Temperature = (float)1.2,
-    //        };
-
-    //        QandAObj qandAObj = new();
-
-    //        ChatCompletion chatCompletion = await client.CompleteChatAsync( 
-    //            [new SystemChatMessage(QnASystemRequest),
-    //            new UserChatMessage(QnAUserRequest)],
-    //            options);
-
-    //        //// Handling some errors
-    //        if (chatCompletion == null)
-    //        {
-    //            qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
-    //            return qandAObj;
-    //        }
-    //        //if (chatCompletion.     GetRawResponse().Status != 200)
-    //        //{
-    //        //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
-    //        //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
-    //        //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
-    //        //    return qandAObj;
-    //        //}
-    //        if (chatCompletion.Content == null)
-    //        {
-    //            qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
-    //            return qandAObj;
-    //        }
-
-    //        if (chatCompletion.Content.Count >= 1)
-    //        {
-    //            // Very oddly the response may show up on one of two properties. 
-    //            string JSONResponseString = chatCompletion.Content[0].ToString();
-    //            // OK sometimes we may not get back a well formed JSON String... let's handle that. 
-    //            try
-    //            {
-    //                qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
-    //            }
-    //            catch
-    //            {
-    //                qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
-    //                qandAObj.question += JSONResponseString;
-    //            }
-    //        }
-    //        else
-    //        {
-    //            qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
-    //        }
-
-    //        return qandAObj;
-    //    }
 
         public async Task<QandAObj> GetAIQuestionAsync(string text)
         {
@@ -174,7 +92,7 @@ namespace BiblePathsCore.Services
             ChatCompletionOptions options = new()
             {
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                name: "QandAObj",
+                jsonSchemaFormatName: "QandAObj",
                 jsonSchema: BinaryData.FromString("""
                     {
                         "type": "object",
@@ -187,8 +105,8 @@ namespace BiblePathsCore.Services
                         "additionalProperties": false
                     }
                     """),
-                    strictSchemaEnabled: true),
-                Temperature = (float)1.2,
+                    jsonSchemaIsStrict: true),
+                Temperature = (float)1,
             };
 
             QandAObj qandAObj = new();
@@ -205,13 +123,7 @@ namespace BiblePathsCore.Services
                 qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
                 return qandAObj;
             }
-            //if (chatCompletion.     GetRawResponse().Status != 200)
-            //{
-            //    qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
-            //    qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
-            //    qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
-            //    return qandAObj;
-            //}
+
             if (chatCompletion.Content == null)
             {
                 qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
@@ -221,7 +133,7 @@ namespace BiblePathsCore.Services
             if (chatCompletion.Content.Count >= 1)
             {
                 // Very oddly the response may show up on one of two properties. 
-                string JSONResponseString = chatCompletion.Content[0].ToString();
+                string JSONResponseString = chatCompletion.Content[0].Text;
                 // OK sometimes we may not get back a well formed JSON String... let's handle that. 
                 try
                 {
@@ -241,111 +153,105 @@ namespace BiblePathsCore.Services
             return qandAObj;
         }
 
+        public async Task<VerseTongueObj> GetAIVerseTongueAsync(BibleVerse verse, string FromLanguage, string ToLanguage)
+        {          
+            string TongueSystemRequest = "You are a Bible Scholar with a background in linguistics. " +
+                "You will be provided a Bible verse in the User Message delimited by an xml <Verse> tag." +
+                "Please review the entire User Message before formulating a response." +
+                "Your task is to provide an ordered list of words from the verse, their order in the verse," +
+                "and persist any punctuation with the word it is associated with." +
+                "You will also return the words translation in " +
+                ToLanguage +
+                "and the words pronunciation in " +
+                FromLanguage +
 
-        //public OpenAIResponder()
-        //{
-        //    _httpClient = new HttpClient();
-        //}
-        //public async Task<QandAObj> GetAzureAIQuestionAsync(string text, string key)
-        //{
+                "The output will include the the word with punctuation, it's position (order), a translation, and pronunciation. " +
+                "These should be returned in the schema specified in the Function request.";
+               
 
-        //    string QnASystemRequest = "You will be provided Bible verse text (delimited by XML tags), " +
-        //        "write a question from this text that can be answered from the same text, then provide the answer. " +
-        //        "The output, including both question and answer, should be in the schema specified in the Function request. " +
-        //        "The Question should be brief and not include the phrase 'according to'. " +
-        //        "The Answer should be short and not include the contents of the question, or restate the question.";
+            string TongueUserRequest = "<Verse>"
+                                + verse.Text
+                                + "</Verse>";
 
+            string key = _openAIsettings.OpenAIAPIKey;
 
-        //    string QnAUserRequest = "<Verse>"
-        //                        + text
-        //                        + "</Verse>";
-                                
-        //    ChatCompletionsOptions CCOptions = new ChatCompletionsOptions();
+            ChatClient client = new(OpenAIAPI, key);
 
-        //    QandAObj qandAObj = new QandAObj();
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                jsonSchemaFormatName: "VerseTongueObj",
+                jsonSchema: BinaryData.FromString("""
+                    {
+                      "type": "object",
+                      "properties": {
+                        "usermessage": { "type": "string" },
+                        "words": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "order": { "type": "integer" },
+                              "word": { "type": "string" },
+                              "translation": { "type": "string" },
+                              "pronunciation": { "type": "string" }
+                            },
+                            "required": ["order", "word", "translation", "pronunciation"],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["usermessage", "words"],
+                      "additionalProperties": false
+                    }
+                    
+                    """),
+                    jsonSchemaIsStrict: true),
+                Temperature = (float)1,
+            };
 
-        //    Azure.AI.OpenAI.ChatMessage QnASystemMessage = new Azure.AI.OpenAI.ChatMessage();
-        //    QnASystemMessage.Role = "system";
-        //    QnASystemMessage.Content = QnASystemRequest;
+            VerseTongueObj verseTongueObj = new();
 
-        //    Azure.AI.OpenAI.ChatMessage QnAUserMessage = new Azure.AI.OpenAI.ChatMessage();
-        //    QnAUserMessage.Role = "user";
-        //    QnAUserMessage.Content = QnAUserRequest;
+            ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                [new SystemChatMessage(TongueSystemRequest),
+                new UserChatMessage(TongueUserRequest)],
+                options);
 
-        //    Azure.AI.OpenAI.ChatMessage QnAFunctionMessage = new Azure.AI.OpenAI.ChatMessage();
-        //    QnAFunctionMessage.Role = "function";
-        //    QnAFunctionMessage.Name = "QnAFunction";
-        //    QnAFunctionMessage.Content = "Use QnAFunction Schema Provided";
+            //// Handling some errors
+            if (chatCompletion == null)
+            {
+                verseTongueObj.usermessage = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                return verseTongueObj;
+            }
 
-        //    //List<FunctionDefinition> QnAFuntions = new List<FunctionDefinition>();
-        //    FunctionDefinition QnAFunction = new FunctionDefinition();
+            if (chatCompletion.Content == null)
+            {
+                verseTongueObj.usermessage = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                return verseTongueObj;
+            }
 
-        //    //JSchemaGenerator generator = new JSchemaGenerator();
-        //    //JSchema qnASchema = generator.Generate(typeof(QandAObj));
-        //    //string qnASchemaString = qnASchema.ToString();
-        //    string qnASchemaString = "{  \"type\": \"object\",  \"properties\": { \"question\": {\"type\": \"string\" }, \"answer\": { \"type\": \"string\" }  },  \"required\": [ \"question\",  \"answer\" ]}";
+            if (chatCompletion.Content.Count >= 1)
+            {
+                // Very oddly the response may show up on one of two properties. 
+                string JSONResponseString = chatCompletion.Content[0].Text;
+                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                try
+                {
+                    verseTongueObj = JsonConvert.DeserializeObject<VerseTongueObj>(JSONResponseString);
+                }
+                catch
+                {
+                    verseTongueObj.usermessage = "Uh Oh... we had a problem parsing the following response: ";
+                    verseTongueObj.usermessage += JSONResponseString;
+                }
+            }
+            else
+            {
+                verseTongueObj.usermessage = "Hmm... We didn't get a response back that we could use, please try again.";
+            }
 
-        //    QnAFunction.Name = "QnAFunction";
-        //    QnAFunction.Parameters = BinaryData.FromString(qnASchemaString);
-
-        //    CCOptions.Functions.Add(QnAFunction);
-        //    CCOptions.Messages.Add(QnASystemMessage);
-        //    CCOptions.Messages.Add(QnAUserMessage);
-        //    CCOptions.Messages.Add(QnAFunctionMessage);
-        //    CCOptions.ChoiceCount = 1; // we only want one question generated
-        //    CCOptions.Temperature = (float)1.2;
-
-        //    OpenAIClient client = new OpenAIClient(key);
-        //    Response<ChatCompletions> response = await client.GetChatCompletionsAsync(
-        //        OpenAIAPI, // assumes a matching model deployment or model name
-        //        CCOptions);
-   
-        //    // Handling some errors
-        //    if (response == null)
-        //    {
-        //        qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
-        //        return qandAObj;
-        //    }
-        //    if (response.GetRawResponse().Status != 200)
-        //    {
-        //        qandAObj.question = "Uh Oh... we got an error in our response from our friends at OpenAI.  ";
-        //        qandAObj.question += " Status Code: " + response.GetRawResponse().Status;
-        //        qandAObj.question += " Reaseon: " + response.GetRawResponse().ReasonPhrase;
-        //        return qandAObj;
-        //    }
-        //    if (response.Value == null)
-        //    {
-        //        qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
-        //        return qandAObj;
-        //    }
-
-        //    if (response.Value.Choices.Count >= 1)
-        //    {
-        //        // Very oddly the response may show up on one of two properties. 
-        //        string JSONResponseString = response.Value.Choices[0].Message.Content;
-        //        // OK This is wierd but sometimes the result shows up on a deprecated property.
-        //        if (JSONResponseString == null)
-        //        {
-        //            JSONResponseString = response.Value.Choices[0].Message.FunctionCall.Arguments;
-        //        }
-        //        // OK sometimes we may not get back a well formed JSON String... let's handle that. 
-        //        try
-        //        {
-        //            qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
-        //        }
-        //        catch 
-        //        {
-        //            qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
-        //            qandAObj.question += JSONResponseString;
-        //        }               
-        //    }
-        //    else
-        //    {
-        //        qandAObj.question = "Hmm... We didn't get a resonse back that we could use, please try again.";
-        //    }
-
-        //    return qandAObj;
-        //}
+            return verseTongueObj;
+        }
     }
 }
 

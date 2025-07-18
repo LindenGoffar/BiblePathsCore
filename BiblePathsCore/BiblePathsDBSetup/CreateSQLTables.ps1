@@ -1,9 +1,27 @@
 ﻿<# 
 Description: Create individual or all BiblePaths Core tables.
 
+Note: If you are going to change anything here don't forget 
+to Rescaffold the DB using Package Manager Console: 
+
+PM> Scaffold-DbContext -Connection "Name=AppConnection" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models/DB -ContextDir Models -Context BiblePathsCoreDbContext -Tables "Bibles","BibleBooks","BibleChapters","BibleVerses","BibleNoiseWords","BibleWordIndex","CommentaryBooks","PathNodes","Paths","PathStats","QuizAnswers","QuizBookListBookMap","QuizBookLists","QuizGroupStats","QuizQuestions","QuizQuestionStats","QuizUsers","PredefinedQuizzes","PredefinedQuizQuestions", "GameGroups", "GameTeams" -Force
+
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
+--2/10/2025 in support of "The Word" Game
+ALTER TABLE BibleWordIndex
+	Add BookNumber int NOT NULL DEFAULT(0)
+
+ALTER TABLE BibleWordIndex
+	Add Chapter int NOT NULL DEFAULT(0)
+
+ALTER TABLE BibleWordIndex
+	Add Verse int NOT NULL DEFAULT(0)
+
+ALTER TABLE GameGroups
+		Add BookNumber int NOT NULL DEFAULT(0)
+
 --9/8/2024 in suport of Template Sharing and 
 ALTER TABLE PredefinedQuizzes
 		Add Type int NOT NULL DEFAULT(0)
@@ -94,6 +112,7 @@ Param(  #[switch] $SetupSecurity,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
 		[switch] $CreateGameTables,
+		[switch] $CreateBibleVerseTonguesTable,
 		[switch] $LocalDB,
         [switch] $ProductionDB,
         [switch] $StagingDB,
@@ -463,6 +482,7 @@ If ($CreateGameTables){
 			Name nvarchar(256),
 			Owner nvarchar(256),
 			PathID int FOREIGN KEY References Paths(ID),
+			BookNumber int NOT NULL,
 			GroupType int NOT NULL,
 			GroupState int NOT NULL,
 			Created datetimeoffset,
@@ -487,7 +507,7 @@ If ($CreateGameTables){
 			GameCompleted datetimeoffset
 		) 
 "@
-	Write-Host "Creating GameGroups Quiz Table" 
+	Write-Host "Creating GameGroups Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameGroupsTableQuery -Username $User -Password $Password
 	Write-Host "Creating GameTeams Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateGameTeamsTableQuery -Username $User -Password $Password
@@ -500,9 +520,32 @@ If ($CreateBibleWordIndexTable){
 			BibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
 			Word nvarchar(32) NOT NULL,
 			VerseID int NOT NULL,
+			BookNumber int NOT NULL,
+			Chapter int NOT NULL,
+			Verse int NOT NULL,
 			RandomInt int NOT NULL DEFAULT(0)
 		) 
 "@
 	Write-Host "Creating BibleWordIndex Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleWordIndexQuery -Username $User -Password $Password
+}
+If ($CreateBibleVerseTonguesTable){
+	$CreateBibleVerseTonguesQuery = @"
+		CREATE TABLE BibleVerseTongues
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			FromBibleID nvarchar(64) FOREIGN KEY References Bibles(ID) NOT NULL,
+			FromLanguage nvarchar(64) NOT NULL,
+			ToLanguage nvarchar(64) NOT NULL,
+			VerseID int NOT NULL,
+			BookNumber int NOT NULL,
+			Chapter int NOT NULL,
+			Verse int NOT NULL,
+			TonguesJSON nvarchar(4000),
+			Created datetimeoffset,
+			Modified datetimeoffset,
+		)	
+"@
+	Write-Host "Creating BibleVerseTongues Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateBibleVerseTonguesQuery -Username $User -Password $Password
 }

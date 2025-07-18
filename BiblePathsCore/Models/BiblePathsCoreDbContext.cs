@@ -26,6 +26,8 @@ public partial class BiblePathsCoreDbContext : DbContext
 
     public virtual DbSet<BibleVerse> BibleVerses { get; set; }
 
+    public virtual DbSet<BibleVerseTongue> BibleVerseTongues { get; set; }
+
     public virtual DbSet<BibleWordIndex> BibleWordIndices { get; set; }
 
     public virtual DbSet<CommentaryBook> CommentaryBooks { get; set; }
@@ -57,9 +59,6 @@ public partial class BiblePathsCoreDbContext : DbContext
     public virtual DbSet<QuizQuestionStat> QuizQuestionStats { get; set; }
 
     public virtual DbSet<QuizUser> QuizUsers { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=AppConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -142,9 +141,35 @@ public partial class BiblePathsCoreDbContext : DbContext
                 .HasConstraintName("FK__BibleVers__Bible__693CA210");
         });
 
+        modelBuilder.Entity<BibleVerseTongue>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__BibleVer__3214EC27C9B3A09A");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.FromBibleId)
+                .IsRequired()
+                .HasMaxLength(64)
+                .HasColumnName("FromBibleID");
+            entity.Property(e => e.FromLanguage)
+                .IsRequired()
+                .HasMaxLength(64);
+            entity.Property(e => e.ToLanguage)
+                .IsRequired()
+                .HasMaxLength(64);
+            entity.Property(e => e.TonguesJson)
+                .HasMaxLength(4000)
+                .HasColumnName("TonguesJSON");
+            entity.Property(e => e.VerseId).HasColumnName("VerseID");
+
+            entity.HasOne(d => d.FromBible).WithMany(p => p.BibleVerseTongues)
+                .HasForeignKey(d => d.FromBibleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__BibleVers__FromB__4F47C5E3");
+        });
+
         modelBuilder.Entity<BibleWordIndex>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC27DC9B060F");
+            entity.HasKey(e => e.Id).HasName("PK__BibleWor__3214EC275CD3C632");
 
             entity.ToTable("BibleWordIndex");
 
@@ -161,7 +186,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.HasOne(d => d.Bible).WithMany(p => p.BibleWordIndices)
                 .HasForeignKey(d => d.BibleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BibleWord__Bible__2B0A656D");
+                .HasConstraintName("FK__BibleWord__Bible__40F9A68C");
         });
 
         modelBuilder.Entity<CommentaryBook>(entity =>
@@ -352,7 +377,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.Property(e => e.EndVerse).HasColumnName("End_Verse");
             entity.Property(e => e.IsAnswered).HasColumnName("isAnswered");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
-            entity.Property(e => e.LastAsked).HasDefaultValue(new DateTimeOffset(new DateTime(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -8, 0, 0, 0)));
+            entity.Property(e => e.LastAsked).HasDefaultValue(new DateTimeOffset(new DateTime(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -6, 0, 0, 0)));
             entity.Property(e => e.Owner).HasMaxLength(256);
             entity.Property(e => e.Points).HasDefaultValue(1);
             entity.Property(e => e.Question).HasMaxLength(2048);

@@ -1,0 +1,243 @@
+﻿@using BiblePathsCore.Models;
+@using BiblePathsCore.Models.DB;
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.AspNetCore.Components.Web;
+
+@page "/tongues/select/{SelectedBibleId?}/{SelectedLanguage?}"
+@inject BiblePathsCoreDbContext DbContext
+
+<h3>Where do you want to start?</h3>
+<p>Here is how this works... 
+    <ul>
+        <li>Choose a Bible in the language you would like to learn.</li>
+        <li>Choose your language, the one you already know.</li>
+        <li>Select a book, chapter, and verse.</li>
+        <li>Read the verse word by word, refrenceing the translation and pronunciation helpers</li>
+    </ul>
+    By selecting a verse you are already familiar with, you will be able to more quickly pick up the meaning and nuances of the words you are learning.</p>
+
+<div class="form-group">
+    <label>Bible (the language I'd like to learn):</label>
+    <select class="form-control" @onchange="OnBibleChanged">
+        <option value="">-- Select Bible --</option>
+        @foreach (var bible in Bibles)
+        {
+            <option value="@bible.Id" selected="@(bible.Id == SelectedBibleId)">
+                @bible.Language (@bible.Version)
+            </option>
+        }
+    </select>
+    <label>My Language:</label>
+    <select class="form-control" @onchange="OnLanguageChanged">
+        <option value="">-- Select Your Language --</option>
+        @foreach (var language in Languages)
+        {
+            <option value="@language" selected="@(language == SelectedLanguage)">
+                @language
+            </option>
+        }
+    </select>
+</div>
+
+@if (BooksLoading)
+{
+    <div class="text-center my-4">
+        <span class="spinner-border" role="status"></span>
+        <span> Loading books...</span>
+    </div>
+}
+
+@if (Books?.Any() == true)
+{
+    <div class="form-group">
+        <label>Book:</label>
+        <select class="form-control" @onchange="OnBookChanged">
+            <option value="">-- Select Book --</option>
+            @foreach (var book in Books)
+            {
+                <option value="@book.BookNumber" selected="@(book.BookNumber == SelectedBookNumber)">
+                    @book.Name (@book.ToLanguage_BookName)
+                </option>
+            }
+        </select>
+    </div>
+}
+
+@if (Chapters?.Any() == true)
+{
+    <div class="form-group">
+        <label>Chapter:</label>
+        <select class="form-control" @onchange="OnChapterChanged">
+            <option value="">-- Select Chapter --</option>
+            @foreach (var chapter in Chapters)
+            {
+                <option value="@chapter" selected="@(chapter == SelectedChapter)">
+                    @chapter
+                </option>
+            }
+        </select>
+    </div>
+}
+
+@if (VersesLoading)
+{
+    <div class="text-center my-4">
+        <span class="spinner-border" role="status"></span>
+        <span> Loading verse list</span>
+    </div>
+}
+
+@if (Verses?.Any() == true)
+{
+    <div class="form-group">
+        <label>Verses:</label>
+        <div>
+            @foreach (var verse in Verses)
+            {
+                <div>
+                    <a href="/tongues/verses/@SelectedBibleId/@SelectedBookNumber/@SelectedChapter/@verse.VerseNumber/@SelectedLanguage">
+                        <strong>@verse.VerseNumber</strong>:
+                    </a>
+                    @verse.Text
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string SelectedBibleId { get; set; }
+    [Parameter] public string SelectedLanguage { get; set; }
+    // Data models for selection
+    private List<Bible> Bibles = new();
+    private List<string> Languages = new();
+    private List<BibleBook> Books = new();
+    private List<BibleBook> ToLanguageBooks = new();
+    private List<int> Chapters = new();
+    private List<SelectableVerse> Verses = new();
+
+    // Selected values
+    // private string SelectedBibleId;
+    private int? SelectedBookNumber;
+    private int? SelectedChapter;
+    private int? SelectedVerseNumber { get; set; }
+
+    // Additional Vars
+    private bool VersesLoading { get; set; } = false;
+    private bool BooksLoading { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Bibles = await DbContext.Bibles.OrderBy(b => b.Language).ThenBy(b => b.Version).ToListAsync();
+        Languages = Bibles.Select(b => b.Language).Distinct().ToList();
+        // in the event we have both SelectedBibleId and SelectedLanguage set, we can load the book list immediately
+        // This will validate the initial state of the component before executing anything. 
+        await ReLoadBookList();
+    }
+
+    private async Task OnBibleChanged(ChangeEventArgs e)
+    {
+        SelectedBibleId = e.Value?.ToString();
+        await ReLoadBookList();
+    }
+
+    private async Task OnLanguageChanged(ChangeEventArgs e)
+    {
+        SelectedLanguage = e.Value?.ToString();
+        await ReLoadBookList();
+    }
+
+    private async Task ReLoadBookList()
+    {
+        if(SelectedBibleId == null || SelectedLanguage == null)
+        {
+            return; // No Bible or language selected, do nothing
+        }
+
+        Books = new();
+        ToLanguageBooks = new();
+        Chapters = new();
+        Verses = new();
+        SelectedBookNumber = null;
+        SelectedChapter = null;
+
+        if (!string.IsNullOrEmpty(SelectedBibleId))
+        {
+            BooksLoading = true;
+            StateHasChanged(); // Immediately update UI to show spinner
+
+            Books = await DbContext.BibleBooks
+                .Where(b => b.BibleId == SelectedBibleId)
+                .OrderBy(b => b.BookNumber)
+                .ToListAsync();
+
+            ToLanguageBooks = await BibleBook.GetBooksByLanguageAsync(DbContext, SelectedLanguage);
+
+            foreach (var book in Books)
+            {
+                book.ToLanguage_BookName = ToLanguageBooks
+                    .FirstOrDefault(b => b.BookNumber == book.BookNumber)?.Name ?? book.Name;
+            }
+
+            BooksLoading = false;
+        }
+        else
+        {
+            BooksLoading = false;
+        }
+    }
+
+    private async Task OnBookChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var bookNum))
+        {
+            SelectedBookNumber = bookNum;
+            Chapters = new();
+            Verses = new();
+            SelectedChapter = null;
+
+            Chapters = await DbContext.BibleChapters
+                .Where(c => c.BibleId == SelectedBibleId && c.BookNumber == SelectedBookNumber)
+                .OrderBy(c => c.ChapterNumber)
+                .Select(c => c.ChapterNumber)
+                .ToListAsync();
+        }
+    }
+
+    private async Task OnChapterChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var chapterNum))
+        {
+            VersesLoading = true;
+            SelectedChapter = chapterNum;
+            Verses = new();
+
+            var verses = await DbContext.BibleVerses
+                .Where(v => v.BibleId == SelectedBibleId && v.BookNumber == SelectedBookNumber && v.Chapter == SelectedChapter)
+                .OrderBy(v => v.Verse)
+                .ToListAsync();
+
+            Verses = verses.Select(v => new SelectableVerse
+                {
+                    VerseNumber = v.Verse,
+                    Text = v.Text,
+                    IsSelected = false
+                }).ToList();
+            VersesLoading = false;
+        }
+    }
+
+    private void OnVerseRadioChanged(int verseNumber)
+    {
+        SelectedVerseNumber = verseNumber;
+    }
+
+    // Helper class for verse selection
+    public class SelectableVerse
+    {
+        public int VerseNumber { get; set; }
+        public string Text { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}
+

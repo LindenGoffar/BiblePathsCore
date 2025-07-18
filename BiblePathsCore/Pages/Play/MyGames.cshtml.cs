@@ -24,16 +24,27 @@ namespace BiblePathsCore.Pages.Play
             _context = context;
         }
 
+        public string BibleId { get; set; }
+
         public List<GameGroup> Games { get;set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(string BibleId)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
 
+            this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
+
             Games = await _context.GameGroups.Include(G => G.GameTeams)
                                                     .Where(G => G.Owner == user.Email
-                                                    && G.GroupType == (int)GameGroup.GameGroupType.PBEWords)
+                                                    && G.GroupType == (int)GameGroup.GameGroupType.TheWord)
                                                     .ToListAsync();
+
+            foreach(GameGroup Game in Games)
+            {
+                _ = await Game.AddBookListAsync(_context, this.BibleId);
+                Game.AddGameName();
+            }
+
             return Page();
         }
 

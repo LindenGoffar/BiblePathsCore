@@ -27,6 +27,8 @@ namespace BiblePathsCore.Models.DB
         public bool HasChallenge { get; set; }
         [NotMapped]
         public bool CommentaryHasChallenge { get; set; }
+        [NotMapped]
+        public string ToLanguage_BookName { get; set; }
 
         public static async Task<string> GetBookNameAsync(BiblePathsCoreDbContext context, string bibleId, int BookNumber)
         {
@@ -99,6 +101,7 @@ namespace BiblePathsCore.Models.DB
             await PBEBook.AddPBEBookPropertiesAsync(context, ChapterNum, null);
             return PBEBook;
         }
+
         public static async Task<IList<BibleBook>> GetPBEBooksAsync(BiblePathsCoreDbContext context, string BibleId, bool recent = true)
         {
             IList<BibleBook> PBEBooks = await context.BibleBooks
@@ -122,6 +125,26 @@ namespace BiblePathsCore.Models.DB
                 await Book.AddPBEBookPropertiesAsync(context, null, Questions);
             }
             return PBEBooks;
+        }
+
+        public static async Task<List<BibleBook>> GetBooksByLanguageAsync(BiblePathsCoreDbContext context, string Language)
+        {
+            List<BibleBook> Books = new(); 
+            if (string.IsNullOrEmpty(Language))
+            {
+                Language = "English";
+            }
+            else
+            {
+                // Fetch a BibleId for ToLanguage 
+                string BibleId = await Bible.GetBibleIdByLanguagAsync(context, Language);
+
+                // Get the BookName in the ToLanguage
+                Books = await context.BibleBooks
+                                      .Where(B => B.BibleId == BibleId)
+                                      .ToListAsync();
+            }
+            return Books;
         }
 
         public static async Task<List<SelectListItem>> GetBookSelectListAsync(BiblePathsCoreDbContext context, string BibleId)
@@ -253,6 +276,26 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             return ReturnBooks;
+        }
+
+        public async Task<bool> AddToLanguageBookNameAsync(BiblePathsCoreDbContext context, string ToLanguage)
+        {
+            if (string.IsNullOrEmpty(ToLanguage))
+            {
+                ToLanguage_BookName = Name;
+            }
+            else
+            {
+                // Fetch a BibleId for ToLanguage 
+                string BibleId = await Bible.GetBibleIdByLanguagAsync(context, ToLanguage);
+
+                // Get the BookName in the ToLanguage
+                ToLanguage_BookName = await context.BibleBooks
+                    .Where(B => B.BibleId == BibleId && B.BookNumber == BookNumber)
+                    .Select(B => B.Name)
+                    .FirstOrDefaultAsync();
+            }
+            return true;
         }
 
         public async Task<bool> AddPBEBookPropertiesAsync(BiblePathsCoreDbContext context, int? ChapterNum, List<QuizQuestion> Questions)

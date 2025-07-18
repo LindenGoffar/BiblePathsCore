@@ -72,6 +72,13 @@ namespace BiblePathsCore.Models.DB
                             .Any();
         }
 
+        public static async Task<int> GetVerseCountAsync(BiblePathsCoreDbContext context, string BibleId, int BookNumber, int ChapterNumber)
+        {
+            return await context.BibleChapters
+                .Where(C => C.BibleId == BibleId && C.BookNumber == BookNumber && C.ChapterNumber == ChapterNumber)
+                .Select(C => C.Verses ?? 0)
+                .FirstOrDefaultAsync();
+        }
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bible.DefaultPBEBibleId;

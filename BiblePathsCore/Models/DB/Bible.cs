@@ -17,6 +17,8 @@ public partial class Bible
 
     public virtual ICollection<BibleNoiseWord> BibleNoiseWords { get; set; } = new List<BibleNoiseWord>();
 
+    public virtual ICollection<BibleVerseTongue> BibleVerseTongues { get; set; } = new List<BibleVerseTongue>();
+
     public virtual ICollection<BibleVerse> BibleVerses { get; set; } = new List<BibleVerse>();
 
     public virtual ICollection<BibleWordIndex> BibleWordIndices { get; set; } = new List<BibleWordIndex>();

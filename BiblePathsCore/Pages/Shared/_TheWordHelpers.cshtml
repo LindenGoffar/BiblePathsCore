@@ -1,0 +1,22 @@
+﻿
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+   function filterVerses() {
+            var input, filter, versesContainer, verses, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toLowerCase();
+            versesContainer = document.getElementById("versesContainer");
+            verses = versesContainer.getElementsByClassName('verse');
+
+            for (i = 0; i < verses.length; i++) {
+                txtValue = verses[i].textContent || verses[i].innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    verses[i].style.display = "";
+                } else {
+                    verses[i].style.display = "none";
+                }
+            }
+        }
+</script>

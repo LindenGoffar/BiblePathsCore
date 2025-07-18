@@ -1,0 +1,142 @@
+﻿@using BiblePathsCore.Models;
+@using BiblePathsCore.Models.DB;
+@using BiblePathsCore.Services;
+@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Authorization;
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Web
+
+
+@page "/tongues/verses/{BibleId}/{BookNumber:int}/{Chapter:int}/{VerseNum:int?}/{toLanguage}"
+@inject BiblePathsCoreDbContext DbContext
+@inject IOpenAIResponder OpenAIResponder
+
+@attribute [Authorize]
+
+@if (IsLoading)
+{
+    <div class="text-center my-4">
+        <span class="spinner-border" role="status"></span>
+        <span> Loading verse and translations...</span>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 border p-3" style="height: 300px; overflow-y: auto;">
+                <h3>
+                    @BookName
+                    @Chapter:@(VerseNum ?? 1)
+                    in @Language
+                </h3>
+                <p>
+                    @foreach (var tongue in verseTongues)
+                    {
+                        @foreach (var word in tongue.words)
+                        {
+                            <span class="word" @onclick="() => SelectWord(word)">
+                                @word.word&nbsp;
+                            </span>
+                        }
+                    }
+                </p>
+            </div>
+            <div class="col-md-6 border p-3" style="height: 300px;">
+                <h3>
+                    @toLanguage
+                </h3>
+                <div>
+                    <strong>Translation:</strong> @SelectedTranslation
+                </div>
+                <div>
+                    <strong>Pronunciation:</strong> @SelectedPronunciation
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            @if(PreviousVerseNum > 1)
+            {
+                <a class="btn btn-primary m-2" href="/tongues/verses/@BibleId/@BookNumber/@Chapter/@PreviousVerseNum/@toLanguage">
+                    Previous Verse
+                </a>
+            }
+            else
+            {
+                <span class="btn btn-secondary m-2 disabled">Previous Verse</span>
+            }
+            @if(NextVerseNum <= VerseCount)
+            {
+                <a class="btn btn-primary m-2" href="/tongues/verses/@BibleId/@BookNumber/@Chapter/@NextVerseNum/@toLanguage">
+                    Next Verse
+                </a>
+            }
+            else
+            {
+                <span class="btn btn-secondary m-2 disabled">Next Verse</span>
+            }
+            <a class="btn btn-secondary m-2" href="/tongues/select/@BibleId/@toLanguage">
+                Back to Select
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string BibleId { get; set; }
+    [Parameter] public int BookNumber { get; set; }
+    [Parameter] public int Chapter { get; set; }
+    [Parameter] public int? VerseNum { get; set; }
+    [Parameter] public string toLanguage { get; set; }
+
+
+
+    // Populate verseTongues
+    private List<VerseTongueObj> verseTongues = new();
+    private string SelectedTranslation { get; set; } = "Select a word to see its translation.";
+    private string SelectedPronunciation { get; set; } = "";
+    private string BookName { get; set; } = "Loading...";
+    private string Language { get; set; }
+    private int VerseCount { get; set; } = 1; // Default to 1 verse
+    private int NextVerseNum => VerseNum.HasValue ? VerseNum.Value + 1 : 2; // Default to next verse if not specified
+    private int PreviousVerseNum => VerseNum.HasValue && VerseNum.Value > 1 ? VerseNum.Value - 1 : 1; // Default to 1 if no previous verse
+
+    private bool IsLoading { get; set; } = true;
+
+    private void SelectWord(WordTongueObj word)
+    {
+        SelectedTranslation = word.translation;
+        SelectedPronunciation = word.pronunciation;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+
+        Bible bible = new Bible();
+        bible = await Bible.GetBibleAsync(DbContext, BibleId);
+
+        BookName = await BibleBook.GetBookNameAsync(DbContext, BibleId, BookNumber);
+        VerseCount = await BibleChapter.GetVerseCountAsync(DbContext, BibleId, BookNumber, Chapter);
+        Language = bible.Language;
+        List<BibleVerse> Verses = new List<BibleVerse>();
+
+        // Initialize Verses we'll support one Verse now... add more later.
+        Verses = await BibleVerse.GetVersesAsync(DbContext, BibleId, BookNumber, Chapter, VerseNum ?? 1, VerseNum ?? 1);
+
+        verseTongues = new List<VerseTongueObj>();
+
+        foreach (BibleVerse verse in Verses)
+        {
+            BibleVerseTongue verseTongue = new BibleVerseTongue();
+            verseTongue = await verseTongue.GetVerseTongueAsync(DbContext, bible, verse, toLanguage, OpenAIResponder);
+
+            // Let's deserialize our JSON into a verseTongueObj
+            _ = new VerseTongueObj();
+            VerseTongueObj verseTongueObj = JsonSerializer.Deserialize<VerseTongueObj>(verseTongue.TonguesJson);
+            verseTongues.Add(verseTongueObj);
+        }
+        IsLoading = false;
+    }
+
+}

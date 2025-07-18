@@ -13,6 +13,12 @@ public partial class BibleWordIndex
 
     public int VerseId { get; set; }
 
+    public int BookNumber { get; set; }
+
+    public int Chapter { get; set; }
+
+    public int Verse { get; set; }
+
     public int RandomInt { get; set; }
 
     public virtual Bible Bible { get; set; }

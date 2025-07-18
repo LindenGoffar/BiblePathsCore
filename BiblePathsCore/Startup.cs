@@ -82,6 +82,13 @@ namespace BiblePathsCore
                      options.Conventions.AddPageRoute("/Paths/Path", "/Paths/{name}");
                      options.Conventions.AddPageRoute("/Search", "/Search/{SearchString?}");
                  });
+
+            services.AddServerSideBlazor().AddCircuitOptions(options =>
+            {
+                options.DetailedErrors = true;
+            });
+
+            //services.AddServerSideBlazor();
             services.AddSignalR();
             services.AddApplicationInsightsTelemetry();
 
@@ -95,7 +102,6 @@ namespace BiblePathsCore
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
             }
@@ -118,6 +124,8 @@ namespace BiblePathsCore
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapHub<GameTeamHub>("/GameTeamHub");
             });
         }

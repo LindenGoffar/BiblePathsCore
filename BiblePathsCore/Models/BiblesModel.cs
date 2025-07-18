@@ -60,6 +60,32 @@ namespace BiblePathsCore.Models.DB
             }
             return RetVal;
         }
+        public static async Task<string> GetBibleIdByLanguagAsync(BiblePathsCoreDbContext context, string Language)
+        {
+            string RetVal = Bible.DefaultBibleId;
+            if (Language != null)
+            {
+                try
+                {
+                    RetVal = await context.Bibles.Where(B => B.Language == Language).Select(B => B.Id).FirstAsync();
+                }
+                catch
+                {
+                    // If no Bible found for the specified language, we return the default Bible ID
+                    RetVal = Bible.DefaultBibleId;
+                }
+            }
+            return RetVal;
+        }
+
+        public static async Task<Bible> GetBibleAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            Bible bible = new Bible();
+            BibleId = await Bible.GetValidBibleIdAsync(context, BibleId);
+            bible = await context.Bibles.Where(B => B.Id == BibleId).FirstOrDefaultAsync();
+
+            return bible;
+        }
 
     }
 

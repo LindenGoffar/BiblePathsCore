@@ -1,0 +1,59 @@
+﻿@page
+@model BiblePathsCore.Pages.Play.TheWordModel
+
+@{
+    ViewData["Title"] = "TheWord: " + Model.Group.Name;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            @foreach (var Word in Model.WordCounts)
+            {
+                int iFontSize = Word.Count / 2 + 10;
+                string sFontSize = iFontSize.ToString() + "px";
+                <a asp-page="TheVerses" asp-route-Id="@Model.Group.Id" asp-route-TheWord="@Word.Word" asp-route-BibleId="@Model.BibleId">
+                    <span style="font-size:@sFontSize" data-toggle="tooltip" title="@Word.Count">
+                        @Word.Word
+                    </span>
+                </a>
+            }
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        @foreach (var team in Model.Group.GameTeams)
+        {
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        @team.Name
+                    </div>
+                    <div class="Card-Body ml-3">
+                        <p>Points = @team.StepNumber</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <hr />
+    <a asp-page="MyGames" asp-route-BibleId="@Model.BibleId">Back to My Games</a>
+    <br />
+    <a asp-page="../PBE/Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_TheWordHelpers" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

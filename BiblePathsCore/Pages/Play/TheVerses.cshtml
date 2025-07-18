@@ -1,0 +1,64 @@
+﻿@page "/TheVerses"
+@model BiblePathsCore.Pages.Play.TheVersesModel
+
+@{
+    ViewData["Title"] = "The Word Is: " + Model.TheWord;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@if (Model.UserMessage != null)
+{
+    <div><span class="bg-light text-primary">@Model.UserMessage</span> </div>
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<input type="text" id="searchInput" onkeyup="filterVerses()" placeholder="Search..." class="form-control mb-3" />
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div id="versesContainer">
+                @foreach (var Verse in Model.Verses)
+                {
+                    <p class="verse">
+                        <span class="book-name">@Verse.BookName</span> <span class="chapter">@Verse.Chapter</span>:<span class="verse-number">@Verse.Verse</span> <span class="verse-text">@Verse.Text</span> <br>
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        @foreach (var team in Model.Group.GameTeams)
+        {
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        @team.Name
+                    </div>
+                    <div class="Card-Body m-3">
+                        <p>Points = @team.StepNumber</p>
+                        <form asp-page="/Play/AwardPoints" method="post">
+                            <input type="hidden" name="GroupId" value="@Model.Group.Id" />
+                            <input type="hidden" name="TeamId" value="@team.Id" />
+                            <input type="hidden" name="Points" value="1" />
+                            <input type="submit" value="Award Point" class="btn btn-info" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <a asp-page="TheWord" asp-route-Id="@Model.Group.Id">Back to the Words</a>
+    <hr />
+    <a asp-page="../PBE/Index">PBE Home</a>
+</div>
+
+@section Scripts {
+    <partial name="_TheWordHelpers" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

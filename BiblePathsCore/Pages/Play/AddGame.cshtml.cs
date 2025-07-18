@@ -9,6 +9,7 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -30,6 +31,13 @@ namespace BiblePathsCore.Pages.Play
         public String BibleId { get; set; }
         [BindProperty]
         public GameGroup Game { get; set; }
+
+        [Required(ErrorMessage = "The Name field is required.")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "The Book or Book List field is required.")]
+        public int? BookNumber { get; set; }
+
         [BindProperty]
         public List<GameTeam> Teams { get; set; }
         public QuizUser PBEUser { get; set; }
@@ -42,13 +50,14 @@ namespace BiblePathsCore.Pages.Play
 
             this.BibleId = await Bible.GetValidPBEBibleIdAsync(_context, BibleId);
 
-            ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
+            // "The Word" Game requires a Booknumber or BookList ID
+            ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, this.BibleId);
             return Page();
         }
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string BibleID)
         {
             IdentityUser user = await _userManager.GetUserAsync(User);
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email); // Static method not requiring an instance
@@ -68,13 +77,14 @@ namespace BiblePathsCore.Pages.Play
                 Created = DateTime.Now,
                 Modified = DateTime.Now,
                 GroupState = (int)GameGroup.GameGroupState.Open,
+                GroupType = (int)GameGroup.GameGroupType.TheWord,
                 Owner = user.Email
             };
 
             if (await TryUpdateModelAsync<GameGroup>(
                 emptyGame,
                 "Game",   // Prefix for form value.
-                g => g.Name, g => g.PathId)) // PathId is used to reference the Template Used
+                g => g.Name, g => g.BookNumber)) 
             {
                 _context.GameGroups.Add(emptyGame);
                 await _context.SaveChangesAsync();
@@ -88,9 +98,9 @@ namespace BiblePathsCore.Pages.Play
                         {
                             var emptyTeam = new GameTeam
                             {
-                                TeamType = (int)GameTeam.GameTeamType.PBEWords,
+                                TeamType = (int)GameTeam.GameTeamType.TheWord,
                                 BoardState = (int)GameTeam.GameBoardState.WordSelect,
-                                StepNumber = 0, // this is used as Points in PBEWords 
+                                StepNumber = 0, // this is used as Points in TheWord 
                                 Created = DateTime.Now,
                                 Modified = DateTime.Now,
                             };
@@ -101,7 +111,7 @@ namespace BiblePathsCore.Pages.Play
                     }
                 }
                 await _context.SaveChangesAsync();
-                return RedirectToPage("MyGames");
+                return RedirectToPage("TheWord", new {Id = emptyGame.Id, BibleId = this.BibleId});
             }
 
             return Page();
