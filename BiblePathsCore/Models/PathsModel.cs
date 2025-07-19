@@ -377,17 +377,17 @@ namespace BiblePathsCore.Models.DB
                 ScoreCount++;
             }
 
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5.25 (a quarter point uplift)
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5.5 (a half point uplift)
             int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
             int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
             if (NumStarts > 0)
             { 
                 double ReadPercent = NumCompletes / NumStarts;
-                TotalScore += ReadPercent * 5.25;
+                TotalScore += ReadPercent * 5.5;
                 ScoreCount++;
             }
 
-            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 5.25)
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 5.5)
             if (PathNodes.Count > 0)
             {
                 int BookDiversityScore = 0;
@@ -400,10 +400,10 @@ namespace BiblePathsCore.Models.DB
                 // Does the path span testaments? 
                 if ((BookHash.Max() >= firstNTBook) && (BookHash.Min() < firstNTBook))
                 {
-                    BookDiversityScore += 1; // Add a free point for spanning testaments.  
+                    BookDiversityScore += 2; // Add a free 2 points for spanning testaments.  
                 }
 
-                TotalScore += BookDiversityScore > 5 ? 5.25 : BookDiversityScore;
+                TotalScore += BookDiversityScore > 5 ? 5.5 : BookDiversityScore;
                 ScoreCount++;                
             }
 
