@@ -1,0 +1,381 @@
+@using System.Timers
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@inject BiblePathsCoreDbContext DbContext
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+@page "/commentedpaths/builder/{PathId:int}"
+@attribute [Authorize]
+
+<h3 class="mb-3">@Path?.Name</h3>
+
+@if (IsLoading)
+{
+    <div class="text-center my-4">
+        <span class="spinner-border" role="status"></span>
+        <span> Loading path...</span>
+    </div>
+}
+else if (Path == null)
+{
+    <div class="alert alert-warning">Path not found.</div>
+}
+else
+{
+    <div class="mb-2">
+        @if (CanEdit)
+        {
+            <button class="btn btn-sm btn-outline-primary me-2" @onclick="ShowAddStandard">Add Standard Step</button>
+            <button class="btn btn-sm btn-outline-primary me-2" @onclick="AddCommentStep">Add Comment Step</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="Reload">Refresh</button>
+        }
+        else if (Path.IsPublished)
+        {
+            <div class="alert alert-info mt-2">This path is published. Editing is disabled.</div>
+        }
+    </div>
+
+    @* Add Standard Step Modal *@
+    @if (ShowAddStandardDialog)
+    {
+        <div class="card p-3 mb-3">
+            <h5>Add Standard Step</h5>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input class="form-control" placeholder="Book name" @bind="NewStepBookName" />
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control" placeholder="Chapter" type="number" @bind="NewStepChapter" />
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control" placeholder="Start Verse" type="number" @bind="NewStepStartVerse" />
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control" placeholder="End Verse (optional)" type="number" @bind="NewStepEndVerse" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary" @onclick="AddStandardStep">Add</button>
+                    <button class="btn btn-link" @onclick="() => ShowAddStandardDialog = false">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Delete Confirmation Modal *@
+    @if (ShowDeleteModal)
+    {
+        <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                        <button type="button" class="close" aria-label="Close" @onclick="() => ShowDeleteModal = false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this step?</p>
+                        <p class="fw-bold">Step @NodeIdToDelete: @DeleteStepLabel</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="() => ShowDeleteModal = false">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="DeleteConfirmed">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        @if (PathNodes?.Any() == true)
+        {
+            @foreach (var node in PathNodes.OrderBy(n => n.Position))
+            {
+                <div class="card mb-2" id="PathNode-@node.Id">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>Step @node.Position</strong>
+                                @if (node.Type == (int)StepType.Standard)
+                                {
+                                    <span class="ms-2">@node.BookName @node.Chapter:@node.StartVerse@(node.EndVerse > node.StartVerse ? " - " + node.EndVerse : "")</span>
+                                }
+                                else
+                                {
+                                    <span class="ms-2 text-muted">Commentary</span>
+                                }
+                            </div>
+                            <div>
+                                @if (CanEdit)
+                                {
+                                    <button class="btn btn-sm btn-danger" @onclick="() => PrepareDeleteNode(node.Id, node.Position)">Delete</button>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            @if (node.Type == (int)StepType.Standard)
+                            {
+                                @if (node.Verses != null)
+                                {
+                                    @foreach (var v in node.Verses)
+                                    {
+                                        <div><sup>@v.Verse</sup> @v.Text</div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <textarea class="form-control mt-1" rows="5" @oninput="(e) => OnCommentChanged(node, e.Value?.ToString())">@node.Text</textarea>
+                                <div class="small text-muted mt-1">Saved: @GetLastSaved(node.Id)</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-muted">No steps yet.</div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int PathId { get; set; }
+
+    private Path Path;
+    private List<PathNode> PathNodes = new();
+    private bool IsLoading { get; set; } = true;
+    private bool CanEdit { get; set; } = false;
+
+    // Add standard step dialog state
+    private bool ShowAddStandardDialog { get; set; } = false;
+    private string NewStepBookName { get; set; } = string.Empty;
+    private int NewStepChapter { get; set; }
+    private int NewStepStartVerse { get; set; }
+    private int? NewStepEndVerse { get; set; }
+
+    // Delete confirmation modal state
+    private bool ShowDeleteModal { get; set; } = false;
+    private int? NodeIdToDelete { get; set; }
+    private string DeleteStepLabel { get; set; } = "";
+
+    // debounced save timers per node
+    private readonly Dictionary<int, Timer> _debounceTimers = new();
+    private readonly Dictionary<int, DateTime> _lastSaved = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPathAsync();
+    }
+
+    private async Task LoadPathAsync()
+    {
+        IsLoading = true;
+
+        // Load path and nodes (include verses if navigation property exists)
+        Path = await DbContext.Paths
+            .Include(p => p.PathNodes.OrderBy(n => n.Position))
+                .ThenInclude(n => n.Verses)
+            .FirstOrDefaultAsync(p => p.Id == PathId);
+
+        if (Path == null)
+        {
+            IsLoading = false;
+            return;
+        }
+
+        PathNodes = Path.PathNodes?.ToList() ?? new List<PathNode>();
+
+        // determine permission: owner or editor (basic owner check)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var identityUser = await UserManager.GetUserAsync(user);
+            if (identityUser != null)
+            {
+                CanEdit = !Path.IsPublished && (string.Equals(Path.Owner, identityUser.Email, StringComparison.OrdinalIgnoreCase) || user.IsInRole("Admin"));
+                // if you have editors logic, extend here (e.g., Path.Editors contains user)
+            }
+        }
+
+        IsLoading = false;
+    }
+
+    private void ShowAddStandard()
+    {
+        ShowAddStandardDialog = true;
+    }
+
+    private async Task AddStandardStep()
+    {
+        if (!CanEdit) return;
+
+        var newNode = new PathNode
+        {
+            PathId = Path.Id,
+            Type = (int)StepType.Standard,
+            Position = (PathNodes.Any() ? PathNodes.Max(n => n.Position) + 1 : 1),
+            BookName = NewStepBookName,
+            Chapter = NewStepChapter,
+            StartVerse = NewStepStartVerse,
+            EndVerse = NewStepEndVerse ?? NewStepStartVerse
+        };
+
+        DbContext.PathNodes.Add(newNode);
+        await DbContext.SaveChangesAsync();
+
+        // optionally load verses for display if you have a method to populate Verses
+        if (newNode.Verses == null)
+        {
+            newNode.Verses = await DbContext.BibleVerses
+                .Where(v => v.BookNumber == newNode.BookNumber && v.Chapter == newNode.Chapter) // adjust predicate to match your schema
+                .OrderBy(v => v.Verse)
+                .ToListAsync();
+        }
+
+        await LoadPathAsync();
+        ShowAddStandardDialog = false;
+        NewStepBookName = string.Empty;
+        NewStepChapter = 0;
+        NewStepStartVerse = 0;
+        NewStepEndVerse = null;
+    }
+
+    private async Task AddCommentStep()
+    {
+        if (!CanEdit) return;
+
+        var newNode = new PathNode
+        {
+            PathId = Path.Id,
+            Type = (int)StepType.Commented,
+            Position = (PathNodes.Any() ? PathNodes.Max(n => n.Position) + 1 : 1),
+            Text = string.Empty
+        };
+        DbContext.PathNodes.Add(newNode);
+        await DbContext.SaveChangesAsync();
+        await LoadPathAsync();
+    }
+
+    private async Task DeleteNode(int nodeId)
+    {
+        if (!CanEdit) return;
+
+        var node = await DbContext.PathNodes.FindAsync(nodeId);
+        if (node == null) return;
+
+        DbContext.PathNodes.Remove(node);
+        await DbContext.SaveChangesAsync();
+
+        // re-sequence positions
+        var nodes = await DbContext.PathNodes.Where(n => n.PathId == Path.Id).OrderBy(n => n.Position).ToListAsync();
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            nodes[i].Position = i + 1;
+        }
+        await DbContext.SaveChangesAsync();
+
+        await LoadPathAsync();
+    }
+
+    private void PrepareDeleteNode(int nodeId, int position)
+    {
+        NodeIdToDelete = nodeId;
+        DeleteStepLabel = $"Step {position}";
+        ShowDeleteModal = true;
+    }
+
+    private async Task DeleteConfirmed()
+    {
+        if (NodeIdToDelete.HasValue)
+        {
+            await DeleteNode(NodeIdToDelete.Value);
+            ShowDeleteModal = false;
+        }
+    }
+
+    // called on every input; implement debounce so we don't spam DB
+    private void OnCommentChanged(PathNode node, string newValue)
+    {
+        if (!CanEdit) return;
+
+        node.Text = newValue ?? string.Empty;
+
+        // clear existing timer for this node
+        if (_debounceTimers.TryGetValue(node.Id, out var existing))
+        {
+            existing.Stop();
+            existing.Dispose();
+        }
+
+        // create a new timer (500ms)
+        var timer = new Timer(500) { AutoReset = false };
+        timer.Elapsed += async (_, __) => await SaveNodeTextDebounced(node.Id);
+        _debounceTimers[node.Id] = timer;
+        timer.Start();
+    }
+
+    private async Task SaveNodeTextDebounced(int nodeId)
+    {
+        // remove timer
+        if (_debounceTimers.TryGetValue(nodeId, out var t))
+        {
+            t.Stop();
+            t.Dispose();
+            _debounceTimers.Remove(nodeId);
+        }
+
+        // obtain node from current PathNodes (to get latest text)
+        var node = PathNodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node == null) return;
+
+        // attach and save
+        try
+        {
+            DbContext.Attach(node);
+            DbContext.Entry(node).Property(n => n.Text).IsModified = true;
+            await DbContext.SaveChangesAsync();
+
+            _lastSaved[nodeId] = DateTime.UtcNow;
+            // refresh UI on main thread
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // swallow for now; consider logging
+        }
+    }
+
+    private string GetLastSaved(int nodeId)
+    {
+        if (_lastSaved.TryGetValue(nodeId, out var dt))
+        {
+            return dt.ToLocalTime().ToString("g");
+        }
+        return "never";
+    }
+
+    private async Task Reload()
+    {
+        await LoadPathAsync();
+    }
+
+    public void Dispose()
+    {
+        foreach (var t in _debounceTimers.Values)
+        {
+            t.Stop();
+            t.Dispose();
+        }
+        _debounceTimers.Clear();
+    }
+}
