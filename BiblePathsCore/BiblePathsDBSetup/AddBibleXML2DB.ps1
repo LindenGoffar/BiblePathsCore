@@ -146,7 +146,7 @@ ForEach ($BibleTestament in $BibleFile.bible.testament) {
             $BibleChapterVerseCount = $BibleChapter.verse.Count
             #Write-Host "   Processing Chapter: $BibleChapterNumber" 
 
-            If ($BookChapterCount > 1){    
+            If ($BookChapterCount -gt 1){    
                 Write-Progress -activity "Adding $BookName " -status "Percent added: " -PercentComplete (($ChapterIndex / $BookChapterCount)  * 100)
             }
 
