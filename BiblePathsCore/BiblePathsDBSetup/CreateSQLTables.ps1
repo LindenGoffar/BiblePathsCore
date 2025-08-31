@@ -436,7 +436,7 @@ If ($CreateCommentaryTable){
 			Created datetimeoffset,
 			Modified datetimeoffset,
 			Text nvarchar(MAX),
-			SectionNumber int NOT NULL DEFAULT(1)
+			SectionNumber int NOT NULL DEFAULT(1),
 			SectionTitle nvarchar(256)
 
 		) 
