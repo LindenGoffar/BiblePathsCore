@@ -244,6 +244,7 @@ namespace BiblePathsCore.Models.DB
                     {
                         context.Attach(node);
                         node.Position = NextPosition;
+                        //TODO Doing this in the for loop seems wasteful.
                         await context.SaveChangesAsync();
                     }
                     NextPosition += DefaultInterval;

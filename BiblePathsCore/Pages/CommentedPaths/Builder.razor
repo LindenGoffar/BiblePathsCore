@@ -35,7 +35,7 @@ else
             <button class="btn btn-sm btn-outline-primary me-2" type="button" @onclick="() => AddStandardStep(0)">
                 Add Standard Step
             </button>
-            @* <button class="btn btn-sm btn-outline-primary me-2" @onclick="AddCommentStep">Add Comment Step</button> *@
+            <button class="btn btn-sm btn-outline-primary me-2" @onclick="@(async () => await AddCommentStep(0))">Add Comment Step</button>
             <button class="btn btn-sm btn-outline-secondary" @onclick="Reload">Refresh</button>
         }
         else if (Path.IsPublished)
@@ -109,8 +109,12 @@ else
                             }
                             else
                             {
-@*                                 <textarea class="form-control mt-1" rows="5" @oninput="(e) => OnCommentChanged(node, e.Value?.ToString())">@node.Text</textarea>
-                                <div class="small text-muted mt-1">Saved: @GetLastSaved(node.Id)</div> *@
+                                <textarea class="form-control mt-1" rows="5" @oninput="(e) => OnCommentChanged(node, e.Value?.ToString())">@node.Text</textarea>
+                                <div class="small text-muted mt-1">Saved: @GetLastSaved(node.Id)</div>
+                                @if (_errorMessages.ContainsKey(node.Id))
+                                {
+                                    <div class="alert alert-danger mt-2">@_errorMessages[node.Id]</div>
+                                }
                             }
                         </div>
                     </div>
@@ -161,6 +165,7 @@ else
     // debounced save timers per node
     private readonly Dictionary<int, Timer> _debounceTimers = new();
     private readonly Dictionary<int, DateTime> _lastSaved = new();
+    private Dictionary<int, string> _errorMessages = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -225,13 +230,6 @@ else
         IsLoading = false;
     }
 
-    private void ShowAddStandard(int position)
-    {
-        ShowAddStandardDialog = true;
-        CurrentPosition = position;
-        StateHasChanged();
-    }
-
     private void AddStandardStep(int position)
     {
         var targetPage = Uri.EscapeDataString("/Steps/AddStep");
@@ -239,56 +237,23 @@ else
                                         forceLoad: true);
     }
 
-    // private async Task AddStandardStep()
-    // {
-    //     if (!CanEdit) return;
 
-    //     var newNode = new PathNode
-    //     {
-    //         PathId = Path.Id,
-    //         Type = (int)StepType.Standard,
-    //         Position = CurrentPosition,
-    //         BookName = NewStepBookName,
-    //         Chapter = NewStepChapter,
-    //         StartVerse = NewStepStartVerse,
-    //         EndVerse = NewStepEndVerse ?? NewStepStartVerse
-    //     };
+    private async Task AddCommentStep(int Position)
+    {
+        if (!CanEdit) return;
 
-    //     DbContext.PathNodes.Add(newNode);
-    //     await DbContext.SaveChangesAsync();
-
-    //     optionally load verses for display if you have a method to populate Verses
-    //     if (newNode.Verses == null)
-    //     {
-    //         newNode.Verses = await DbContext.BibleVerses
-    //             .Where(v => v.BookNumber == newNode.BookNumber && v.Chapter == newNode.Chapter) adjust predicate to match your schema
-    //             .OrderBy(v => v.Verse)
-    //             .ToListAsync();
-    //     }
-
-    //     await LoadPathAsync();
-    //     ShowAddStandardDialog = false;
-    //     NewStepBookName = string.Empty;
-    //     NewStepChapter = 0;
-    //     NewStepStartVerse = 0;
-    //     NewStepEndVerse = null;
-    // }
-
-    // private async Task AddCommentStep()
-    // {
-    //     if (!CanEdit) return;
-
-    //     var newNode = new PathNode
-    //     {
-    //         PathId = Path.Id,
-    //         Type = (int)StepType.Commented,
-    //         Position = (PathNodes.Any() ? PathNodes.Max(n => n.Position) + 1 : 1),
-    //         Text = string.Empty
-    //     };
-    //     DbContext.PathNodes.Add(newNode);
-    //     await DbContext.SaveChangesAsync();
-    //     await LoadPathAsync();
-    // }
+        var newNode = new PathNode
+        {
+            PathId = Path.Id,
+            Type = (int)StepType.Commented,
+            Position = Position + 1,
+            Text = string.Empty
+        };
+        DbContext.PathNodes.Add(newNode);
+        await DbContext.SaveChangesAsync();
+        _ = await Path.RedistributeStepsAsync(DbContext);
+        await LoadPathAsync();
+    }
 
     private async Task DeleteNode(int nodeId)
     {
@@ -301,12 +266,7 @@ else
         await DbContext.SaveChangesAsync();
 
         // re-sequence positions
-        var nodes = await DbContext.PathNodes.Where(n => n.PathId == Path.Id).OrderBy(n => n.Position).ToListAsync();
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            nodes[i].Position = i + 1;
-        }
-        await DbContext.SaveChangesAsync();
+        _ = await Path.RedistributeStepsAsync(DbContext);
 
         await LoadPathAsync();
     }
@@ -328,65 +288,81 @@ else
     }
 
     // called on every input; implement debounce so we don't spam DB
-    // private void OnCommentChanged(PathNode node, string newValue)
-    // {
-    //     if (!CanEdit) return;
+    private void OnCommentChanged(PathNode node, string newValue)
+    {
+        if (!CanEdit) return;
 
-    //     node.Text = newValue ?? string.Empty;
+        node.Text = newValue ?? string.Empty;
 
-    //     clear existing timer for this node
-    //     if (_debounceTimers.TryGetValue(node.Id, out var existing))
-    //     {
-    //         existing.Stop();
-    //         existing.Dispose();
-    //     }
+        //clear existing timer for this node
+        if (_debounceTimers.TryGetValue(node.Id, out var existing))
+        {
+            existing.Stop();
+            existing.Dispose();
+        }
 
-    //     create a new timer (500ms)
-    //     var timer = new Timer(500) { AutoReset = false };
-    //     timer.Elapsed += async (_, __) => await SaveNodeTextDebounced(node.Id);
-    //     _debounceTimers[node.Id] = timer;
-    //     timer.Start();
-    // }
+        //create a new timer (500ms)
+        var timer = new Timer(500) { AutoReset = false };
+        timer.Elapsed += async (_, __) => await SaveNodeTextDebounced(node.Id);
+        _debounceTimers[node.Id] = timer;
+        timer.Start();
+    }
 
-    // private async Task SaveNodeTextDebounced(int nodeId)
-    // {
-    //     remove timer
-    //     if (_debounceTimers.TryGetValue(nodeId, out var t))
-    //     {
-    //         t.Stop();
-    //         t.Dispose();
-    //         _debounceTimers.Remove(nodeId);
-    //     }
+    private async Task SaveNodeTextDebounced(int nodeId)
+    {
+        // remove timer
+        if (_debounceTimers.TryGetValue(nodeId, out var t))
+        {
+            t.Stop();
+            t.Dispose();
+            _debounceTimers.Remove(nodeId);
+        }
 
-    //     obtain node from current PathNodes (to get latest text)
-    //     var node = PathNodes.FirstOrDefault(n => n.Id == nodeId);
-    //     if (node == null) return;
+        //obtain node from current PathNodes (to get latest text)
+        var node = PathNodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node == null) return;
 
-    //     attach and save
-    //     try
-    //     {
-    //         DbContext.Attach(node);
-    //         DbContext.Entry(node).Property(n => n.Text).IsModified = true;
-    //         await DbContext.SaveChangesAsync();
+        //attach and save
+        try
+        {
+            DbContext.Attach(node);
+            DbContext.Entry(node).Property(n => n.Text).IsModified = true;
 
-    //         _lastSaved[nodeId] = DateTime.UtcNow;
-    //         refresh UI on main thread
-    //         await InvokeAsync(StateHasChanged);
-    //     }
-    //     catch
-    //     {
-    //         swallow for now; consider logging
-    //     }
-    // }
+            // Before we try to save let's see if there are any offensive words in here
+            ContentReview CheckThis = new ContentReview(node.Text);
+            if (CheckThis.FindBannedWords() > 0)
+            {
+                string WordsFound = string.Join(", ", CheckThis.FoundWords);
+                string ErrorMessage = "This is awkward, but some of the words above are not aligned with the Bible Paths mission, these include: " + WordsFound;
+                _errorMessages[nodeId] = ErrorMessage;
+                await DbContext.SaveChangesAsync();
+                return;
+            }
+            if (_errorMessages.ContainsKey(nodeId))
+            {
+                _errorMessages.Remove(nodeId);
+            }
 
-    // private string GetLastSaved(int nodeId)
-    // {
-    //     if (_lastSaved.TryGetValue(nodeId, out var dt))
-    //     {
-    //         return dt.ToLocalTime().ToString("g");
-    //     }
-    //     return "never";
-    // }
+            await DbContext.SaveChangesAsync();
+
+            _lastSaved[nodeId] = DateTime.UtcNow;
+            //refresh UI on main thread
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            //swallow for now; consider logging
+        }
+    }
+
+    private string GetLastSaved(int nodeId)
+    {
+        if (_lastSaved.TryGetValue(nodeId, out var dt))
+        {
+            return dt.ToLocalTime().ToString("g");
+        }
+        return "never";
+    }
 
     private async Task Reload()
     {
