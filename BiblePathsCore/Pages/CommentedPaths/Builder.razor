@@ -76,45 +76,45 @@ else
             {
                 <div class="card mb-2" id="PathNode-@node.Id">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>Step @node.Position</strong>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+@*                                 <strong>Step @node.Position</strong> *@
                                 @if (node.Type == (int)StepType.Standard)
                                 {
                                     <span class="ms-2">@node.BookName @node.Chapter:@node.StartVerse@(node.EndVerse > node.StartVerse ? " - " + node.EndVerse : "")</span>
                                 }
                                 else
-                                {
-                                    <span class="ms-2 text-muted">Commentary</span>
+                                {@* 
+                                    <span class="ms-2 text-muted">Commentary</span> *@
                                 }
-                            </div>
-                            <div>
-                                @if (CanEdit)
-                                {
-                                    <button class="btn btn-sm btn-danger" @onclick="() => PrepareDeleteNode(node.Id, node.Position)">Delete</button>
-                                }
-                            </div>
-                        </div>
 
-                        <div class="mt-2">
-                            @if (node.Type == (int)StepType.Standard)
-                            {
-                                @if (node.Verses != null)
-                                {
-                                    @foreach (var v in node.Verses)
+                                <div class="mt-2">
+                                    @if (node.Type == (int)StepType.Standard)
                                     {
-                                        <div><sup>@v.Verse</sup> @v.Text</div>
+                                        @if (node.Verses != null)
+                                        {
+                                            @foreach (var v in node.Verses)
+                                            {
+                                                <div><sup>@v.Verse</sup> @v.Text</div>
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            else
+                                    else
+                                    {
+                                        <textarea class="form-control mt-1" rows="5" @oninput="(e) => OnCommentChanged(node, e.Value?.ToString())">@node.Text</textarea>
+                                        <div class="small text-muted mt-1">Saved: @GetLastSaved(node.Id)</div>
+                                        @if (_errorMessages.ContainsKey(node.Id))
+                                        {
+                                            <div class="alert alert-danger mt-2">@_errorMessages[node.Id]</div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            @if (CanEdit)
                             {
-                                <textarea class="form-control mt-1" rows="5" @oninput="(e) => OnCommentChanged(node, e.Value?.ToString())">@node.Text</textarea>
-                                <div class="small text-muted mt-1">Saved: @GetLastSaved(node.Id)</div>
-                                @if (_errorMessages.ContainsKey(node.Id))
-                                {
-                                    <div class="alert alert-danger mt-2">@_errorMessages[node.Id]</div>
-                                }
+                                <div class="ms-3">
+                                    <button class="btn btn-sm btn-danger" @onclick="() => PrepareDeleteNode(node.Id, node.Position)">Delete</button>
+                                </div>
                             }
                         </div>
                     </div>
@@ -125,6 +125,9 @@ else
                         <button class="btn btn-sm btn-outline-primary me-2" type="button" @onclick="() => AddStandardStep(node.Position)">
                             Add Standard Step
                         </button>
+                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="@(async () => await AddCommentStep(0))">
+                            Add Comment Step
+                        </button>
                         @* <button class="btn btn-sm btn-outline-primary me-2" @onclick="AddCommentStep">Add Comment Step</button> *@
                     }
                 </div>
@@ -132,8 +135,12 @@ else
         }
         else
         {
-            <div class="text-muted">No steps yet.</div>
+            <div class="text-muted">No steps defined yet.</div>
         }
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToPublish">Publish</button>
+        <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToSettings">Settings</button>
     </div>
 }
 
@@ -361,13 +368,16 @@ else
         {
             return dt.ToLocalTime().ToString("g");
         }
-        return "never";
+        return "Yes";
     }
 
     private async Task Reload()
     {
         await LoadPathAsync();
     }
+
+    private void NavigateToPublish() => NavigationManager.NavigateTo($"/commentedpaths/publish?id={Path.Id}", forceLoad: true);
+    private void NavigateToSettings() => NavigationManager.NavigateTo($"/commentedpaths/edit?id={Path.Id}", forceLoad: true);
 
     public void Dispose()
     {
