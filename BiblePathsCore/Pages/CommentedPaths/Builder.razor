@@ -25,7 +25,11 @@
 }
 else if (Path == null)
 {
-    <div class="alert alert-warning">Path not found.</div>
+    <div class="alert alert-warning">Odd... This Path was not found.</div>
+}
+else if (Bible == null)
+{
+    <div class="alert alert-warning">Odd... We were unable to find this Bible.</div>
 }
 else
 {
@@ -58,7 +62,7 @@ else
                     </div>
                     <div class="modal-body">
                         <p>Are you sure you want to delete this step?</p>
-                        <p class="fw-bold">Step @NodeIdToDelete: @DeleteStepLabel</p>
+                        <p class="fw-bold">@DeleteStepLabel</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="() => ShowDeleteModal = false">Cancel</button>
@@ -113,7 +117,7 @@ else
                             @if (CanEdit)
                             {
                                 <div class="ms-3">
-                                    <button class="btn btn-sm btn-danger" @onclick="() => PrepareDeleteNode(node.Id, node.Position)">Delete</button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => PrepareDeleteNode(node.Id, node.Position, node.SummaryText)">Delete</button>
                                 </div>
                             }
                         </div>
@@ -125,10 +129,9 @@ else
                         <button class="btn btn-sm btn-outline-primary me-2" type="button" @onclick="() => AddStandardStep(node.Position)">
                             Add Standard Step
                         </button>
-                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="@(async () => await AddCommentStep(0))">
+                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="@(async () => await AddCommentStep(node.Position))">
                             Add Comment Step
                         </button>
-                        @* <button class="btn btn-sm btn-outline-primary me-2" @onclick="AddCommentStep">Add Comment Step</button> *@
                     }
                 </div>
             }
@@ -139,7 +142,14 @@ else
         }
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToPublish">Publish</button>
+        @if(Path.IsPublished)
+        {
+            <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToUnPublish">UnPublish</button>
+        }
+        else
+        {
+            <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToPublish">Publish</button>
+        }
         <button class="btn btn-outline-primary btn-sm" @onclick="NavigateToSettings">Settings</button>
     </div>
 }
@@ -151,18 +161,13 @@ else
     private Path Path;
     private Bible Bible;
     private List<PathNode> PathNodes = new();
+    private IdentityUser currentUser;
     private bool IsLoading { get; set; } = true;
     private bool CanEdit { get; set; } = false;
     private bool IsPathOwner { get; set; } = false;
-    private bool ShowHelloWorld { get; set; } = false;
 
     // Add standard step dialog state
     private bool ShowAddStandardDialog { get; set; } = false;
-    private int CurrentPosition { get; set; } = 0;
-    private string NewStepBookName { get; set; } = string.Empty;
-    private int NewStepChapter { get; set; }
-    private int NewStepStartVerse { get; set; }
-    private int? NewStepEndVerse { get; set; }
 
     // Delete confirmation modal state
     private bool ShowDeleteModal { get; set; } = false;
@@ -174,11 +179,39 @@ else
     private readonly Dictionary<int, DateTime> _lastSaved = new();
     private Dictionary<int, string> _errorMessages = new();
 
+    // track last loaded parameters to avoid redundant loads
+    private int? _lastPathId;
+    private string _lastBibleId;
+    private bool _isInitialized = false;
+
+    // Change from property to field
+    private bool _isAuthenticated = false;
+
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("OnInitializedAsync started");
-        await LoadPathAsync();
-        Console.WriteLine("OnInitializedAsync completed");
+        if (!_isAuthenticated)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+            currentUser = _isAuthenticated ? await UserManager.GetUserAsync(authState.User) : null;
+            
+            // Initial load if authenticated
+            if (_isAuthenticated)
+            {
+                await LoadPathAsync();
+            }
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_isAuthenticated && (_lastPathId != PathId || _lastBibleId != BibleId))
+        {
+            _lastPathId = PathId;
+            _lastBibleId = BibleId;
+            Console.WriteLine("Loading path...");
+            await LoadPathAsync();
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -191,26 +224,11 @@ else
 
     private async Task LoadPathAsync()
     {
+        string TempBibleId = BibleId;
         IsLoading = true;
 
         // Load & Confirm Path
         Path = await DbContext.Paths.FindAsync(PathId);
-        if (Path == null)
-        {
-            NavigationManager.NavigateTo($"/error?errorMessage=That's Odd! We were unable to find the requested Commented Path");
-            return;
-        }
-
-        // We want to use the Owners Bible ID only if BibleId hasn't been provided.
-        if (BibleId == null) { BibleId = Path.OwnerBibleId; }
-        BibleId = await Path.GetValidBibleIdAsync(DbContext, BibleId);
-        Bible = await DbContext.Bibles.FindAsync(BibleId);
-        if (Bible == null)
-        {
-            // there has to be a right way to do the following... this isn't it. 
-            return;
-        }
-        Bible.HydrateBible();
 
         if (Path == null)
         {
@@ -218,20 +236,27 @@ else
             return;
         }
 
-        PathNodes = await Path.GetPathNodesAsListAsync(DbContext, BibleId);
+        // Go find a valid Bible Id and set it on the Path.
+        _ = await Path.SetValidBibleIdAsync(DbContext, BibleId);
+
+        Bible = await DbContext.Bibles.FindAsync(Path.BibleId);
+        if (Bible == null)
+        {
+            IsLoading = false;
+            return;
+        }
+        // Add our Legalese to the Bible object for display purposes
+        Bible.HydrateBible();
+
+        // load Path Nodes for this Path, we already have BibleId set correctly on Path
+        PathNodes = await Path.GetPathNodesAsListAsync(DbContext, false);
 
         // determine permission: owner or editor (basic owner check)
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated == true)
+        if (currentUser != null)
         {
-            var identityUser = await UserManager.GetUserAsync(user);
-            if (identityUser != null)
-            { 
-                // In most cases a simple CanEdit check is OK, however in the delete cases we'll look for isPathOwner
-                IsPathOwner = Path.IsPathOwner(identityUser.Email);
-                CanEdit = !Path.IsPublished && (IsPathOwner || Path.IsValidPathEditor(identityUser.Email));
-            }
+            // In most cases a simple CanEdit check is OK, however in the delete cases we'll look for isPathOwner
+            IsPathOwner = Path.IsPathOwner(currentUser.Email);
+            CanEdit = !Path.IsPublished && (IsPathOwner || Path.IsValidPathEditor(currentUser.Email));
         }
 
         IsLoading = false;
@@ -278,10 +303,10 @@ else
         await LoadPathAsync();
     }
 
-    private void PrepareDeleteNode(int nodeId, int position)
+    private void PrepareDeleteNode(int nodeId, int position, string SummaryText)
     {
         NodeIdToDelete = nodeId;
-        DeleteStepLabel = $"Step {position}";
+        DeleteStepLabel = SummaryText;
         ShowDeleteModal = true;
     }
 
@@ -377,6 +402,7 @@ else
     }
 
     private void NavigateToPublish() => NavigationManager.NavigateTo($"/commentedpaths/publish?id={Path.Id}", forceLoad: true);
+    private void NavigateToUnPublish() => NavigationManager.NavigateTo($"/commentedpaths/unpublish?id={Path.Id}", forceLoad: true);
     private void NavigateToSettings() => NavigationManager.NavigateTo($"/commentedpaths/edit?id={Path.Id}", forceLoad: true);
 
     public void Dispose()

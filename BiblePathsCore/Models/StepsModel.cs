@@ -39,6 +39,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int NextChapter { get; set; }
         [NotMapped]
+        public string SummaryText { get; set; }
+        [NotMapped]
         public int PathType { get; set; }
 
         public async Task<bool> AddPathStepPropertiesAsync(BiblePathsCoreDbContext context)
@@ -49,6 +51,14 @@ namespace BiblePathsCore.Models.DB
             _ = await AddFwdBackStepAsync(context);
             // Add PathName and StepCount
             _ = await AddPathPropertiesAsync(context);
+
+            // bodge together an 18 character summary text string, mostly for delete dialogs.
+            string originalText = Type == (int)StepType.Commented ? Text : BookName + " " + Chapter + "...";
+            if (originalText == null)
+            {
+                SummaryText = "Empty Step";
+            }
+            else { SummaryText = originalText.Length >= 15 ? originalText.Substring(0, 15) + "..." : originalText; }
 
             return true;
         }

@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using SendGrid.Helpers.Mail;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using System.Collections;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BiblePathsCore.Models
 {
@@ -28,6 +30,8 @@ namespace BiblePathsCore.Models.DB
         public string LengthInMinutes { get; set; }
         [NotMapped]
         public string PathLink { get; set; }
+        [NotMapped]
+        public string BibleId { get; set; }
         public void SetInitialProperties(string OwnerEmail)
         {
             // Set key properties that will not be supplied by the user on creation
@@ -75,19 +79,42 @@ namespace BiblePathsCore.Models.DB
                 return true; 
             }
             // worst case we'll return false 
-            return false; 
+            return false;
         }
         public bool IsPathOwner(string UserEmail)
         {
             if (Owner.ToLower() == UserEmail.ToLower())
             {
-                return true; 
+                return true;
             }
             else
             {
                 return false;
             }
         }
+        // This will ultimately replace GetValidBibleIdAsync use throughout the Paths Codebase.
+        public async Task<bool> SetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+            if (BibleId != null)
+            {
+                if (await context.Bibles.Where(B => B.Id == BibleId).AnyAsync())
+                {
+                    // Requested Bible is valid so use it.
+                    this.BibleId = BibleId;
+                    return true;
+                }
+            }
+            // the requested BibleId is null or invalid so let's try the Paths OwnerBibleId
+            if (await context.Bibles.Where(B => B.Id == OwnerBibleId).AnyAsync())
+            {
+                this.BibleId = OwnerBibleId;
+                return true;
+            }
+            // worst case we default to the KJV
+            this.BibleId = Bible.DefaultBibleId;
+            return true;
+        }
+
         public async Task<string> GetValidBibleIdAsync(BiblePathsCoreDbContext context, string BibleId)
         {
             string RetVal = Bible.DefaultBibleId;
@@ -151,6 +178,7 @@ namespace BiblePathsCore.Models.DB
             }
             return returnVerses;
         }
+
         // Note this is a static method it is not called with an instance of a path object. 
         // This method will remain PathType agnostic it wil work on any Path 
         public static async Task<bool> PathNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
@@ -168,38 +196,20 @@ namespace BiblePathsCore.Models.DB
             return false;
         }
 
-        public async Task<bool> HydrateCommentedPathAsync(BiblePathsCoreDbContext context, string BibleId)
+
+        public async Task<List<PathNode>> GetPathNodesAsListAsync(BiblePathsCoreDbContext context, bool MarkAsRead = false)
         {
-            bool RetVal = true;
-
-            //PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
-            //                                    .OrderBy(pn => pn.Position)
-            //                                    .ToListAsync();
-            context.Entry(this).Collection(p => p.PathNodes).Load();
-
-            // Add our Bible Verse and fwd/back step Data to each node. 
-            foreach (PathNode step in PathNodes)
+            // We should be able to assume a BibleId is set on the Path object already.
+            // But just in case we'll call SetValidBibleIdAsync to ensure we have one.
+            if (BibleId == null)
             {
-                if (step.Type == (int)StepType.Commented)
-                {
-                    _ = await step.AddPathStepPropertiesAsync(context);
-                }
-                else
-                {
-                    _ = await step.AddGenericStepPropertiesAsync(context, BibleId);
-                    step.Verses = await step.GetBibleVersesAsync(context, BibleId, true, false);
-                    _ = await step.AddPathStepPropertiesAsync(context);
-                }
+                _ = await SetValidBibleIdAsync(context, null);
             }
-            return RetVal;
-        }
 
-        public async Task<List<PathNode>> GetPathNodesAsListAsync(BiblePathsCoreDbContext context, string BibleId, bool AddFillerNodes = false)
-        {
-
+            // Got get them nodes.
             List<PathNode> PathNodes = await context.PathNodes.Where(pn => pn.PathId == Id)
-                                                .OrderBy(pn => pn.Position)
-                                                .ToListAsync();
+                                                                .OrderBy(pn => pn.Position)
+                                                                 .ToListAsync();
 
             // Add our Bible Verse and fwd/back step Data to each node. 
             foreach (PathNode step in PathNodes)
@@ -215,17 +225,16 @@ namespace BiblePathsCore.Models.DB
                     _ = await step.AddPathStepPropertiesAsync(context);
                 }
 
-                // Here we add 3 filler nodes for each existing node if requested
-                //if (AddFillerNodes)
-                //{
-                //    for (int i = 1; i <= 3; i++)
-                //    {
-                //        PathNode FillerStep = new PathNode();
-                //        FillerStep.Type = (int)Models.StepType.NonPersistedComment;
-                //        FillerStep.Position = step.Position + i;
-                //        PathNodes.Add(FillerStep);
-                //    }
-                //}
+
+            }
+            // Now let's conditionally register this as a Path Read
+            if (MarkAsRead == true)
+            {
+                _ = await RegisterReadEventAsync(context);
+                if (Reads % 10 == 0)
+                {
+                    _ = await ApplyPathRatingAsync(context);
+                }
             }
             return PathNodes.OrderBy(pn => pn.Position).ToList();
         }
