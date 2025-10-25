@@ -79,7 +79,7 @@ namespace BiblePathsCore
                 _context.Paths.Add(emptyPath);
                 await _context.SaveChangesAsync();
 
-                return RedirectToPage("./Builder", new { PathId = emptyPath.Id });
+                return Redirect($"/commentedpaths/builder/{emptyPath.Id}/{emptyPath.OwnerBibleId}");
             }
 
             return Page();

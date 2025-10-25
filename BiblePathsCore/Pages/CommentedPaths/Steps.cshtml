@@ -31,7 +31,7 @@
             @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
             {
                 <p>
-                    <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add Commentary</a>
+@*                     <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Add Commentary</a> *@
                     <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
                     <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="0">Search for Verses</a>
                 </p>
@@ -93,7 +93,7 @@
                                 {
                                     @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
                                     {
-                                        <a asp-page="/Steps/EditComment" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a>
+@*                                         <a asp-page="/Steps/EditComment" asp-route-Id="@Node.Id" asp-route-PathId="@Model.Path.Id">@VerseRef</a> *@
                                     }
                                     else { <b>@VerseRef</b> }
                                 }
@@ -124,7 +124,7 @@
                     @if (!Model.IsPathReader && (Model.IsPathOwner || Model.IsPathEditor) && !Model.Path.IsPublished)
                     {
                         <p>
-                            <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Add Commentary</a>
+@*                             <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/AddComment" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Add Commentary</a> *@
                             <a class="btn btn-outline-primary btn-sm" asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position" asp-route-TargetPage="/Steps/AddStep">Add a Step</a>
                             <a class="btn btn-outline-primary btn-sm" asp-page="/Steps/VerseSearch" asp-route-BibleId="@Model.BibleId" asp-route-PathId="@Model.Path.Id" asp-route-Position="@Node.Position">Search for Verses</a>
                         </p>

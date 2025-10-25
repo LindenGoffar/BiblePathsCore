@@ -41,7 +41,8 @@ namespace BiblePathsCore
 
         public async Task<IActionResult> OnGetAsync(int PathId, string Scenario, int MarkAsRead = 0)
         {
-            //CountAsRead = CountAsRead.HasValue ? CountAsRead.Value : false;
+
+            bool CountAsRead = MarkAsRead == 1 ? true : false;
             IsPathEditor = false;
             IsPathOwner = false;
 
@@ -62,43 +63,51 @@ namespace BiblePathsCore
             }
             
             // We want to use the Owners Bible ID only if BibleId hasn't been provided. 
-            if (BibleId == null) { BibleId = Path.OwnerBibleId; }
-            BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);            
+            //if (BibleId == null) { BibleId = Path.OwnerBibleId; }
+            //BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
+            _ = await Path.SetValidBibleIdAsync(_context, BibleId);
 
-            Bible = await _context.Bibles.FindAsync(BibleId);
-            if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", BibleId) }); }
+            Bible = await _context.Bibles.FindAsync(Path.BibleId);
+            if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", Path.BibleId) }); }
             Bible.HydrateBible();
 
-            PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
-                                                .OrderBy(pn => pn.Position)
-                                                .ToListAsync();
+            // load Path Nodes for this Path, we already have BibleId set correctly on Path
+            PathNodes = await Path.GetPathNodesAsListAsync(_context, CountAsRead);
+
+            //Bible = await _context.Bibles.FindAsync(BibleId);
+            //if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", BibleId) }); }
+            //Bible.HydrateBible();
+
+            //PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
+            //                                    .OrderBy(pn => pn.Position)
+            //                                    .ToListAsync();
 
             // Add our Bible Verse and fwd/back step Data to each node. 
-            foreach (PathNode step in PathNodes)
-            {
-                if (step.Type == (int)StepType.Commented)
-                {
-                    _ = await step.AddPathStepPropertiesAsync(_context);
-                }
-                else
-                {
-                    _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
-                    step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
-                    _ = await step.AddPathStepPropertiesAsync(_context);
-                }
-            }
+            //foreach (PathNode step in PathNodes)
+            //{
+            //    if (step.Type == (int)StepType.Commented)
+            //    {
+            //        _ = await step.AddPathStepPropertiesAsync(_context);
+            //    }
+            //    else
+            //    {
+            //        _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
+            //        step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
+            //        _ = await step.AddPathStepPropertiesAsync(_context);
+            //    }
+            //}
 
             // Now let's conditionally register this as a Path Read
-            if (MarkAsRead == 1)
-            {
-                //_ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
-                //_ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
-                _ = await Path.RegisterReadEventAsync(_context);
-                if (Path.Reads % 10 == 0)
-                {
-                    _ = await Path.ApplyPathRatingAsync(_context);
-                }
-            }
+            //if (MarkAsRead == 1)
+            //{
+            //    //_ = Path.RegisterEventAsync(_context, EventType.PathStarted, null);
+            //    //_ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+            //    _ = await Path.RegisterReadEventAsync(_context);
+            //    if (Path.Reads % 10 == 0)
+            //    {
+            //        _ = await Path.ApplyPathRatingAsync(_context);
+            //    }
+            //}
             //if ((bool)CountAsRead) { _ = Path.RegisterEventAsync(_context, EventType.PathCompleted, null); };
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);

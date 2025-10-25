@@ -113,29 +113,11 @@
             </div>
         </div>
     </div>
-    @*<div class="row">
-        <button data-toggle="collapse" data-target="#AdditionalProperties" class="btn btn-link">Additional Properties</button>
-    </div>
-    <div class="row">
-        <div id="AdditionalProperties" class="collapse">
-            <ul class="list-group">
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Length): @Html.DisplayNameFor(model => model.Path.Length)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.ComputedRating): @Html.DisplayFor(model => model.Path.ComputedRating)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Created): @Html.DisplayFor(model => model.Path.Created)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Modified): @Html.DisplayFor(model => model.Path.Modified)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Owner): @Html.DisplayFor(model => model.Path.Owner)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsPublished): @Html.DisplayFor(model => model.Path.IsPublished)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.IsDeleted): @Html.DisplayFor(model => model.Path.IsDeleted)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.StepCount): @Html.DisplayFor(model => model.Path.StepCount)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.Path.Reads): @Html.DisplayFor(model => model.Path.Reads)</li>
-            </ul>
-        </div>
-    </div>*@
 </div>
 
 <div>
     <hr />
-    <a asp-page="./Builder" asp-route-PathId="@Model.Path.Id">Add or Remove Steps</a><br />
+    <a href="/commentedpaths/builder/@Model.Path.Id">Add or Remove Steps</a><br />
     <a asp-page="./MyCommentedPaths">Back to My Paths</a>
 </div>
 

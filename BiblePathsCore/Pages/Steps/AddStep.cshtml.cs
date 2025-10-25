@@ -125,7 +125,9 @@ namespace BiblePathsCore
                 
                 if (Path.Type == (int)PathType.Commented)
                 {
-                    return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
+                    // The Razor Way: return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
+                    // The Blazor Way: 
+                    return Redirect($"/commentedpaths/builder/{Path.Id}/{BibleId}");
                 }
                 else
                 {

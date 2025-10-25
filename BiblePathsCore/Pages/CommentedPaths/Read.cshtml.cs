@@ -36,6 +36,7 @@ namespace BiblePathsCore
 
         public async Task<IActionResult> OnGetAsync(int PathId, int? StepId, int MarkAsRead = 0)
         {
+            bool CountAsRead = MarkAsRead == 1 ? true : false;
             IsPathOwner = false;
 
             // Confirm Path 
@@ -48,32 +49,37 @@ namespace BiblePathsCore
             }
             
             // We want to use the Owners Bible ID only if BibleId hasn't been provided. 
-            if (BibleId == null) { BibleId = Path.OwnerBibleId; }
-            BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);            
+            //if (BibleId == null) { BibleId = Path.OwnerBibleId; }
+            //BibleId = await Path.GetValidBibleIdAsync(_context, BibleId);
+            _ = await Path.SetValidBibleIdAsync(_context, BibleId);
 
-            Bible = await _context.Bibles.FindAsync(BibleId);
-            if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", BibleId) }); }
+            Bible = await _context.Bibles.FindAsync(Path.BibleId);
+            if (Bible == null) { return RedirectToPage("/error", new { errorMessage = string.Format("That's Odd! We were unable to find the Bible: {0}", Path.BibleId) }); }
             Bible.HydrateBible();
 
-            PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
-                                                .OrderBy(pn => pn.Position)
-                                                .ToListAsync();
+            // load Path Nodes for this Path, we already have BibleId set correctly on Path
+            PathNodes = await Path.GetPathNodesAsListAsync(_context, true);
+
+            //PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
+            //                                    .OrderBy(pn => pn.Position)
+            //                                    .ToListAsync();
 
             // Add our Bible Verse and fwd/back step Data to each node. 
+            // Much of this has already been done in GetPathNodesAsListAsync
             bool FocusStepSelected = false;
             int FirstStepID = 0;
             foreach (PathNode step in PathNodes)
             {
-                if (step.Type == (int)StepType.Commented)
-                {
-                    _ = await step.AddPathStepPropertiesAsync(_context);
-                }
-                else
-                {
-                    _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
-                    step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
-                    _ = await step.AddPathStepPropertiesAsync(_context);
-                }
+                //if (step.Type == (int)StepType.Commented)
+                //{
+                //    _ = await step.AddPathStepPropertiesAsync(_context);
+                //}
+                //else
+                //{
+                //    _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
+                //    step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
+                //    _ = await step.AddPathStepPropertiesAsync(_context);
+                //}
                 // Now StepID is either Null or presumably a valid Step let's make sure get's set to a valid step.
                 if (StepId == null) { StepId = step.Id; FirstStepID = step.Id; }
                 if (StepId == step.Id) { FocusStepSelected = true; FocusStepID = step.Id; }
@@ -81,17 +87,17 @@ namespace BiblePathsCore
             if (!FocusStepSelected) { FocusStepID = FirstStepID; }
 
             // Now let's register this as a Path Start and Path Read
-            if (MarkAsRead == 1)
-            {
-                // _ = await Path.RegisterEventAsync(_context, EventType.PathStarted, null);
-                // _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
-                _ = await Path.RegisterReadEventAsync(_context);
-                // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
-                if (Path.Reads % 10 == 0)
-                {
-                    _ = await Path.ApplyPathRatingAsync(_context);
-                }
-            }
+            //if (MarkAsRead == 1)
+            //{
+            //    // _ = await Path.RegisterEventAsync(_context, EventType.PathStarted, null);
+            //    // _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
+            //    _ = await Path.RegisterReadEventAsync(_context);
+            //    // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
+            //    if (Path.Reads % 10 == 0)
+            //    {
+            //        _ = await Path.ApplyPathRatingAsync(_context);
+            //    }
+            //}
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
             return Page();

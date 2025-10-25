@@ -111,43 +111,61 @@ namespace BiblePathsCore.Services
 
             QandAObj qandAObj = new();
 
-            ChatCompletion chatCompletion = await client.CompleteChatAsync(
-                [new SystemChatMessage(QnASystemRequest),
-                new UserChatMessage(QnAUserRequest),
-                new AssistantChatMessage(QnAAssistantRequest)],
-                options);
-
-            //// Handling some errors
-            if (chatCompletion == null)
+            try
             {
-                qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
-                return qandAObj;
-            }
+                ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                    [new SystemChatMessage(QnASystemRequest),
+                    new UserChatMessage(QnAUserRequest),
+                    new AssistantChatMessage(QnAAssistantRequest)],
+                    options);
 
-            if (chatCompletion.Content == null)
-            {
-                qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
-                return qandAObj;
-            }
-
-            if (chatCompletion.Content.Count >= 1)
-            {
-                // Very oddly the response may show up on one of two properties. 
-                string JSONResponseString = chatCompletion.Content[0].Text;
-                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
-                try
+                //// Handling some errors
+                if (chatCompletion == null)
                 {
-                    qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                    qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                    return qandAObj;
                 }
-                catch
+
+                if (chatCompletion.Content == null)
                 {
-                    qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
-                    qandAObj.question += JSONResponseString;
+                    qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                    return qandAObj;
+                }
+
+                if (chatCompletion.Content.Count >= 1)
+                {
+                    // Very oddly the response may show up on one of two properties. 
+                    string JSONResponseString = chatCompletion.Content[0].Text;
+                    // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                    try
+                    {
+                        qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                    }
+                    catch
+                    {
+                        qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
+                        qandAObj.question += JSONResponseString;
+                    }
+                }
+                else
+                {
+                    qandAObj.question = "Hmm... We didn't get a response back that we could use, please try again.";
                 }
             }
-            else
+            catch (HttpRequestException ex)
             {
-                qandAObj.question = "Hmm... We didn't get a response back that we could use, please try again.";
+                // Network or HTTP error
+                qandAObj.question = "Uh Oh... We experienced a network or HTTP error: " + ex.Message;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Azure OpenAI specific error
+                qandAObj.question = "Uh Oh... We experienced an Azure OpenAI error: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                // Other errors
+                qandAObj.question = "Uh Oh...We encountered an unexpected error: " + ex.Message;
             }
 
             return qandAObj;
@@ -212,42 +230,60 @@ namespace BiblePathsCore.Services
 
             VerseTongueObj verseTongueObj = new();
 
-            ChatCompletion chatCompletion = await client.CompleteChatAsync(
-                [new SystemChatMessage(TongueSystemRequest),
-                new UserChatMessage(TongueUserRequest)],
-                options);
-
-            //// Handling some errors
-            if (chatCompletion == null)
+            try
             {
-                verseTongueObj.usermessage = "Uh Oh... We got no response object from our friends at OpenAI. ";
-                return verseTongueObj;
-            }
+                ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                    [new SystemChatMessage(TongueSystemRequest),
+                    new UserChatMessage(TongueUserRequest)],
+                    options);
 
-            if (chatCompletion.Content == null)
-            {
-                verseTongueObj.usermessage = "Uh Oh... our response object from our friends at OpenAI contained no Value";
-                return verseTongueObj;
-            }
-
-            if (chatCompletion.Content.Count >= 1)
-            {
-                // Very oddly the response may show up on one of two properties. 
-                string JSONResponseString = chatCompletion.Content[0].Text;
-                // OK sometimes we may not get back a well formed JSON String... let's handle that. 
-                try
+                //// Handling some specific errors
+                if (chatCompletion == null)
                 {
-                    verseTongueObj = JsonConvert.DeserializeObject<VerseTongueObj>(JSONResponseString);
+                    verseTongueObj.usermessage = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                    return verseTongueObj;
                 }
-                catch
+
+                if (chatCompletion.Content == null)
                 {
-                    verseTongueObj.usermessage = "Uh Oh... we had a problem parsing the following response: ";
-                    verseTongueObj.usermessage += JSONResponseString;
+                    verseTongueObj.usermessage = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                    return verseTongueObj;
+                }
+
+                if (chatCompletion.Content.Count >= 1)
+                {
+                    // Very oddly the response may show up on one of two properties. 
+                    string JSONResponseString = chatCompletion.Content[0].Text;
+                    // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                    try
+                    {
+                        verseTongueObj = JsonConvert.DeserializeObject<VerseTongueObj>(JSONResponseString);
+                    }
+                    catch
+                    {
+                        verseTongueObj.usermessage = "Uh Oh... we had a problem parsing the following response: ";
+                        verseTongueObj.usermessage += JSONResponseString;
+                    }
+                }
+                else
+                {
+                    verseTongueObj.usermessage = "Hmm... We didn't get a response back that we could use, please try again.";
                 }
             }
-            else
+            catch (HttpRequestException ex)
             {
-                verseTongueObj.usermessage = "Hmm... We didn't get a response back that we could use, please try again.";
+                // Network or HTTP error
+                verseTongueObj.usermessage = "Uh Oh... We experienced a network or HTTP error when chatting with OpenAI: " + ex.Message;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Azure OpenAI specific error
+                verseTongueObj.usermessage = "Uh Oh... We experienced an OpenAI specific error: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                // Other errors
+                verseTongueObj.usermessage = "Uh Oh...We encountered an unexpected error: " + ex.Message;
             }
 
             return verseTongueObj;
