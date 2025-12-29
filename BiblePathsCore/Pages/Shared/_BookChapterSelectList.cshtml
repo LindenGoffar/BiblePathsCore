@@ -168,7 +168,7 @@
                                     }
                                 </a>
                             }
-                            else if (Model.TargetPage == "PBE/Question/Add")
+                            else if (Model.TargetPage == "/PBE/Question/Add")
                             {
                                 <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
                                     Bible Commentary
@@ -298,7 +298,7 @@
                                     </a>
                                     break;
 
-                                case "PBE/Question/Add":
+                                case "/PBE/Question/Add":
                                     <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
@@ -378,7 +378,7 @@
                                     }
                                 </a>
                             }
-                            else if (Model.TargetPage == "PBE/Question/Add")
+                            else if (Model.TargetPage == "/PBE/Question/Add")
                             {
                                 <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
                                     Bible Commentary

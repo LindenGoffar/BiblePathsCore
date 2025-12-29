@@ -190,6 +190,7 @@ namespace BiblePathsCore.Pages.PBE.Question
             SelectedVerse = verse;
             ModelQuestion.StartVerse = SelectedVerse.Verse;
             ModelQuestion.EndVerse = SelectedVerse.Verse;
+            UpdatePBEQuestionPreview();
             await UpdateDisplayVersesAsync();
             ShowModal = true;
         }

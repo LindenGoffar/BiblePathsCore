@@ -52,7 +52,7 @@ else
             }
         </div>
         <div class="col">
-            <a class="float-right" href="/Shared/SelectChapter?BibleId=@ModelQuestion.BibleId&TargetPage=PBE/Question/Add">Change Book/Chapter</a>
+            <a class="float-right" href="/Shared/SelectChapter?BibleId=@ModelQuestion.BibleId&TargetPage=/PBE/Question/Add">Change Book/Chapter</a>
         </div>
     </div>
 
@@ -68,19 +68,18 @@ else
                             @if (v.IsPBEExcluded)
                             {
                                 <s>
-                                    <strong>@v.Verse</strong> @v.Text
+                                    <strong>@v.Verse </strong> @v.Text
                                 </s>
                             }
                             else
                             {
                                 @if (IsCommentary)
                                 {
-                                    <strong>@v.SectionTitle</strong> 
-                                    @v.Text
+                                    <strong>@v.SectionTitle </strong> @v.Text
                                 }
                                 else
                                 {
-                                    <strong>@v.Verse</strong> @v.Text
+                                    <strong>@v.Verse </strong> @v.Text
                                 }
                             }
 
