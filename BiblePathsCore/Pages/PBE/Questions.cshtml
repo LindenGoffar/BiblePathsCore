@@ -27,11 +27,13 @@
         <div class="col-12">
             @if (Model.Verse > 0)
             {
-                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter" asp-route-VerseNum="@Model.Verse">Add Question</a>
+                @* Original Razor Page link: <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter" asp-route-VerseNum="@Model.Verse">Add Question</a> *@
+                <a href="/pbe/question/add/@Model.BibleId/@Model.BookNumber/@Model.Chapter/@Model.Verse">Add Question</a>
             }
             else
             {
-                <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter">Add Question</a>
+                @* Original Razor Page link: <a asp-page="AddQuestion" asp-route-BibleId="@Model.BibleId" asp-route-BookNumber="@Model.BookNumber" asp-route-Chapter="@Model.Chapter">Add Question</a> *@
+                <a href="/pbe/question/add/@Model.BibleId/@Model.BookNumber/@Model.Chapter">Add Question</a>
             }
         </div>
     </div>

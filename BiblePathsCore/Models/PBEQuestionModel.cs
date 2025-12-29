@@ -39,6 +39,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public string PBEQuestion { get; set; }
         [NotMapped]
+        public string PBEQuestionIntro { get; set; }
+        [NotMapped]
         public bool IsCommentaryQuestion { get; set; }
         [NotMapped]
         public bool UserCanEdit { get; set; }
@@ -163,7 +165,8 @@ namespace BiblePathsCore.Models.DB
                 IsCommentaryQuestion = false;
                 BookName = PBEBook.Name;
             }
-            PBEQuestion = GetPBEQuestionText();
+            // PBEQuestion = GetPBEQuestionText();
+            AddPBEQuestionTextandIntro();
 
             // BibleId may not be set on every question, particularly old ones, so default it.
             if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
@@ -272,7 +275,8 @@ namespace BiblePathsCore.Models.DB
                 IsCommentaryQuestion = false;
                 BookName = PBEBook.Name;
             }
-            PBEQuestion = GetPBEQuestionText();
+            // PBEQuestion = GetPBEQuestionText();
+            AddPBEQuestionTextandIntro();
 
             TimeLimit = (Points * 5) + 20;
 
@@ -348,6 +352,28 @@ namespace BiblePathsCore.Models.DB
             }
             tempstring += ", " + Question;
             return tempstring;
+        }
+
+        private void AddPBEQuestionTextandIntro()
+        {
+            string tempstring;
+            tempstring = "(" + Points;
+            if (Points > 1) { tempstring += "pts) "; }
+            else { tempstring += "pt) "; }
+            // Handle the Commentary scenario
+            if (IsCommentaryQuestion)
+            {
+                tempstring += "According to the " + BookName + ", " + CommentarySectionTitle;
+            }
+            else
+            {
+                tempstring += "According to " + BookName + " " + Chapter + ":" + StartVerse;
+                if (EndVerse > StartVerse) { tempstring += "-" + EndVerse; }
+            }
+            PBEQuestionIntro = tempstring;
+            tempstring += ", " + Question;
+            PBEQuestion = tempstring;
+            return;
         }
 
         // The primary user of this is the commentary Scenario where we needed

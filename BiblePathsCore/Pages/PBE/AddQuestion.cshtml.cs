@@ -119,7 +119,7 @@ namespace BiblePathsCore.Pages.PBE
             {
                 ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
                 ChapterFITBPct = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().FITBPct;
-                if (ChapterFITBPct < 33) { IsFITBGenerationEnabled = true; }
+                if (ChapterFITBPct < 10) { IsFITBGenerationEnabled = true; }
                 else { IsFITBGenerationEnabled = false; }   
             }
             else
@@ -163,7 +163,7 @@ namespace BiblePathsCore.Pages.PBE
                 {
                     ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().QuestionCount;
                     ChapterFITBPct = PBEBook.BibleChapters.Where(c => c.ChapterNumber == Question.Chapter).First().FITBPct;
-                    if (ChapterFITBPct < 33) { IsFITBGenerationEnabled = true; }
+                    if (ChapterFITBPct < 10) { IsFITBGenerationEnabled = true; }
                     else { IsFITBGenerationEnabled = false; }
                 }
                 else

@@ -48,6 +48,15 @@ namespace BiblePathsCore
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            // Configure the application cookie so that unauthorized Razor Pages will redirect
+            // to the Identity UI login/page (the default scaffolded path).
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Identity/Account/Login";
+                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+                options.ReturnUrlParameter = "ReturnUrl";
+            });
+
             // requires
             // using Microsoft.AspNetCore.Identity.UI.Services;
             // using BiblePathsCore.Services;

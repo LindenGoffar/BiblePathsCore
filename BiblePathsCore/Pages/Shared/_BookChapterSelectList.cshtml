@@ -76,7 +76,20 @@
                                     break;
 
                                 case "/PBE/AddQuestion":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                    <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {
+                                            @if (chapter.HasChallenge) 
+                                            { <span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else 
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
+                                    </a>
+                                    break;
+
+                                case "/PBE/Question/Add":
+                                    <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
                                         {
@@ -127,6 +140,7 @@
                         @if (Model.IsPBE && book.HasCommentary == true)
                         {
                             // No switch should be necessary as long as TargetPage has identical signature.
+                            // TODO: The above comment is questionable, consider refactoring if needed.
                             @if (Model.TargetPage == "/PBE/ChallengedQuestions")
                             {
                                 @if (book.CommentaryHasChallenge)
@@ -135,6 +149,42 @@
                                         Bible Commentary
                                     </a>
                                 }
+                            }
+                            else if (Model.TargetPage == "/PBE/AddQuestion")
+                            {
+                                <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
+                                        Bible Commentary
+                                    @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                    {
+                                        @if (book.CommentaryHasChallenge)
+                                        {
+                                            <span class="badge badge-pill badge-danger">@book.CommentaryQuestionCount</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>
+                                        }
+                                    }
+                                </a>
+                            }
+                            else if (Model.TargetPage == "PBE/Question/Add")
+                            {
+                                <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
+                                    Bible Commentary
+                                    @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                    {
+                                        @if (book.CommentaryHasChallenge)
+                                        {
+                                            <span class="badge badge-pill badge-danger">@book.CommentaryQuestionCount</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>
+                                        }
+                                    }
+                                </a>
                             }
                             else
                             {
@@ -236,13 +286,26 @@
                                     break;
 
                                 case "/PBE/AddQuestion":
-                                    <a class="btn btn-light btn-sm mb-2" asp-page="@Model.TargetPage" asp-route-BibleId="@Model.Bible.Id" asp-route-BookNumber="@book.BookNumber" asp-route-Chapter="@chapter.ChapterNumber">
+                                    <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@chapter.ChapterNumber">
                                         @chapter.ChapterNumber
                                         @if (Model.IsPBE && chapter.QuestionCount > 0)
                                         {
-                                            @if (chapter.HasChallenge)
+                                            @if (chapter.HasChallenge) 
                                             {<span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
-                                            else
+                                            else 
+                                            { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
+                                        }
+                                    </a>
+                                    break;
+
+                                case "PBE/Question/Add":
+                                    <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@chapter.ChapterNumber">
+                                        @chapter.ChapterNumber
+                                        @if (Model.IsPBE && chapter.QuestionCount > 0)
+                                        {
+                                            @if (chapter.HasChallenge) 
+                                            {<span class="badge badge-pill badge-danger">@chapter.QuestionCount</span>}
+                                            else 
                                             { <span class="badge badge-pill badge-secondary">@chapter.QuestionCount</span>}
                                         }
                                     </a>
@@ -287,6 +350,7 @@
                         @if (Model.IsPBE && book.HasCommentary == true)
                         {
                             // No switch should be necessary as long as TargetPage has identical signature.
+                            // TODO: The above comment is questionable, consider refactoring if needed.
                             @if (Model.TargetPage == "/PBE/ChallengedQuestions")
                             {
                                 @if (book.CommentaryHasChallenge)
@@ -295,6 +359,42 @@
                                         Bible Commentary
                                     </a>
                                 }
+                            }
+                            else if (Model.TargetPage == "/PBE/AddQuestion")
+                            {
+                                <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
+                                    Bible Commentary
+                                    @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                    {
+                                        @if (book.CommentaryHasChallenge)
+                                        {
+                                            <span class="badge badge-pill badge-danger">@book.CommentaryQuestionCount</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>
+                                        }
+                                    }
+                                </a>
+                            }
+                            else if (Model.TargetPage == "PBE/Question/Add")
+                            {
+                                <a class="btn btn-light btn-sm mb-2" href="/pbe/question/add/@Model.Bible.Id/@book.BookNumber/@BiblePathsCore.Models.DB.Bible.CommentaryChapter">
+                                    Bible Commentary
+                                    @if (Model.IsPBE && book.CommentaryQuestionCount > 0)
+                                    {
+                                        @if (book.CommentaryHasChallenge)
+                                        {
+                                            <span class="badge badge-pill badge-danger">@book.CommentaryQuestionCount</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge badge-pill badge-secondary">@book.CommentaryQuestionCount</span>
+                                        }
+                                    }
+                                </a>
                             }
                             else
                             {

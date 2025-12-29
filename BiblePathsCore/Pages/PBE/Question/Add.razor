@@ -1,0 +1,259 @@
+@page "/pbe/question/add/{BibleId?}/{BookNumber:int?}/{Chapter:int?}/{Verse:int?}"
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
+
+
+<h4>Add PBE Question</h4>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+@if (HasExclusion)
+{ 
+    <div class="alert alert-warning" role="alert">
+        <strong>Please Note:</strong> Some verses in this chapter have been excluded from PBE testing, these are indicated with a line through them, please do not add questions to these verses.
+    </div>
+}
+
+@if (Loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row mb-2">
+        <div class="col">
+            @if (IsCommentary)
+            {
+                <h5>@ModelQuestion.BookName</h5>
+                @if (CommentaryQuestionCount > 0)
+                {
+                    <a class="ms-2" href="/PBE/Questions?BibleId=@ModelQuestion.BibleId&BookNumber=@ModelQuestion.BookNumber&Chapter=@ModelQuestion.Chapter">
+                        <span class="badge badge-secondary ml-2">@CommentaryQuestionCount</span>
+                    </a>
+                }
+
+            }
+            else
+            {
+                <h5>@ModelQuestion.BookName @Chapter</h5>
+                @if (ChapterQuestionCount > 0)
+                {
+                    <a class="ms-2" href="/PBE/Questions?BibleId=@ModelQuestion.BibleId&BookNumber=@ModelQuestion.BookNumber&Chapter=@ModelQuestion.Chapter">
+                        <span class="badge badge-secondary ml-2">@ChapterQuestionCount</span>
+                    </a>
+                }
+
+            }
+        </div>
+        <div class="col">
+            <a class="float-right" href="/Shared/SelectChapter?BibleId=@ModelQuestion.BibleId&TargetPage=PBE/Question/Add">Change Book/Chapter</a>
+        </div>
+    </div>
+
+    @* This is the Verse List that we always start with for selection*@
+
+    <div class="list-group">
+        @foreach (var v in ModelQuestion.Verses)
+        {
+            <div class="row">
+                <div class="col-11">
+                    <button id="verse-@v.Verse" class="list-group-item list-group-item-action" @onclick="() => OpenModal(v)">
+                        <div>
+                            @if (v.IsPBEExcluded)
+                            {
+                                <s>
+                                    <strong>@v.Verse</strong> @v.Text
+                                </s>
+                            }
+                            else
+                            {
+                                @if (IsCommentary)
+                                {
+                                    <strong>@v.SectionTitle</strong> 
+                                    @v.Text
+                                }
+                                else
+                                {
+                                    <strong>@v.Verse</strong> @v.Text
+                                }
+                            }
+
+                        </div>
+                    </button>
+                </div>
+                <div class="col-1">
+                    @if (v.QuestionCount > 0)
+                    {
+                        <a href="/PBE/Questions?BibleId=@ModelQuestion.BibleId&BookNumber=@ModelQuestion.BookNumber&Chapter=@ModelQuestion.Chapter&Verse=@v.Verse">
+                            @if (v.FITBPct > 75)
+                            {
+                                <span class="badge badge-warning">@v.QuestionCount</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-secondary">@v.QuestionCount</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@* The Question Builder Modal: *@
+
+@if ( ShowModal && SelectedVerse != null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close ml-auto" aria-label="Close" @onclick="CloseModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col">
+                            <label class="form-label">Points</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   value="@ModelQuestion.Points" 
+                                   @onchange="OnPointsChanged" 
+                                   min="1"/>
+                        </div>
+                        @if (!IsCommentary)
+                        {
+                            <div class="col">
+                                <label class="form-label">Start Verse</label>
+                                <input type="number"
+                                       class="form-control"
+                                       value="@ModelQuestion.StartVerse"
+                                       @onchange="StartVerseChanged"
+                                       min="1" />
+                            </div>
+                            <div class="col">
+                                <label class="form-label">End Verse</label>
+                                <input type="number"
+                                       class="form-control"
+                                       value="@ModelQuestion.EndVerse"
+                                       @onchange="EndVerseChanged"
+                                       min="@ModelQuestion.StartVerse" />
+                            </div>
+                        }
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Question</label>
+                        <p>@ModelQuestion.PBEQuestionIntro</p>
+                        <textarea class="form-control" rows="3" value="@ModelQuestion.Question"  @onchange="OnQuestionChanged"></textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Answer</label>
+                        <textarea class="form-control" rows="2" @bind="AnswerText"></textarea>
+                    </div>
+
+                    @* Show/Hide preview toggle *@
+                    <div class="mb-2">
+                        <a href="#" class="small" @onclick="TogglePreview" @onclick:preventDefault="true">@((ShowPreview) ? "Hide Question Preview" : "Show Question Preview")</a>
+                    </div>
+
+                    @if (ShowPreview)
+                    {
+                        <div id="PBEQuestion_Preview" class="mb-2 text-muted">
+                            @ModelQuestion.PBEQuestion
+                        </div>
+                    }
+
+                    @* Verses in question *@
+
+                    <div class="row">
+                        <div class="col-9">
+                            <div class="card">
+                                <div id="PBEQuestion_Verses" class="card-body mb-2">
+
+                                    <div class="text-muted">Reference Verses</div>
+
+                                    @if (DisplayVerses?.Any() != true)
+                                    {
+                                        <div class="text-muted ml-2">No verses selected...</div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var verse in DisplayVerses)
+                                        {
+                                            if (IsCommentary)
+                                            {
+                                                <div class="text-muted ml-2"><strong>@verse.SectionTitle</strong> @verse.Text</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="text-muted ml-2"><strong>@verse.Verse</strong> @verse.Text</div>
+                                            }
+
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+
+                        @*Question Generation Buttons*@
+                        <div class="col-3">
+
+                            <div class="mb-2 d-flex flex-column">
+                                @if (IsOpenAIEnabled)
+                                {
+                                    <button class="btn btn-sm btn-primary mb-2" @onclick="GenerateAIAsync" disabled="@IsGeneratingAI">
+                                        @if (IsGeneratingAI)
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span class="ms-2">Generating...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Generate AI</span>
+                                        }
+                                    </button>
+                                }
+                                @if (IsFITBGenerationEnabled && !IsCommentary)
+                                {
+                                    <button class="btn btn-sm btn-secondary mb-2" @onclick="GenerateFITBAsync" disabled="@IsGeneratingFITB">
+                                        @if (IsGeneratingFITB)
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span class="ms-2">Generating...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Generate FITB</span>
+                                        }
+                                    </button>
+                                }
+                                @if (IsOpenAIEnabled || (IsFITBGenerationEnabled && !IsCommentary))
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="ClearGenerated" disabled="@(IsGeneratingAI || IsGeneratingFITB)">Clear Generated</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="SaveAsync">Save Question</button>
+                    <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="/js/pbe-helpers.js"></script>
