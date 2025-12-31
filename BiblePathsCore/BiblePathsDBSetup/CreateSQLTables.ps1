@@ -9,6 +9,10 @@ PM> Scaffold-DbContext -Connection "Name=AppConnection" -Provider Microsoft.Enti
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
+--12/29/2025 in support of Path AI Summaries
+ALTER TABLE Paths
+		Add Summary nvarchar(2048)
+
 --2/10/2025 in support of "The Word" Game
 ALTER TABLE BibleWordIndex
 	Add BookNumber int NOT NULL DEFAULT(0)
@@ -261,7 +265,8 @@ If ($CreatePathsTable){
 			isDeleted BIT NOT NULL DEFAULT 0,
 			StepCount int NOT NULL DEFAULT 0,
 			Reads int NOT NULL DEFAULT 0,
-			Type int NOT NULL DEFAULT(0)
+			Type int NOT NULL DEFAULT(0),
+			Summary nvarchar(2048)
 		) 
 "@
 	<# adding the Reads column manually 
