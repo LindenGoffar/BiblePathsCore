@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Bible Paths";
+    ViewBag.NoIndex = true;
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
@@ -14,7 +15,7 @@
             <form>
                 <p>
                     <input type="text" asp-for="SearchString" />
-                    <input type="submit" value="Search Paths by Name/Topic" />
+                    <input type="submit" value="Search Paths by Name, Topic, AI Summary" />
                 </p>
             </form>
         </div>
@@ -63,6 +64,14 @@
         <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
             <strong><a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a></strong>
             <small> @item.Topics</small>
+            @if (!string.IsNullOrWhiteSpace(item.Summary))
+            {
+                <br />
+                <small><a href="#" class="summary-toggle" data-summary-id="summary-@item.Id" onclick="toggleSummary(event, '@item.Id')">Show AI Summary</a></small>
+                <div id="summary-@item.Id" class="summary-content" style="display:none; margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-left: 3px solid #007bff;">
+                    <small>@item.Summary</small>
+                </div>
+            }
         </div>
         <div class="col-md-2 col-4 border border-top-0 border-left-0 border-right-0 mb-3">
             <small>Length: @item.Length min</small><br />
@@ -78,3 +87,19 @@
     <a asp-page="./MyPaths" >Build a Path of your own</a><br />
     <a asp-page="/Index" >Back to Home</a>
 </div>
+
+<script>
+function toggleSummary(event, pathId) {
+    event.preventDefault();
+    const summaryDiv = document.getElementById('summary-' + pathId);
+    const link = event.target;
+    
+    if (summaryDiv.style.display === 'none') {
+        summaryDiv.style.display = 'block';
+        link.textContent = 'Hide AI Summary';
+    } else {
+        summaryDiv.style.display = 'none';
+        link.textContent = 'Show AI Summary';
+    }
+}
+</script>

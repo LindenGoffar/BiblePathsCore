@@ -31,7 +31,9 @@ namespace BiblePathsCore
                          select p;
             if (!string.IsNullOrEmpty(SearchString))
             {
-                paths = paths.Where(s => (s.Name.Contains(SearchString) || s.Topics.Contains(SearchString))
+                paths = paths.Where(s => (EF.Functions.Like(s.Name, $"%{SearchString}%") || 
+                                          EF.Functions.Like(s.Topics, $"%{SearchString}%") ||
+                                          EF.Functions.Like(s.Summary, $"%{SearchString}%"))
                                             && s.Type == (int)PathType.Standard
                                             && s.IsPublished == true 
                                             && s.IsDeleted == false);

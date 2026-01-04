@@ -62,17 +62,91 @@ namespace BiblePathsCore.Services
         // public Task<QandAObj> GetAIQuestionAsync(string text, string key);
         public Task<QandAObj> GetAIQuestionAsync(string text);
         public Task<VerseTongueObj> GetAIVerseTongueAsync(BibleVerse verse, string FromLanguage, string ToLanguage);
+        public Task<String> GetPathSummaryAsync(string Pathtext);
     }
 
     public class OpenAIResponder : IOpenAIResponder
     {
-        public const string OpenAIAPI = "o4-mini";
+        public const string OpenAIAPI = "gpt-5.2";
         private readonly OpenAISettings _openAIsettings;
         //private readonly HttpClient _httpClient;
 
         public OpenAIResponder(IOptions<OpenAISettings> openAISettings)
         {
             _openAIsettings = openAISettings.Value;
+        }
+
+        public async Task<String> GetPathSummaryAsync(string Pathtext)
+        {
+            string retVal = "";
+
+            string QnASystemRequest = "You are a Christian pastor, your task is to provide a brief summary of the " +
+                "provided Bible verses within a Bible Path delimited by an xml <PathVerses> tag. " +
+                "The summary should be limited to 1024 characters, and no more than 6 sentences. " +
+                "Please capture the main themes across all of the verses focusing on key learnings and" +
+                "providing spiritiual guidance as indicated within the verse text. " +
+                "Always refer to the collection of verses using the term Path or this Path. " +
+                "Please provide the summary in clear and concise language suitable for a general audience.";
+
+
+            string QnAUserRequest = "<PathVerses>"
+                                + Pathtext
+                                + "</PathVerses>";
+
+            string key = _openAIsettings.OpenAIAPIKey;
+
+            ChatClient client = new(OpenAIAPI, key);
+
+            ChatCompletionOptions options = new();
+
+            try
+            {
+                ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                    [new SystemChatMessage(QnASystemRequest),
+                    new UserChatMessage(QnAUserRequest)],
+                    options);
+
+                //// Handling some errors
+                if (chatCompletion == null)
+                {
+                    retVal = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                    return retVal;
+                }
+
+                if (chatCompletion.Content == null)
+                {
+                    retVal = "Uh Oh... our response object from our friends at OpenAI contained no Content";
+                    return retVal;
+                }
+
+                if (chatCompletion.Content.Count >= 1)
+                {
+                    // Very oddly the response may show up on one of two properties. 
+                    retVal = chatCompletion.Content[0].Text;
+                }
+                else
+                {
+                    retVal = "Hmm... We didn't get a response back that we could use, please try again.";
+                    return retVal;
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network or HTTP error
+                retVal = "Uh Oh... We experienced a network or HTTP error: " + ex.Message;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Azure OpenAI specific error
+                retVal = "Uh Oh... We experienced an Azure OpenAI error: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                // Other errors
+                retVal = "Uh Oh...We encountered an unexpected error: " + ex.Message;
+            }
+
+            return retVal;
         }
 
         public async Task<QandAObj> GetAIQuestionAsync(string text)

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -232,6 +233,13 @@ namespace BiblePathsCore.Models.DB
             {
                 if (Path == null) { context.Entry(this).Reference(s => s.Path).Load(); }
                 _ = await Path.RegisterEventAsync(context, EventType.PathCompleted, null);
+
+
+                // Conditionally Apply a new Rating to this path... also adds a summary if not present.
+                if (Path.Reads % 10 == 0)
+                {
+                    _ = await Path.ApplyPathRatingAsync(context);
+                }
 
                 // Now we need to increment Read Count... 
                 context.Attach(Path).State = EntityState.Modified;

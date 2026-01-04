@@ -254,6 +254,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.Property(e => e.OwnerBibleId)
                 .HasMaxLength(64)
                 .HasColumnName("OwnerBibleID");
+            entity.Property(e => e.Summary).HasMaxLength(2048);
             entity.Property(e => e.Topics).HasMaxLength(256);
         });
 
@@ -377,7 +378,7 @@ public partial class BiblePathsCoreDbContext : DbContext
             entity.Property(e => e.EndVerse).HasColumnName("End_Verse");
             entity.Property(e => e.IsAnswered).HasColumnName("isAnswered");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
-            entity.Property(e => e.LastAsked).HasDefaultValue(new DateTimeOffset(new DateTime(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -6, 0, 0, 0)));
+            entity.Property(e => e.LastAsked).HasDefaultValue(new DateTimeOffset(new DateTime(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -8, 0, 0, 0)));
             entity.Property(e => e.Owner).HasMaxLength(256);
             entity.Property(e => e.Points).HasDefaultValue(1);
             entity.Property(e => e.Question).HasMaxLength(2048);

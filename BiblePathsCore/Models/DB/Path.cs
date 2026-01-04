@@ -35,6 +35,8 @@ public partial class Path
 
     public int Type { get; set; }
 
+    public string Summary { get; set; }
+
     public virtual ICollection<GameGroup> GameGroups { get; set; } = new List<GameGroup>();
 
     public virtual ICollection<PathNode> PathNodes { get; set; } = new List<PathNode>();

@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UserSecretsId>aspnet-BiblePathsCore-E2DB8637-E940-43AA-AE4C-F98200ADBAD6</UserSecretsId>
-	<RuntimeIdentifier>win-x86</RuntimeIdentifier>
+	<RuntimeIdentifiers>win-arm64;win-x86;win-x64</RuntimeIdentifiers>
 	<SelfContained>true</SelfContained>
+	<PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

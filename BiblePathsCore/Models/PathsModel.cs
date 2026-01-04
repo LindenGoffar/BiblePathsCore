@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BiblePathsCore.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SendGrid.Helpers.Mail;
 using System;
 using System.Collections;
@@ -63,7 +65,7 @@ namespace BiblePathsCore.Models.DB
             }
             catch 
             {
-                // If there is no FirstStep we acccept that and move on setting FirstStep ID = 0
+                // If there is no FirstStep we accept that and move on setting FirstStep ID = 0
             }
             FirstStepId = TempID;
             return true;
@@ -134,6 +136,24 @@ namespace BiblePathsCore.Models.DB
                 }
             }
             return RetVal;             
+        }
+
+        public async Task<string> BuildAISummmaryForPathAsync(BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
+        {
+            string RetVal = null;
+            // Let's get the text blob to Summmarize:
+            string TextToSummarize = "";
+            foreach (var node in PathNodes)
+            {
+                foreach (var verse in node.Verses)
+                {
+                    TextToSummarize += verse.BookName + " " + verse.Chapter + ":" + verse.Verse + " " + verse.Text + Environment.NewLine;
+                }
+            }
+
+            RetVal = await openAIResponder.GetPathSummaryAsync(TextToSummarize);
+
+            return RetVal;
         }
         public async Task<int> GetPathVerseCountAsync(BiblePathsCoreDbContext context)
         {
@@ -231,10 +251,11 @@ namespace BiblePathsCore.Models.DB
             if (MarkAsRead == true)
             {
                 _ = await RegisterReadEventAsync(context);
-                if (Reads % 10 == 0)
-                {
-                    _ = await ApplyPathRatingAsync(context);
-                }
+                // Moving this to RegisterReadEventAsync... no need to propogate everywhere.
+                //if (Reads % 10 == 0)
+                //{
+                //    _ = await ApplyPathRatingAsync(context);
+                //}
             }
             return PathNodes.OrderBy(pn => pn.Position).ToList();
         }
@@ -351,6 +372,12 @@ namespace BiblePathsCore.Models.DB
             _ = await RegisterEventAsync(context, EventType.PathStarted, null);
             _ = await RegisterEventAsync(context, EventType.PathCompleted, null);
 
+            // Conditionally Apply a new Rating to this path... also adds a summary if not present.
+            if (Reads % 10 == 0)
+            {
+                _ = await ApplyPathRatingAsync(context);
+            }
+
             // Now we need to increment Read Count... 
             context.Attach(this).State = EntityState.Modified;
             Reads++;
@@ -359,12 +386,12 @@ namespace BiblePathsCore.Models.DB
             return true;
         }
 
-        public async Task<bool> ApplyPathRatingAsync(BiblePathsCoreDbContext context)
+        public async Task<bool>ApplyPathRatingAsync(BiblePathsCoreDbContext context)
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
             // Rating is the average of the following Scores ranging from 0 - 5 (there is a little arbitrary uplift)
             // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (for some uplift)
             // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book and a point for spanning testaments up to 5
             // 4. Average of all UserRatings (uplift creates a 1.1 - 5.5 range)
 
@@ -387,20 +414,20 @@ namespace BiblePathsCore.Models.DB
                 ScoreCount++;
             }
 
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 5.5 (a half point uplift)
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (a half point uplift)
             int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
             int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
             if (NumStarts > 0)
             { 
                 double ReadPercent = NumCompletes / NumStarts;
-                TotalScore += ReadPercent * 5.5;
+                TotalScore += ReadPercent * 6;
                 ScoreCount++;
             }
 
             // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 5.5)
             if (PathNodes.Count > 0)
             {
-                int BookDiversityScore = 0;
+                int BookDiversityScore = 1; // we'll give a free book just to kick us off. 
                 var BookHash = new HashSet<int>();
                 foreach (PathNode node in PathNodes)
                 {
@@ -467,6 +494,7 @@ namespace BiblePathsCore.Models.DB
                 Reads = NumCompletes;
             }
             ComputedRating = (decimal)TempRating;
+
             await context.SaveChangesAsync();
 
             return true; 

@@ -45,6 +45,7 @@
                 <div class="col">
                     <a class="btn btn-outline-primary btn-sm" asp-page="./Publish" asp-route-id="@item.Id">Publish</a>
                     <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Settings</a>
+                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Summary/@item.Id">AI Summary</a>
                 </div>
             </div>
         }
@@ -73,6 +74,7 @@
                 <div class="col">
                     <a class="btn btn-outline-primary btn-sm" asp-page="./UnPublish" asp-route-id="@item.Id">UnPublish</a>
                     <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Path Settings</a>
+                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Summary/@item.Id">AI Summary</a>
                 </div>
             </div>
         }

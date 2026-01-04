@@ -1,0 +1,221 @@
+@page "/paths/summary/{PathId:int}"
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using BiblePathsCore.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject BiblePathsCoreDbContext DbContext
+@inject IOpenAIResponder OpenAIResponder
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+
+@* <h3>Path AI Summary</h3> *@
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+
+@if (Loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (CurrentPath == null)
+{
+    <p>Path not found.</p>
+}
+else
+{
+    <div class="mb-4">
+        <h4>@CurrentPath.Name</h4>
+        <div class="mb-2">
+            <strong>Owner:</strong> @CurrentPath.Owner
+        </div>
+        <div class="mb-3">
+            <strong>Topics:</strong> @(string.IsNullOrWhiteSpace(CurrentPath.Topics) ? "No topics assigned" : CurrentPath.Topics)
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Path Summary</h5>
+        </div>
+        <div class="card-body">
+            @if (string.IsNullOrWhiteSpace(CurrentPath.Summary))
+            {
+                <p class="text-muted">No summary exists yet.</p>
+            }
+            else
+            {
+                <p>@CurrentPath.Summary</p>
+            }
+        </div>
+    </div>
+
+    @if (CanEdit)
+    {
+        <div class="mb-4">
+            <button class="btn btn-primary" @onclick="GenerateSummaryAsync" disabled="@IsGenerating">
+                @if (IsGenerating)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="ms-2">Generating Summary...</span>
+                }
+                else
+                {
+                    <span>Generate AI Summary</span>
+                }
+            </button>
+            @if (!string.IsNullOrWhiteSpace(CurrentPath.Summary))
+            {
+                <button class="btn btn-secondary ms-2" @onclick="ClearSummary">Clear Summary</button>
+            }
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Full Path</h5>
+        </div>
+        <div class="card-body">
+            @if (PathNodes?.Count == 0)
+            {
+                <p class="text-muted">No verses in this path.</p>
+            }
+            else if (DisplayVerses?.Count == 0)
+            {
+                <p class="text-muted">Loading verses...</p>
+            }
+            else
+            {
+                <div class="path-text">
+                    @foreach (var Node in PathNodes)
+                    {
+                        @foreach (var verse in Node.Verses)
+                        {
+                            <div class="mb-2">
+                                <strong>@verse.BookName @verse.Chapter:@verse.Verse</strong> @verse.Text
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <a href="/Paths/Index" class="btn btn-secondary">Back to Paths</a>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int PathId { get; set; }
+
+    private Path CurrentPath;
+    private List<PathNode> PathNodes;
+    private List<BibleVerse> DisplayVerses;
+    private IdentityUser currentUser;
+    private string ErrorMessage;
+    private bool Loading = true;
+    private bool IsGenerating = false;
+    private bool CanEdit = false;
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Loading = true;
+            await LoadPathAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading path: {ex.Message}";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task LoadPathAsync()
+    {
+        CurrentPath = await DbContext.Paths.FirstOrDefaultAsync(p => p.Id == PathId);
+
+        if (CurrentPath == null)
+        {
+            return;
+        }
+
+
+        // Check if current user can edit this path
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+        currentUser = isAuthenticated ? await UserManager.GetUserAsync(authState.User) : null;
+
+        CanEdit = isAuthenticated && (currentUser != null) &&
+                  (currentUser.Email == CurrentPath.Owner);
+
+        // Load path nodes along with Verses
+        PathNodes = await CurrentPath.GetPathNodesAsListAsync(DbContext, false);
+
+    }
+
+
+    private async Task GenerateSummaryAsync()
+    {
+        if (PathNodes == null || PathNodes.Count == 0)
+        {
+            ErrorMessage = "No verses available to summarize.";
+            return;
+        }
+
+        try
+        {
+            IsGenerating = true;
+            ErrorMessage = string.Empty;
+
+            string SummaryText = await CurrentPath.BuildAISummmaryForPathAsync(DbContext, OpenAIResponder);
+
+            if (!string.IsNullOrWhiteSpace(SummaryText))
+            {
+                CurrentPath.Summary = SummaryText;
+                CurrentPath.Modified = DateTime.Now;
+                DbContext.Paths.Update(CurrentPath);
+                await DbContext.SaveChangesAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                ErrorMessage = "Failed to generate summary. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error generating summary: {ex.Message}";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private async Task ClearSummary()
+    {
+        if (CurrentPath != null)
+        {
+            CurrentPath.Summary = string.Empty;
+            CurrentPath.Modified = DateTime.Now;
+            DbContext.Paths.Update(CurrentPath);
+            await DbContext.SaveChangesAsync();
+            StateHasChanged();
+        }
+    }
+}
