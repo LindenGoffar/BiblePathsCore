@@ -110,7 +110,8 @@
                 
                 @if(Model.PBEUser.Email == question.Owner || Model.PBEUser.IsQuizModerator())
                 {
-                    <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="Questions">Edit</a>
+                    @* <a class="btn btn-outline-primary btn-sm" asp-page="EditQuestion" asp-route-QuestionId="@question.Id" asp-route-Caller="Questions">Edit</a> *@
+                    <a class="btn btn-outline-primary btn-sm" href="/PBE/Question/Edit/@question.Id/Questions">Edit</a>
                     <br />
                     <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@question.Id">
                         Delete

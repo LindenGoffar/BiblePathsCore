@@ -15,27 +15,19 @@ using Microsoft.Extensions.Options;
 using System.Threading;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
+using System.Runtime.CompilerServices;
 
 namespace BiblePathsCore.Pages.PBE.Question
 {
     [Authorize]
-    public partial class Add : ComponentBase
+    public partial class Edit : ComponentBase
     {
         [Parameter]
-        [SupplyParameterFromQuery(Name = "BibleId")]
-        public string BibleId { get; set; }
-
-        [Parameter]
         [SupplyParameterFromQuery]
-        public int? BookNumber { get; set; }
-
+        public int? QuestionId { get; set; }
         [Parameter]
-        [SupplyParameterFromQuery]
-        public int? Chapter { get; set; }
-
-        [Parameter]
-        [SupplyParameterFromQuery]
-        public int? Verse { get; set; }
+        [SupplyParameterFromQuery(Name = "Caller")]
+        public string Caller { get; set; }
 
         [Inject] private NavigationManager NavManager { get; set; }
         [Inject] private BiblePathsCoreDbContext DbContext { get; set; }
@@ -43,10 +35,10 @@ namespace BiblePathsCore.Pages.PBE.Question
         [Inject] private IOptions<OpenAISettings> OpenAISettings { get; set; }
         [Inject] private UserManager<IdentityUser> UserManager { get; set; }
         [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
-        [Inject] private IJSRuntime JSRuntime { get; set; }
-        //[CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+        //[Inject] private IJSRuntime JSRuntime { get; set; }
+        ////[CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-        private BibleVerse SelectedVerse { get; set; }
+        //private BibleVerse SelectedVerse { get; set; }
         private QuizQuestion ModelQuestion { get; set; } = new();
         private BibleBook PBEBook { get; set; }
         private string AnswerText { get; set; } = string.Empty;
@@ -54,20 +46,21 @@ namespace BiblePathsCore.Pages.PBE.Question
 
         private IdentityUser currentUser;
         private QuizUser PBEUser;
+        private string ReturnPath;
         private bool ShowModal { get; set; } = false;
         private bool ShowPreview { get; set; } = false;
-        private bool IsFITBGenerationEnabled { get; set; } = false;
+        //private bool IsFITBGenerationEnabled { get; set; } = false;
         private bool IsGeneratingAI { get; set; } = false;
-        private bool IsGeneratingFITB { get; set; } = false;
-        private bool HasExclusion { get; set; } = false;
+        //private bool IsGeneratingFITB { get; set; } = false;
+        //private bool HasExclusion { get; set; } = false;
         private bool IsCommentary { get; set; } = false;
         private bool Loading { get; set; } = true;
         private bool IsOpenAIEnabled { get; set; }
         // private int StartVerse { get; set; } = 1;
         // private int EndVerse { get; set; } = 1;
-        private int ChapterQuestionCount { get; set; } = 0;
-        private int CommentaryQuestionCount { get; set; } = 0;
-        private int ChapterFITBPct { get; set; } = 0;
+        //private int ChapterQuestionCount { get; set; } = 0;
+        //private int CommentaryQuestionCount { get; set; } = 0;
+        //private int ChapterFITBPct { get; set; } = 0;
 
         // Optional error message shown in the UI when set
         private string ErrorMessage { get; set; } = string.Empty;
@@ -77,7 +70,7 @@ namespace BiblePathsCore.Pages.PBE.Question
         private bool isAuthenticated = false;
 
         // track whether we've already scrolled to the verse
-        private bool _scrolledToVerse = false;
+        //private bool _scrolledToVerse = false;
 
         // Debounce helpers for preview updates
         private CancellationTokenSource _previewCts;
@@ -97,11 +90,7 @@ namespace BiblePathsCore.Pages.PBE.Question
             // Read OpenAI settings and ensure defaults for parameters (querystring or route)
             IsOpenAIEnabled = OpenAISettings?.Value?.OpenAIEnabled == "True";
 
-            // Ensure some defaults only when values are null
-            BibleId ??= await QuizQuestion.GetValidBibleIdAsync(DbContext, null);
-            BookNumber ??= 23;
-            Chapter ??= 6;
-            Verse ??= 1;
+            ReturnPath = Caller;
 
             // Ensure Authorization and initial load when parameters are available
             if (!isAuthenticated)
@@ -110,58 +99,66 @@ namespace BiblePathsCore.Pages.PBE.Question
                 isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
                 currentUser = isAuthenticated ? await UserManager.GetUserAsync(authState.User) : null;
 
-                if (isAuthenticated)
+                if (isAuthenticated && QuestionId.HasValue)
                 {
+                    // Go grab the question in question. 
+                    ModelQuestion = await DbContext.QuizQuestions.FindAsync(QuestionId);
+
                     // Initialize ModelQuestion and verse data after parameters are set
-                    if (ModelQuestion == null || ModelQuestion.Verses == null)
+                    if (ModelQuestion == null)
                     {
-                        await InitializeQuestionVersesAsync();
+                        ErrorMessage = "That's Odd! We weren't able to find this Question.";
+                    }
+                    else
+                    {
                         isInitialized = true;
+                    }
+                    // let's check our logged on users permisions
+                    PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, currentUser.Email);
+                    if (PBEUser == null || !PBEUser.IsValidPBEQuestionBuilder())
+                    {
+                        // simply close modal; in a real app show error
+                        ErrorMessage = "Sorry... Logged on user is not authorized to edit this PBE Questions.";
+                        //CloseModal();
+                        return;
                     }
 
                     Loading = false;
+                    
                 }
             }
 
             await base.OnParametersSetAsync();
         }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            // If a Verse was provided in the URL, scroll to it once the verses are rendered
-            if (!_scrolledToVerse && Verse.HasValue && ModelQuestion?.Verses?.Any() == true)
-            {
-                if (Verse.Value < 5) // We don't want to scroll if it's within the first 5 verses
-                {
-                    // No need to scroll within first few verses
-                    return;
-                }
-                try
-                {
-                    var elementId = $"verse-{Verse.Value}";
-                    await JSRuntime.InvokeVoidAsync("bpScrollToVerse", elementId);
-                    _scrolledToVerse = true;
-                }
-                catch
-                {
-                    // ignore JS errors
-                }
-            }
+        //protected override async Task OnAfterRenderAsync(bool firstRender)
+        //{
+        //    // If a Verse was provided in the URL, scroll to it once the verses are rendered
+        //    if (!_scrolledToVerse && Verse.HasValue && ModelQuestion?.Verses?.Any() == true)
+        //    {
+        //        if (Verse.Value < 5) // We don't want to scroll if it's within the first 5 verses
+        //        {
+        //            // No need to scroll within first few verses
+        //            return;
+        //        }
+        //        try
+        //        {
+        //            var elementId = $"verse-{Verse.Value}";
+        //            await JSRuntime.InvokeVoidAsync("bpScrollToVerse", elementId);
+        //            _scrolledToVerse = true;
+        //        }
+        //        catch
+        //        {
+        //            // ignore JS errors
+        //        }
+        //    }
 
-            await base.OnAfterRenderAsync(firstRender);
-        }
+        //    await base.OnAfterRenderAsync(firstRender);
+        //}
 
-        private async Task InitializeQuestionVersesAsync()
+        private async Task InitializeQuestionAsync()
         {
-            ModelQuestion = new QuizQuestion
-            {
-                BibleId = BibleId,
-                BookNumber = BookNumber.Value,
-                Chapter = Chapter.Value,
-                StartVerse = Verse.Value,
-                EndVerse = Verse.Value,
-                Points = 1
-            };
+
             PBEBook = await BibleBook.GetPBEBookAndChapterAsync(DbContext, ModelQuestion.BibleId, ModelQuestion.BookNumber, ModelQuestion.Chapter);
             if (PBEBook == null) { ErrorMessage = "That's Odd! We weren't able to find the PBE Book."; }
 
@@ -169,53 +166,28 @@ namespace BiblePathsCore.Pages.PBE.Question
             ModelQuestion.Verses = await ModelQuestion.GetBibleVersesAsync(DbContext, false);
             ModelQuestion.PopulatePBEQuestionInfo(PBEBook);
 
-            HasExclusion = ModelQuestion.Verses.Any(v => v.IsPBEExcluded == true);
-
             // In the Commentary Scenario we have no real "Chapter" so will need to fake some properties like isCommentary
             IsCommentary = (ModelQuestion.Chapter == Bible.CommentaryChapter);
-            if (IsCommentary == false)
-            {
-                ChapterQuestionCount = PBEBook.BibleChapters.Where(c => c.ChapterNumber == ModelQuestion.Chapter).First().QuestionCount;
-                ChapterFITBPct = PBEBook.BibleChapters.Where(c => c.ChapterNumber == ModelQuestion.Chapter).First().FITBPct;
-                if (ChapterFITBPct < 10) { IsFITBGenerationEnabled = true; }
-                else { IsFITBGenerationEnabled = false; }
-            }
-            else
-            {
-                IsFITBGenerationEnabled = false;
-            }
-            CommentaryQuestionCount = PBEBook.CommentaryQuestionCount;
         }
-        private async Task OpenModal(BibleVerse verse)
-        {
-            SelectedVerse = verse;
-            ModelQuestion.StartVerse = SelectedVerse.Verse;
-            ModelQuestion.EndVerse = SelectedVerse.Verse;
-            UpdatePBEQuestionPreview();
-            await UpdateDisplayVersesAsync();
+        //private async Task OpenModal(BibleVerse verse)
+        //{
+        //    //SelectedVerse = verse;
+        //    //ModelQuestion.StartVerse = SelectedVerse.Verse;
+        //    //ModelQuestion.EndVerse = SelectedVerse.Verse;
+        //    UpdatePBEQuestionPreview();
+        //    await UpdateDisplayVersesAsync();
+        //    ShowModal = true;
+        //}
 
-            // let's check our logged on users permisions
-            PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, currentUser.Email);
-            if (PBEUser == null || !PBEUser.IsValidPBEQuestionBuilder())
-            {
-                // simply close modal; in a real app show error
-                ErrorMessage = "Sorry... Logged on user is not authorized to add PBE Questions.";
-                //CloseModal();
-                return;
-            }
-            else { ShowModal = true; }
-        }
+        //private void CloseModal()
+        //{
+        //    //// Clear any Question/Answer Text entered
+        //    //ModelQuestion.Question = null;
+        //    //AnswerText = null;
+        //    //ModelQuestion.Points = 1;
+        //    ShowModal = false;
 
-        private void CloseModal()
-        {
-            // Clear any Question/Answer Text entered
-            ModelQuestion.Question = null;
-            AnswerText = null;
-            ModelQuestion.Points = 1;
-            ShowModal = false;
-            SelectedVerse = null;
-
-        }
+        //}
 
         private void ClearGenerated()
         {
@@ -238,11 +210,11 @@ namespace BiblePathsCore.Pages.PBE.Question
             await InvokeAsync(StateHasChanged);
             try
             {
+                AnswerText = string.Empty;
                 var verse = await BibleVerse.GetVerseAsync(DbContext, ModelQuestion.BibleId, ModelQuestion.BookNumber, ModelQuestion.Chapter, ModelQuestion.StartVerse);
                 var built = await new QuizQuestion().BuildAIQuestionForVerseAsync(DbContext, verse, OpenAIResponder);
                 if (built != null)
                 {
-                    AnswerText = string.Empty;
                     ModelQuestion.Question = built.Question;
                     ModelQuestion.Points = built.Points;
                     ModelQuestion.EndVerse = ModelQuestion.StartVerse; // We only generate on StartVerse so let's change this. 
@@ -265,43 +237,42 @@ namespace BiblePathsCore.Pages.PBE.Question
             }
         }
 
-        private async Task GenerateFITBAsync()
-        {
-            if (SelectedVerse == null) return;
+        //private async Task GenerateFITBAsync()
+        //{
+        //    if (SelectedVerse == null) return;
 
-            IsGeneratingFITB = true;
-            await InvokeAsync(StateHasChanged);
-            try
-            {
-                ModelQuestion.StartVerse = SelectedVerse.Verse;
-                ModelQuestion.EndVerse = SelectedVerse.Verse;
-                AnswerText = string.Empty;
+        //    IsGeneratingFITB = true;
+        //    await InvokeAsync(StateHasChanged);
+        //    try
+        //    {
+        //        ModelQuestion.StartVerse = SelectedVerse.Verse;
+        //        ModelQuestion.EndVerse = SelectedVerse.Verse;
 
-                var verse = await BibleVerse.GetVerseAsync(DbContext, ModelQuestion.BibleId, ModelQuestion.BookNumber, ModelQuestion.Chapter, ModelQuestion.StartVerse);
-                var built = await new QuizQuestion().BuildQuestionForVerseAsync(DbContext, verse, 10, ModelQuestion.BibleId);
-                if (built != null)
-                {
-                    ModelQuestion.Question = built.Question;
-                    ModelQuestion.Points = built.Points;
-                    ModelQuestion.EndVerse = ModelQuestion.StartVerse; // We only generate on StartVerse so let's change this. 
-                    // ModelQuestion.Type = built.Type; // Type is detected later.
-                    foreach (QuizAnswer Answer in built.QuizAnswers)
-                    {
-                        AnswerText += Answer.Answer;
-                    }
-                    ModelQuestion.Source = built.Source;
+        //        var verse = await BibleVerse.GetVerseAsync(DbContext, ModelQuestion.BibleId, ModelQuestion.BookNumber, ModelQuestion.Chapter, ModelQuestion.StartVerse);
+        //        var built = await new QuizQuestion().BuildQuestionForVerseAsync(DbContext, verse, 10, ModelQuestion.BibleId);
+        //        if (built != null)
+        //        {
+        //            ModelQuestion.Question = built.Question;
+        //            ModelQuestion.Points = built.Points;
+        //            ModelQuestion.EndVerse = ModelQuestion.StartVerse; // We only generate on StartVerse so let's change this. 
+        //            // ModelQuestion.Type = built.Type; // Type is detected later.
+        //            foreach (QuizAnswer Answer in built.QuizAnswers)
+        //            {
+        //                AnswerText += Answer.Answer;
+        //            }
+        //            ModelQuestion.Source = built.Source;
 
-                    // update preview
-                    UpdatePBEQuestionPreview();
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            finally
-            {
-                IsGeneratingFITB = false;
-                await InvokeAsync(StateHasChanged);
-            }
-        }
+        //            // update preview
+        //            UpdatePBEQuestionPreview();
+        //            await InvokeAsync(StateHasChanged);
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        IsGeneratingFITB = false;
+        //        await InvokeAsync(StateHasChanged);
+        //    }
+        //}
 
         private async Task SaveAsync()
         {
@@ -309,62 +280,67 @@ namespace BiblePathsCore.Pages.PBE.Question
             if (string.IsNullOrWhiteSpace(ModelQuestion.BibleId)) return;
             if (ModelQuestion.BookNumber <= 0 || ModelQuestion.Chapter <= 0) return;
 
-            // Create a fresh question object mapping only intended properties
-            var emptyQuestion = new QuizQuestion
-            {
-                Created = DateTime.Now,
-                Modified = DateTime.Now,
-                BibleId = ModelQuestion.BibleId,
-                Points = ModelQuestion.Points,
-                BookNumber = ModelQuestion.BookNumber,
-                Chapter = ModelQuestion.Chapter,
-                StartVerse = Math.Min(ModelQuestion.StartVerse, ModelQuestion.EndVerse),
-                EndVerse = Math.Max(ModelQuestion.StartVerse, ModelQuestion.EndVerse),
-                Question = ModelQuestion.Question,
-                Source = string.IsNullOrWhiteSpace(ModelQuestion.Source) ? "BiblePaths.Net" : ModelQuestion.Source
-            };
-
             // Get user
             if (currentUser != null)
             {
-                if (PBEUser == null || !PBEUser.IsValidPBEQuestionBuilder())
+                var email = currentUser.Email;
+                PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, currentUser.Email);
+                if (PBEUser == null || ( (PBEUser.Email != ModelQuestion.Owner) && !PBEUser.IsQuizModerator() ) )
                 {
-                    // simply close modal; in a real app show error
-                    ErrorMessage = "Sorry... Logged on user is not authorized to add PBE Questions.";
-                    CloseModal();
+                    // 11/19/2023 We are having edit problems so only letting owners or moderators do question edits.
+                    ErrorMessage = "Sorry! You do not have sufficient rights to edit this PBE question";
                     return;
                 }
-                emptyQuestion.Owner = PBEUser.Email;
             }
             else
             {
-                CloseModal();
+                ErrorMessage = "That's odd we do not have a logged in user.";
                 return;
             }
-
-            emptyQuestion.Type = emptyQuestion.DetectQuestionType();
-            DbContext.QuizQuestions.Add(emptyQuestion);
+            ModelQuestion.Modified = DateTime.Now;
 
             if (!string.IsNullOrWhiteSpace(AnswerText))
             {
-                var ans = new QuizAnswer
+                // We need the Original Answer and while techincally we support multiple Answers
+                // we are only going to allow operating on the first one in this basic edit experience.
+                await DbContext.Entry(ModelQuestion).Collection(Q => Q.QuizAnswers).LoadAsync();
+                if (ModelQuestion.QuizAnswers.Count > 0)
                 {
-                    Created = DateTime.Now,
-                    Modified = DateTime.Now,
-                    Question = emptyQuestion,
-                    Answer = AnswerText,
-                    IsPrimary = true
-                };
-                DbContext.QuizAnswers.Add(ans);
-                emptyQuestion.IsAnswered = true;
+                    QuizAnswer OriginalAnswer = ModelQuestion.QuizAnswers.OrderBy(A => A.Id).First();
+                    if (OriginalAnswer.Answer != AnswerText)
+                    {
+                        // It's not clear whether we need to track history of answers so for now we will just update the existing one.
+                        OriginalAnswer.Modified = DateTime.Now;
+                        OriginalAnswer.Answer = AnswerText;
+                        OriginalAnswer.IsPrimary = true;
+                        ModelQuestion.IsAnswered = true;
+                    }
+                }
             }
 
             await DbContext.SaveChangesAsync();
 
+            // Assuming success... we now navigate away
+            switch (ReturnPath)
+            {
+                case "Questions":
+                    NavManager.NavigateTo($"/PBE/Questions?BibleId={ModelQuestion.BibleId}&BookNumber={ModelQuestion.BookNumber}&Chapter={ModelQuestion.Chapter}", forceLoad: true);
+                    //return RedirectToPage("Questions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter });
+                    break; 
+
+                //case "ChallengedQuestions":
+                //    return RedirectToPage("ChallengedQuestions", new { BibleId = QuestionToUpdate.BibleId, BookNumber = QuestionToUpdate.BookNumber, Chapter = QuestionToUpdate.Chapter });
+                //// break; not needed unreachable
+
+                default:
+                    NavManager.NavigateTo($"/PBE/Questions?BibleId={ModelQuestion.BibleId}&BookNumber={ModelQuestion.BookNumber}&Chapter={ModelQuestion.Chapter}", forceLoad: true);
+                    break; 
+            }
+
             // Optionally refresh verse list or navigate to same chapter
-            CloseModal();
-            await InitializeQuestionVersesAsync();
-            await InvokeAsync(StateHasChanged);
+            //CloseModal();
+            //await InitializeQuestionAsync();
+            //await InvokeAsync(StateHasChanged);
             // NavManager.NavigateTo($"/pbe/question/add/{emptyQuestion.BibleId}/{emptyQuestion.BookNumber}/{emptyQuestion.Chapter}", forceLoad: false);
         }
 

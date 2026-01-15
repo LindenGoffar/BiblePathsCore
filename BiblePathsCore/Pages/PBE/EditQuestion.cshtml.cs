@@ -49,7 +49,7 @@ namespace BiblePathsCore.Pages.PBE
             Question = await _context.QuizQuestions.FindAsync(QuestionId);
             if (Question == null) { return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to find this Question" }); }
 
-            // 11/19/2023 We are having edit problems so only letting owner or moderators do question edits.
+            // 11/19/2023 We are having edit problems so only letting owners or moderators do question edits.
             if ((PBEUser.Email != Question.Owner) && !(PBEUser.IsQuizModerator())) { return RedirectToPage("/error", new { errorMessage = "Sorry! You do not have sufficient rights to edit this PBE question" }); }
             
             // Setup our PBEBook Object after validating BibleId.

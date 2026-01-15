@@ -1,0 +1,147 @@
+@page "/pbe/question/edit/{QuestionId:int?}/{Caller?}"
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
+
+
+<h4>Edit PBE Question</h4>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+@if (Loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+}
+
+@* The Question Builder/Editor Experience *@
+
+@if (ModelQuestion != null)
+{
+    <div>
+        <div class="row g-2 mb-2">
+            <div class="col">
+                <label class="form-label">Points</label>
+                <input type="number"
+                       class="form-control"
+                       value="@ModelQuestion.Points"
+                       @onchange="OnPointsChanged"
+                       min="1" />
+            </div>
+            @if (!IsCommentary)
+            {
+                <div class="col">
+                    <label class="form-label">Start Verse</label>
+                    <input type="number"
+                           class="form-control"
+                           value="@ModelQuestion.StartVerse"
+                           @onchange="StartVerseChanged"
+                           min="1" />
+                </div>
+                <div class="col">
+                    <label class="form-label">End Verse</label>
+                    <input type="number"
+                           class="form-control"
+                           value="@ModelQuestion.EndVerse"
+                           @onchange="EndVerseChanged"
+                           min="@ModelQuestion.StartVerse" />
+                </div>
+            }
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Question</label>
+            <p>@ModelQuestion.PBEQuestionIntro</p>
+            <textarea class="form-control" rows="3" value="@ModelQuestion.Question" @onchange="OnQuestionChanged"></textarea>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Answer</label>
+            <textarea class="form-control" rows="2" @bind="AnswerText"></textarea>
+        </div>
+
+        @* Show/Hide preview toggle *@
+        <div class="mb-2">
+            <a href="#" class="small" @onclick="TogglePreview" @onclick:preventDefault="true">@((ShowPreview) ? "Hide Question Preview" : "Show Question Preview")</a>
+        </div>
+
+        @if (ShowPreview)
+        {
+            <div id="PBEQuestion_Preview" class="mb-2 text-muted">
+                @ModelQuestion.PBEQuestion
+            </div>
+        }
+
+        @* Verses in question *@
+
+        <div class="row">
+            <div class="col-9">
+                <div class="card">
+                    <div id="PBEQuestion_Verses" class="card-body mb-2">
+
+                        <div class="text-muted">Reference Verses</div>
+
+                        @if (DisplayVerses?.Any() != true)
+                        {
+                            <div class="text-muted ml-2">No verses selected...</div>
+                        }
+                        else
+                        {
+                            @foreach (var verse in DisplayVerses)
+                            {
+                                if (IsCommentary)
+                                {
+                                    <div class="text-muted ml-2"><strong>@verse.SectionTitle</strong> @verse.Text</div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted ml-2"><strong>@verse.Verse</strong> @verse.Text</div>
+                                }
+
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            @*Question Generation Buttons*@
+            <div class="col-3">
+
+                <div class="mb-2 d-flex flex-column">
+                    @if (IsOpenAIEnabled)
+                    {
+                        <button class="btn btn-sm btn-primary mb-2" @onclick="GenerateAIAsync" disabled="@IsGeneratingAI">
+                            @if (IsGeneratingAI)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="ms-2">Generating...</span>
+                            }
+                            else
+                            {
+                                <span>Generate AI</span>
+                            }
+                        </button>
+                    }
+                    @if (IsOpenAIEnabled )
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClearGenerated" disabled="@(IsGeneratingAI)">Clear Generated</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" @onclick="SaveAsync">Save Question</button>
+    </div>
+}
+
+<script src="/js/pbe-helpers.js"></script>
