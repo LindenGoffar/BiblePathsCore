@@ -121,31 +121,43 @@ else
                 </div>
                 <div class="modal-body">
                     <div class="row g-2 mb-2">
-                        <div class="col">
-                            <label class="form-label">Points</label>
-                            <input type="number" 
-                                   class="form-control" 
-                                   value="@ModelQuestion.Points" 
-                                   @onchange="OnPointsChanged" 
-                                   min="1"/>
+                        <div class="col-4">
+                            <div class="card">
+                                <div class="card-body border border-primary">
+                                    <label class="form-label">Points</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           value="@ModelQuestion.Points"
+                                           @onchange="OnPointsChanged"
+                                           min="1" />
+                                </div>
+                            </div>
                         </div>
                         @if (!IsCommentary)
                         {
-                            <div class="col">
-                                <label class="form-label">Start Verse</label>
-                                <input type="number"
-                                       class="form-control"
-                                       value="@ModelQuestion.StartVerse"
-                                       @onchange="StartVerseChanged"
-                                       min="1" />
-                            </div>
-                            <div class="col">
-                                <label class="form-label">End Verse</label>
-                                <input type="number"
-                                       class="form-control"
-                                       value="@ModelQuestion.EndVerse"
-                                       @onchange="EndVerseChanged"
-                                       min="@ModelQuestion.StartVerse" />
+                            <div class="col-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-row gap-3 align-items-end">
+                                            <div class="w-50">
+                                                <label class="form-label">Start Verse</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       value="@ModelQuestion.StartVerse"
+                                                       @onchange="StartVerseChanged"
+                                                       min="1" />
+                                            </div>
+                                            <div class="w-50">
+                                                <label class="form-label">End Verse</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       value="@ModelQuestion.EndVerse"
+                                                       @onchange="EndVerseChanged"
+                                                       min="@ModelQuestion.StartVerse" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         }
                     </div>

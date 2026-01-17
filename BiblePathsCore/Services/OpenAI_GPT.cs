@@ -61,6 +61,7 @@ namespace BiblePathsCore.Services
     {
         // public Task<QandAObj> GetAIQuestionAsync(string text, string key);
         public Task<QandAObj> GetAIQuestionAsync(string text);
+        public Task<QandAObj> GetAIFixedQuestionAsync(string Versetext, string InitialQuestion, string InitialAnswer, string ChallengeComment, int Points);
         public Task<VerseTongueObj> GetAIVerseTongueAsync(BibleVerse verse, string FromLanguage, string ToLanguage);
         public Task<String> GetPathSummaryAsync(string Pathtext);
     }
@@ -191,6 +192,130 @@ namespace BiblePathsCore.Services
                     [new SystemChatMessage(QnASystemRequest),
                     new UserChatMessage(QnAUserRequest),
                     new AssistantChatMessage(QnAAssistantRequest)],
+                    options);
+
+                //// Handling some errors
+                if (chatCompletion == null)
+                {
+                    qandAObj.question = "Uh Oh... We got no response object from our friends at OpenAI. ";
+                    return qandAObj;
+                }
+
+                if (chatCompletion.Content == null)
+                {
+                    qandAObj.question = "Uh Oh... our response object from our friends at OpenAI contained no Value";
+                    return qandAObj;
+                }
+
+                if (chatCompletion.Content.Count >= 1)
+                {
+                    // Very oddly the response may show up on one of two properties. 
+                    string JSONResponseString = chatCompletion.Content[0].Text;
+                    // OK sometimes we may not get back a well formed JSON String... let's handle that. 
+                    try
+                    {
+                        qandAObj = JsonConvert.DeserializeObject<QandAObj>(JSONResponseString);
+                    }
+                    catch
+                    {
+                        qandAObj.question = "Uh Oh... we had a problem parsing the following response: ";
+                        qandAObj.question += JSONResponseString;
+                    }
+                }
+                else
+                {
+                    qandAObj.question = "Hmm... We didn't get a response back that we could use, please try again.";
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network or HTTP error
+                qandAObj.question = "Uh Oh... We experienced a network or HTTP error: " + ex.Message;
+            }
+            catch (RequestFailedException ex)
+            {
+                // Azure OpenAI specific error
+                qandAObj.question = "Uh Oh... We experienced an Azure OpenAI error: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                // Other errors
+                qandAObj.question = "Uh Oh...We encountered an unexpected error: " + ex.Message;
+            }
+
+            return qandAObj;
+        }
+
+        public async Task<QandAObj> GetAIFixedQuestionAsync(string Versetext, string InitialQuestion, string InitialAnswer, string ChallengeComment, int Points)
+        {
+
+            string FixQuestionSystemRequest = "You are a teacher reviewing Questions for a Bible quiz" +
+                "you are provided one or more Bible verses in the User Message delimited by an xml <Verse> tag, a proposed question in an xml <Question> tag" +
+                "a proposed answer in an xml <Answer> tag, a comment challenging the validity of the question and/or answer in an xml <Comment> tag, " +
+                "and a proposed point value in an xml <Points> tag. " +
+                "Please review the entire User Message before formulating a more appropriate Question, Answer, and Points value using as much as possible of the " +
+                "initial question and answer while addressing the concerns raised in the comment. " +
+
+                "make sure the question can be answered entirely and exclusively from the provided Bible verses. " +
+                "The question should be brief, plese avoid using the phrase 'according to','accordingto the text', " +
+                "or referencing 'the author' or 'the speaker' unless they are named in the verse(s)." +
+
+                "Next you should ensure the Answer is concise and correct per the provided Bible verses. " +
+                "The Answer should not include the contents of the question, or restate the question. " +
+
+                "Finally you will determine how many points your Answer is worth. " +
+                "Points will be an integer between 1 and 6 each independent clause or statement in the answer is worth 1 point, not each word." +
+                "Use a default of 1 if points cannot be determined. " +
+
+                "The output, including question, answer, and points should be in the schema specified ";
+
+            string FixQuestionUserRequest = "<Verse>"
+                                + Versetext
+                                + "</Verse>"
+                                + "<Question>"
+                                + InitialQuestion
+                                + "</Question>" 
+                                + "<Answer>"
+                                + InitialAnswer
+                                + "</Answer>"
+                                + "<Comment>"
+                                + ChallengeComment
+                                + "</Comment>"
+                                + "<Points>"
+                                + Points.ToString()
+                                + "</Points>";
+
+            string key = _openAIsettings.OpenAIAPIKey;
+
+            ChatClient client = new(OpenAIAPI, key);
+
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                jsonSchemaFormatName: "QandAObj",
+                jsonSchema: BinaryData.FromString("""
+                    {
+                        "type": "object",
+                        "properties": {
+                            "question": { "type": "string" },
+                            "answer": { "type": "string" },
+                            "points": { "type": "integer"}
+                        },
+                        "required": ["question", "answer", "points"],
+                        "additionalProperties": false
+                    }
+                    """),
+                    jsonSchemaIsStrict: true),
+                Temperature = (float)1,
+            };
+
+            QandAObj qandAObj = new();
+
+            try
+            {
+                ChatCompletion chatCompletion = await client.CompleteChatAsync(
+                    [new SystemChatMessage(FixQuestionSystemRequest),
+                    new UserChatMessage(FixQuestionUserRequest)],
                     options);
 
                 //// Handling some errors

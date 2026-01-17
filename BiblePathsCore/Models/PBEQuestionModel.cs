@@ -626,6 +626,17 @@ namespace BiblePathsCore.Models.DB
 
             return NewQuestion;
         }
+
+        public async Task<QandAObj> ProposeAIFixForQuestionAsync(BiblePathsCoreDbContext context, string VersesText, string AnswerText, IOpenAIResponder openAIResponder)
+        {
+            // First let's go query OpenAI
+            QandAObj qandAObj = await openAIResponder.GetAIFixedQuestionAsync(VersesText, Question, AnswerText, ChallengeComment, Points);
+            if (qandAObj == null)
+            {
+                return null;
+            }
+            return qandAObj;
+        }
         public async Task<QuizQuestion> BuildQuestionForVerseAsync(BiblePathsCoreDbContext context, BibleVerse verse, int MaxPoints, string BibleId)
         {
             int BlankWordProbability = 3; // read as 1 in every 3 valid words may get blanked rnd is 0 based
