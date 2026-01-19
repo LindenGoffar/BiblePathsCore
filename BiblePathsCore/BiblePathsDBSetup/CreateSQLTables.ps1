@@ -9,6 +9,12 @@ PM> Scaffold-DbContext -Connection "Name=AppConnection" -Provider Microsoft.Enti
 
 CRITICAL UPDATES for pre-existing DBs
 ---------------------------------------
+--1/19/2026 in support of PBE Teams.
+ALTER TABLE QuizGroupStats
+	Add QuizTeamID int NOT NULL DEFAULT(0)
+--1/19/2026 alo need to run with $CreateQuizTeamTables to ensure these are created.
+
+
 --12/29/2025 in support of Path AI Summaries
 ALTER TABLE Paths
 		Add Summary nvarchar(2048)
@@ -115,6 +121,7 @@ Param(  #[switch] $SetupSecurity,
         [switch] $CreateQuizTables,
 		[switch] $CreateCommentaryTable,
 		[switch] $CreatePreDefinedQuizTables,
+		[switch] $CreateQuizTeamTables,
 		[switch] $CreateGameTables,
 		[switch] $CreateBibleVerseTonguesTable,
 		[switch] $LocalDB,
@@ -379,6 +386,7 @@ If ($CreateQuizTables){
 		(
 			ID int IDENTITY(1,1) PRIMARY KEY,
             QuizUserID int FOREIGN KEY References QuizUsers(ID),
+			QuizTeamID int NOT NULL DEFAULT(0),
 			GroupName nvarchar(2048),
 			BookNumber int NOT NULL,
 			QuestionsAsked int NOT NULL,
@@ -477,6 +485,65 @@ If ($CreatePreDefinedQuizTables){
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizTableQuery -Username $User -Password $Password
 	Write-Host "Creating Predefined Quiz Question Table" 
     Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreatePredefinedQuizQuestionsTableQuery -Username $User -Password $Password
+}
+
+If ($CreateQuizTeamTables){
+	$CreateQuizTeamsTableQuery = @"
+		CREATE TABLE QuizTeams
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			Name nvarchar(256),
+			Owner nvarchar(256),
+			TeamType int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	$CreateQuizTeamMembersTableQuery = @"
+		CREATE TABLE QuizTeamMembers
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			TeamID int FOREIGN KEY References QuizTeams(ID),
+			Name nvarchar(256),
+			Email nvarchar(256),
+			Owner nvarchar(256),
+			MemberType int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	$CreateQuizTeamCoachesTableQuery = @"
+		CREATE TABLE QuizTeamCoaches
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			TeamID int FOREIGN KEY References QuizTeams(ID),
+			CoachID int FOREIGN KEY References QuizUsers(ID),
+			CoachType int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	$CreateQuizTeamMemberAssignmentsTableQuery = @"
+		CREATE TABLE QuizTeamMemberAssignments
+		(
+			ID int IDENTITY(1,1) PRIMARY KEY,
+			TeamID int FOREIGN KEY References QuizTeams(ID),
+			MemberID int FOREIGN KEY References QuizTeamMembers(ID),
+			BookNumber int, 
+			ChapterNumber int,
+			AssignmentType int NOT NULL,
+			Created datetimeoffset,
+			Modified datetimeoffset
+		) 
+"@
+	Write-Host "Creating QuizTeams Table" 
+    Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateQuizTeamsTableQuery -Username $User -Password $Password
+	Write-Host "Creating QuizTeamMembers Table"
+	Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateQuizTeamMembersTableQuery -Username $User -Password $Password
+	Write-Host "Creating QuizTeamCoaches Table"
+	Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateQuizTeamCoachesTableQuery -Username $User -Password $Password
+	Write-Host "Creating QuizTeamMemberAssignments Table"
+	Invoke-SqlcmdRemote -ServerInstance $Server -Database $Database -Query $CreateQuizTeamMemberAssignmentsTableQuery -Username $User -Password $Password
 }
 
 If ($CreateGameTables){
