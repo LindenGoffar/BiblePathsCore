@@ -50,6 +50,22 @@
                         </div>
                     </div>
                 </div>
+                @if (Model.TeamsAvailable)
+                    {
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Optional - Assign a Team to this Quiz</h5>
+                                <p class="card-subtitle text-info">This will allow you to track a teams progress across quizzes</p>
+                                <div class="form-group input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Team</span>
+                                    </div>
+                                    <select asp-for="Quiz.QuizTeamId" asp-items="ViewBag.TeamSelectList" class="form-control"></select>
+                                    <span asp-validation-for="Quiz.QuizTeamId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 <div class="form-group input-group">
                     <input type="hidden" asp-for="BibleId" />
                     <input type="submit" value="Save Quiz" class="btn btn-primary" />

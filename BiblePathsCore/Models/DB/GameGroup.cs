@@ -13,6 +13,8 @@ public partial class GameGroup
 
     public int? PathId { get; set; }
 
+    public int BookNumber { get; set; }
+
     public int GroupType { get; set; }
 
     public int GroupState { get; set; }
@@ -20,8 +22,6 @@ public partial class GameGroup
     public DateTimeOffset? Created { get; set; }
 
     public DateTimeOffset? Modified { get; set; }
-
-    public int BookNumber { get; set; }
 
     public virtual ICollection<GameTeam> GameTeams { get; set; } = new List<GameTeam>();
 

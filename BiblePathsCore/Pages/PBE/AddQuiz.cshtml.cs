@@ -31,6 +31,9 @@ namespace BiblePathsCore.Pages.PBE
 
         [BindProperty] 
         public String BibleId { get; set; }
+
+        [BindProperty]
+        public bool TeamsAvailable { get; set; } = false;
         public QuizUser PBEUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string BibleId)
@@ -44,6 +47,9 @@ namespace BiblePathsCore.Pages.PBE
             //Initialize Select Lists
             ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
             ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
+            var MyTeams = await QuizTeam.GetMyTeamsSelectListAsync(_context, PBEUser);
+            TeamsAvailable = MyTeams.Count > 1; // there's always the default "<Select a Team>" entry
+            ViewData["TeamSelectList"] = MyTeams;
             return Page();
         }
 
@@ -66,6 +72,9 @@ namespace BiblePathsCore.Pages.PBE
                 //Initialize Select Lists
                 ViewData["BookSelectList"] = await BibleBook.GetBookAndBookListSelectListAsync(_context, BibleId);
                 ViewData["TemplateSelectList"] = await PredefinedQuiz.GetTemplateSelectListAsync(_context, PBEUser);
+                var MyTeams = await QuizTeam.GetMyTeamsSelectListAsync(_context, PBEUser);
+                TeamsAvailable = MyTeams.Count > 1; // there's always the default "<Select a Team>" entry
+                ViewData["TeamSelectList"] = MyTeams;
                 return Page();
             }
 
@@ -81,7 +90,7 @@ namespace BiblePathsCore.Pages.PBE
             if (await TryUpdateModelAsync<QuizGroupStat>(
                 emptyQuiz,
                 "Quiz",   // Prefix for form value.
-                q => q.GroupName, q => q.BookNumber, q => q.PredefinedQuiz))
+                q => q.GroupName, q => q.BookNumber, q => q.PredefinedQuiz, q => q.QuizTeamId))
             {
                 if (emptyQuiz.PredefinedQuiz > 0)
                 {

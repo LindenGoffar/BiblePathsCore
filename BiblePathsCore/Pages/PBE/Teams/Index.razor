@@ -1,0 +1,959 @@
+@page "/pbe/teams/{BibleId?}"
+@attribute [Authorize]
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.JSInterop
+
+@inject BiblePathsCoreDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+
+<div class="container mt-4">
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ErrorMessage
+        </div>
+    }
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>My PBE Teams</h4>
+        <button class="btn btn-primary" @onclick="ShowAddTeamModal">+ Add New Team</button>
+    </div>
+
+    @if (LoadingTeams)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm mr-2"></span>
+            Loading your teams...
+        </div>
+    }
+    else if (Teams == null || Teams.Count == 0)
+    {
+        <div class="alert alert-warning">
+            No teams found. <a href="#" @onclick="ShowAddTeamModal">Create your first team!</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var team in Teams)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">@team.Name</h5>
+                    </div>
+                    <div class="card-body">
+                        <div><strong>Members:</strong> @team.QuizTeamMembers.Count</div>
+                        <div><strong>Coaches:</strong> @team.QuizTeamCoaches.Count</div>
+                        <div><strong>Assigned Chapters:</strong>@team.QuizTeamMemberAssignments.Count</div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
+                        <button class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Team Details Section -->
+    @if (SelectedTeam != null)
+    {
+        <hr class="my-5" />
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">@SelectedTeam.Name - Team Details</h4>
+            </div>
+            <div class="card-body">
+                <!-- Tabs for different sections -->
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link @(ActiveTab == "members" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("members"))">Members</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ActiveTab == "coaches" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("coaches"))">Coaches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("assignments"))">Chapter Assignments</a>
+                    </li>
+                </ul>
+
+                <!-- Members Tab -->
+                @if (ActiveTab == "members")
+                {
+                    <div class="tab-pane fade show active">
+                        <h5 class="mb-3">Team Members</h5>
+                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddMemberModal">+ Add Member</button>
+                        
+                        @if (SelectedTeam.QuizTeamMembers.Count == 0)
+                        {
+                            <p class="text-muted">No members in this team yet.</p>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+@*                                             <th>Email</th> *@
+@*                                             <th>Type</th> *@
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var member in SelectedTeam.QuizTeamMembers)
+                                        {
+                                            <tr>
+                                                <td>@member.Name</td>
+@*                                                 <td>@member.Email</td> *@
+@*                                                 <td>@GetMemberTypeName(member.MemberType)</td> *@
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning" @onclick="() => ShowEditMemberModal(member)">Edit</button>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteMember(member.Id)">Remove</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Coaches Tab -->
+                @if (ActiveTab == "coaches")
+                {
+                    <div class="tab-pane fade show active">
+                        <h5 class="mb-3">Team Coaches</h5>
+                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddCoachModal">+ Add Coach</button>
+                        
+                        @if (SelectedTeam.QuizTeamCoaches.Count == 0)
+                        {
+                            <p class="text-muted">No coaches assigned to this team yet.</p>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Coach Email</th>
+@*                                             <th>Coach Type</th> *@
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var coach in SelectedTeam.QuizTeamCoaches)
+                                        {
+                                            <tr>
+                                                <td>@coach.Coach.Email</td>
+@*                                                 <td>@GetCoachTypeName(coach.CoachType)</td> *@
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteCoach(coach.Id)">Remove</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Assignments Tab -->
+                @if (ActiveTab == "assignments")
+                {
+                    <div class="tab-pane fade show active">
+                        <h5 class="mb-3">Chapter Assignments</h5>
+                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
+                        
+                        @if (SelectedTeamAssignments.Count == 0)
+                        {
+                            <p class="text-muted">No chapter assignments yet.</p>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Member</th>
+                                            <th>Book</th>
+                                            <th>Chapter</th>
+@*                                             <th>Assignment Type</th> *@
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var assignment in SelectedTeamAssignments)
+                                        {
+                                            <tr>
+                                                <td>@assignment.Member.Name</td>
+                                                <td>@GetBookName(assignment.BookNumber)</td>
+                                                <td>@assignment.ChapterNumber</td>
+@*                                                 <td>@GetAssignmentTypeName(assignment.AssignmentType)</td> *@
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteAssignment(assignment.Id)">Remove</button>
+                                                </td> 
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Team Modal -->
+@if (ShowTeamModal)
+{
+    <div class="modal d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(IsEditingTeam ? "Edit Team" : "Add New Team")</h5>
+                    <button type="button" class="close" @onclick="CloseTeamModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="teamName">Team Name</label>
+                        <input type="text" class="form-control" id="teamName" @bind="NewTeam.Name" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseTeamModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveTeam">@(IsEditingTeam ? "Update" : "Create") Team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Add/Edit Member Modal -->
+@if (ShowMemberModal)
+{
+    <div class="modal d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(IsEditingMember ? "Edit Member" : "Add New Member")</h5>
+                    <button type="button" class="close" @onclick="CloseMemberModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="memberName">Member Name</label>
+                        <input type="text" class="form-control" id="memberName" @bind="NewMember.Name" />
+                    </div>
+@*                     <div class="form-group">
+                        <label for="memberEmail">Email</label>
+                        <input type="email" class="form-control" id="memberEmail" @bind="NewMember.Email" />
+                    </div> *@
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseMemberModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveMember">@(IsEditingMember ? "Update" : "Add") Member</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Add Coach Modal -->
+@if (ShowCoachModal)
+{
+    <div class="modal d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Coach to Team</h5>
+                    <button type="button" class="close" @onclick="CloseCoachModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="coachEmail">Coach Email Address</label>
+                        <input type="email" class="form-control" id="coachEmail" 
+                               placeholder="Enter coach email..." 
+                               @onchange="@(async (ChangeEventArgs e) => { 
+                                   CoachEmailInput = e.Value?.ToString() ?? string.Empty; 
+                                   await ValidateCoachEmail(e); 
+                               })" />
+                        
+                        @if (!string.IsNullOrWhiteSpace(CoachValidationMessage))
+                        {
+                            <small class="d-block mt-2 @(CoachEmailExists ? "text-success" : "text-danger")">
+                                @CoachValidationMessage
+                            </small>
+                        }
+                        
+                        @if (CoachEmailExists && SelectedCoach != null)
+                        {
+                            <small class="d-block mt-2 text-info">
+                                Found: @SelectedCoach.Email
+                            </small>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCoachModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveCoach" 
+                            disabled="@(!CoachEmailExists || SelectedCoach == null)">
+                        Add Coach
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Add Assignment Modal -->
+@if (ShowAssignmentModal)
+{
+    <div class="modal d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Chapters to Member</h5>
+                    <button type="button" class="close" @onclick="CloseAssignmentModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="memberSelect">Select Member</label>
+                        <select class="form-control" id="memberSelect" 
+                                value="@SelectedAssignmentMemberId.ToString()" 
+                                @onchange="@(async (ChangeEventArgs e) => { 
+                                    if (int.TryParse(e.Value?.ToString(), out int memberId)) 
+                                    { 
+                                        SelectedAssignmentMemberId = memberId; 
+                                        await OnMemberSelected(e); 
+                                    } 
+                                })">
+                            <option value="0">-- Select a Member --</option>
+                            @foreach (var member in SelectedTeam?.QuizTeamMembers ?? new List<QuizTeamMember>())
+                            {
+                                <option value="@member.Id">@member.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    @if (SelectedAssignmentMemberId > 0)
+                    {
+                        <div class="form-group">
+                            <label for="bookSelect">Select Book</label>
+                            <select class="form-control" id="bookSelect" 
+                                    value="@SelectedBookNumber.ToString()" 
+                                    @onchange="@(async (ChangeEventArgs e) => { 
+                                        if (int.TryParse(e.Value?.ToString(), out int bookNumber)) 
+                                        { 
+                                            SelectedBookNumber = bookNumber; 
+                                            await OnBookSelected(e); 
+                                        } 
+                                    })">
+                                <option value="0">-- Select a Book --</option>
+                                @foreach (var book in AvailableBooks)
+                                {
+                                    <option value="@book.BookNumber">@book.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        @if (SelectedBookNumber > 0)
+                        {
+                            <div class="form-group">
+                                <label for="chapterSelect">Select Chapters</label>
+                                <div class="chapters-selection">
+                                    <div class="form-group">
+                                        <h6>Select Chapters</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="chapterFrom">From Chapter:</label>
+                                                <select class="form-control" id="chapterFrom" @bind="ChapterRangeFrom">
+                                                    <option value="0">Select...</option>
+                                                    @foreach (var chapter in AvailableChapters)
+                                                    {
+                                                        <option value="@chapter">@chapter</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="chapterTo">To Chapter:</label>
+                                                <select class="form-control" id="chapterTo" @bind="ChapterRangeTo">
+                                                    <option value="0">Select...</option>
+                                                    @foreach (var chapter in AvailableChapters)
+                                                    {
+                                                        <option value="@chapter">@chapter</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>&nbsp;</label>
+                                                <button class="btn btn-info btn-block" @onclick="AddChapterRange">Add Range</button>
+                                            </div>
+                                        </div>
+
+                                        @if (SelectedChapters.Any())
+                                        {
+                                            <div class="alert alert-info">
+                                                <strong>Selected Chapters (@SelectedChapters.Count):</strong>
+                                                <div class="mt-2">
+                                                    @foreach (var chapter in SelectedChapters.OrderBy(c => c))
+                                                    {
+                                                        <span class="badge badge-primary mr-1 mb-1">
+                                                            Chapter @chapter
+                                                            <button type="button" class="close ml-1" @onclick="() => SelectedChapters.Remove(chapter)">
+                                                                <span>&times;</span>
+                                                            </button>
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>  <!-- ← ADDED: closes outer form-group -->
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAssignmentModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveAssignments" disabled="@(SelectedAssignmentMemberId == 0 || SelectedChapters.Count == 0)">Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "BibleId")]
+    public string BibleId { get; set; }
+
+    // Optional error message shown in the UI when set
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private List<QuizTeam> Teams = new();
+    private QuizTeam SelectedTeam;
+    private QuizTeam NewTeam = new();
+    private QuizTeamMember NewMember = new();
+    private QuizTeamCoach NewCoach = new();
+    private List<QuizTeamMemberAssignment> SelectedTeamAssignments = new();
+    private List<QuizUser> AvailableCoaches = new();
+    private List<BibleBook> AvailableBooks = new();
+    private List<int> AvailableChapters = new();
+    private QuizUser CurrentUser;
+    private string CurrentUserEmail = "";
+    private string ActiveTab = "members";
+
+    // Modal states
+    private bool ShowTeamModal = false;
+    private bool ShowMemberModal = false;
+    private bool ShowCoachModal = false;
+    private bool ShowAssignmentModal = false;
+    private bool IsEditingTeam = false;
+    private bool IsEditingMember = false;
+    private bool LoadingTeams = false;
+
+    // Assignment tracking
+    private int SelectedAssignmentMemberId = 0;
+    private int SelectedBookNumber = 0;
+    private List<int> SelectedChapters = new();
+
+    // Coach email validation
+    private string CoachEmailInput = string.Empty;
+    private string CoachValidationMessage = string.Empty;
+    private bool CoachEmailExists = false;
+    private QuizUser SelectedCoach;
+
+    private int ChapterRangeFrom = 0;
+    private int ChapterRangeTo = 0;
+
+    protected override Task OnInitializedAsync()
+    {
+        LoadingTeams = true;
+        // nothing heavy here - OnParametersSetAsync will handle defaults and initialization
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Ensure some defaults only when values are null
+        BibleId ??= await QuizQuestion.GetValidBibleIdAsync(DbContext, null);
+        await LoadTeams();
+    }
+
+    private async Task LoadTeams()
+    {
+        LoadingTeams = true;
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            CurrentUserEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            CurrentUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, CurrentUserEmail);
+
+            // Load teams where user is owner or coach
+            Teams = await QuizTeam.GetAllMyTeamsAsync(DbContext, CurrentUser);
+
+            // Load available coaches
+            // Let's validated rather than load... there are too many QuizUsers to make this effecient.
+            // AvailableCoaches = await DbContext.QuizUsers.ToListAsync();
+
+            // Load available books
+            AvailableBooks = await BibleBook.GetBooksByBibleIDAsync(DbContext, BibleId);
+        }
+        finally
+        {
+            LoadingTeams = false;
+        }
+    }
+
+    private void ShowAddTeamModal()
+    {
+        NewTeam = new QuizTeam();
+        IsEditingTeam = false;
+        ShowTeamModal = true;
+    }
+
+    private void ShowEditTeamModal(QuizTeam team)
+    {
+        NewTeam = new QuizTeam { Id = team.Id, Name = team.Name };
+        IsEditingTeam = true;
+        ShowTeamModal = true;
+    }
+
+    private void CloseTeamModal()
+    {
+        ShowTeamModal = false;
+    }
+
+    private async Task SaveTeam()
+    {
+        ErrorMessage = string.Empty;
+        try
+        {
+            if (IsEditingTeam)
+            {
+                var existingTeam = await DbContext.QuizTeams.FindAsync(NewTeam.Id);
+                existingTeam.Name = NewTeam.Name;
+                existingTeam.Modified = DateTimeOffset.Now;
+                DbContext.QuizTeams.Update(existingTeam);
+            }
+            else
+            {
+                NewTeam.Owner = CurrentUserEmail;
+                NewTeam.Created = DateTimeOffset.Now;
+                NewTeam.Modified = DateTimeOffset.Now;
+                DbContext.QuizTeams.Add(NewTeam);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadTeams();
+            CloseTeamModal();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while saving the team: " + ex.Message;
+            Console.WriteLine($"Error saving team: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteTeam(int teamId)
+    {
+        if (!await ConfirmDelete("Are you sure you want to delete this team?"))
+            return;
+
+        try
+        {
+            var team = await DbContext.QuizTeams.FindAsync(teamId);
+            if (team != null)
+            {
+                if (!await team.DeleteTeamAsync(DbContext)) { ErrorMessage = "We were unable to delete this team"; }
+                await LoadTeams();
+                if (SelectedTeam?.Id == teamId)
+                    SelectedTeam = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting team: {ex.Message}");
+        }
+    }
+
+    private void SelectTeam(QuizTeam team)
+    {
+        SelectedTeam = team;
+        SelectedTeamAssignments = team.QuizTeamMemberAssignments.ToList();
+        ActiveTab = "members";
+    }
+
+    private void ShowAddMemberModal()
+    {
+        NewMember = new QuizTeamMember();
+        IsEditingMember = false;
+        ShowMemberModal = true;
+    }
+
+    private void ShowEditMemberModal(QuizTeamMember member)
+    {
+        NewMember = new QuizTeamMember 
+        { 
+            Id = member.Id, 
+            Name = member.Name, 
+        };
+        IsEditingMember = true;
+        ShowMemberModal = true;
+    }
+
+    private void CloseMemberModal()
+    {
+        ShowMemberModal = false;
+    }
+
+    private async Task SaveMember()
+    {
+        try
+        {
+            if (SelectedTeam == null) return;
+
+            if (IsEditingMember)
+            {
+                var existingMember = await DbContext.QuizTeamMembers.FindAsync(NewMember.Id);
+                existingMember.Name = NewMember.Name;
+                //existingMember.Email = NewMember.Email;
+                existingMember.Modified = DateTimeOffset.Now;
+                DbContext.QuizTeamMembers.Update(existingMember);
+            }
+            else
+            {
+                NewMember.TeamId = SelectedTeam.Id;
+                NewMember.Owner = CurrentUserEmail;
+                NewMember.Created = DateTimeOffset.Now;
+                NewMember.Modified = DateTimeOffset.Now;
+                DbContext.QuizTeamMembers.Add(NewMember);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await ReloadSelectedTeam();
+            CloseMemberModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving member: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteMember(int memberId)
+    {
+        ErrorMessage = string.Empty;
+        if (!await ConfirmDelete("Are you sure you want to remove this member?"))
+            return;
+
+        try
+        {
+            var member = await DbContext.QuizTeamMembers.FindAsync(memberId);
+            if (member != null)
+            {
+                // DbContext.QuizTeamMembers.Remove(member);
+                // await DbContext.SaveChangesAsync();
+                if (!await SelectedTeam.DeleteTeamMemberAsync(DbContext, member)) { ErrorMessage = "We were unable to delete this Team Mamber"; }
+                await ReloadSelectedTeam();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while deleting the member: " + ex.Message;
+            Console.WriteLine($"Error deleting member: {ex.Message}");
+        }
+    }
+
+    private void ShowAddCoachModal()
+    {
+        NewCoach = new QuizTeamCoach();
+        ShowCoachModal = true;
+    }
+
+    private void CloseCoachModal()
+    {
+        ShowCoachModal = false;
+    }
+
+    private async Task SaveCoach()
+    {
+        ErrorMessage = string.Empty;
+        try
+        {
+            if (SelectedTeam == null || NewCoach.CoachId == 0) return;
+
+            NewCoach.TeamId = SelectedTeam.Id;
+            NewCoach.CoachId = SelectedCoach.Id;
+            NewCoach.Created = DateTimeOffset.Now;
+            NewCoach.Modified = DateTimeOffset.Now;
+            DbContext.QuizTeamCoaches.Add(NewCoach);
+            await DbContext.SaveChangesAsync();
+            await ReloadSelectedTeam();
+            CloseCoachModal();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while saving the coach: " + ex.Message;
+            Console.WriteLine($"Error saving coach: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteCoach(int coachId)
+    {
+        ErrorMessage = string.Empty;
+        if (!await ConfirmDelete("Are you sure you want to remove this coach?"))
+            return;
+
+        try
+        {
+            var coach = await DbContext.QuizTeamCoaches.FindAsync(coachId);
+            if (coach != null)
+            {
+                DbContext.QuizTeamCoaches.Remove(coach);
+                await DbContext.SaveChangesAsync();
+                await ReloadSelectedTeam();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while deleting the coach: " + ex.Message;
+            Console.WriteLine($"Error deleting coach: {ex.Message}");
+        }
+    }
+
+    private void ShowAddAssignmentModal()
+    {
+        SelectedAssignmentMemberId = 0;
+        SelectedBookNumber = 0;
+        SelectedChapters.Clear();
+        ShowAssignmentModal = true;
+    }
+
+    private void CloseAssignmentModal()
+    {
+        ShowAssignmentModal = false;
+    }
+
+    private async Task OnMemberSelected(ChangeEventArgs e)
+    {
+        SelectedBookNumber = 0;
+        SelectedChapters.Clear();
+        await Task.CompletedTask;
+    }
+
+    private async Task OnBookSelected(ChangeEventArgs e)
+    {
+        SelectedChapters.Clear();
+        if (int.TryParse(e.Value?.ToString(), out int bookNumber) && bookNumber > 0)
+        {
+            AvailableChapters = await DbContext.BibleChapters
+                .Where(c => c.BibleId == BibleId && c.BookNumber == bookNumber)
+                .Select(c => c.ChapterNumber)
+                .OrderBy(c => c)
+                .ToListAsync();
+        }
+        else
+        {
+            AvailableChapters.Clear();
+        }
+    }
+
+    private void OnChapterToggled(int chapter, bool isSelected)
+    {
+        if (isSelected && !SelectedChapters.Contains(chapter))
+        {
+            SelectedChapters.Add(chapter);
+        }
+        else if (!isSelected && SelectedChapters.Contains(chapter))
+        {
+            SelectedChapters.Remove(chapter);
+        }
+    }
+
+    private void AddChapterRange()
+    {
+        if (ChapterRangeFrom == 0 || ChapterRangeTo == 0 || ChapterRangeFrom > ChapterRangeTo)
+        {
+            ErrorMessage = "Please select a valid range.";
+            return;
+        }
+
+        for (int chapter = ChapterRangeFrom; chapter <= ChapterRangeTo; chapter++)
+        {
+            if (!SelectedChapters.Contains(chapter))
+                SelectedChapters.Add(chapter);
+        }
+
+        ChapterRangeFrom = 0;
+        ChapterRangeTo = 0;
+    }
+
+    private async Task SaveAssignments()
+    {
+        try
+        {
+            if (SelectedTeam == null || SelectedAssignmentMemberId == 0 || SelectedChapters.Count == 0)
+                return;
+
+            foreach (var chapter in SelectedChapters)
+            {
+                var assignment = new QuizTeamMemberAssignment
+                {
+                    TeamId = SelectedTeam.Id,
+                    MemberId = SelectedAssignmentMemberId,
+                    BookNumber = SelectedBookNumber,
+                    ChapterNumber = chapter,
+                    Created = DateTimeOffset.Now,
+                    Modified = DateTimeOffset.Now
+                };
+                DbContext.QuizTeamMemberAssignments.Add(assignment);
+            }
+
+            await DbContext.SaveChangesAsync();
+            await ReloadSelectedTeam();
+            CloseAssignmentModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving assignments: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAssignment(int assignmentId)
+    {
+        if (!await ConfirmDelete("Are you sure you want to remove this assignment?"))
+            return;
+
+        try
+        {
+            var assignment = await DbContext.QuizTeamMemberAssignments.FindAsync(assignmentId);
+            if (assignment != null)
+            {
+                DbContext.QuizTeamMemberAssignments.Remove(assignment);
+                await DbContext.SaveChangesAsync();
+                await ReloadSelectedTeam();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting assignment: {ex.Message}");
+        }
+    }
+
+    private async Task ReloadSelectedTeam()
+    {
+        if (SelectedTeam != null)
+        {
+            SelectedTeam = await DbContext.QuizTeams
+                .Where(t => t.Id == SelectedTeam.Id)
+                .Include(t => t.QuizTeamMembers)
+                .Include(t => t.QuizTeamCoaches)
+                    .ThenInclude(c => c.Coach)
+                .Include(t => t.QuizTeamMemberAssignments)
+                    .ThenInclude(a => a.Member)
+                .FirstAsync();
+
+            SelectedTeamAssignments = SelectedTeam.QuizTeamMemberAssignments.ToList();
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
+    // private string GetMemberTypeName(int type) => type switch
+    // {
+    //     0 => "Standard",
+    //     1 => "Premium",
+    //     _ => "Unknown"
+    // };
+
+    // private string GetCoachTypeName(int type) => type switch
+    // {
+    //     0 => "Standard",
+    //     1 => "Head Coach",
+    //     _ => "Unknown"
+    // };
+
+    // private string GetAssignmentTypeName(int type) => type switch
+    // {
+    //     0 => "Study",
+    //     1 => "Quiz",
+    //     _ => "Unknown"
+    // };
+
+    private string GetBookName(int? bookNumber)
+    {
+        if (!bookNumber.HasValue)
+            return "Unknown";
+            
+        var book = AvailableBooks.FirstOrDefault(b => b.BookNumber == bookNumber.Value);
+        return book?.Name ?? "Unknown";
+    }
+
+    private async Task<bool> ConfirmDelete(string message)
+    {
+        return await js.InvokeAsync<bool>("confirm", message);
+    }
+
+    private async Task ValidateCoachEmail(ChangeEventArgs e)
+    {
+        CoachValidationMessage = "Validating...";
+        CoachEmailExists = false;
+        SelectedCoach = null;
+
+        var email = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            CoachValidationMessage = "Email is required.";
+            return;
+        }
+
+        // Check if the email is in the correct format
+        if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
+        {
+            CoachValidationMessage = "Invalid email format.";
+            return;
+        }
+
+        // Simulate server-side email validation
+        await Task.Delay(500);
+
+        // Check if the coach exists in the system
+        var coach = await DbContext.QuizUsers.FirstOrDefaultAsync(u => u.Email == email);
+        if (coach != null)
+        {
+            CoachEmailExists = true;
+            SelectedCoach = coach;
+            CoachValidationMessage = "Coach email found.";
+        }
+        else
+        {
+            CoachEmailExists = false;
+            CoachValidationMessage = "Coach email not found.";
+        }
+    }
+}

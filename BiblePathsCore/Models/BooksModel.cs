@@ -173,6 +173,15 @@ namespace BiblePathsCore.Models.DB
             return BookSelectList;
         }
 
+        public static async Task<List<BibleBook>> GetBooksByBibleIDAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+
+            return await context.BibleBooks
+                                      .Where(B => B.BibleId == BibleId)
+                                      .OrderBy(b => b.BookNumber)
+                                      .ToListAsync();
+        }
+
         public static async Task<List<SelectListItem>> GetCommentaryBookSelectListAsync(BiblePathsCoreDbContext context, string BibleId, int BookNum = 0, bool IncludeBooksWithCommentary = false)
         {
 

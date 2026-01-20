@@ -9,6 +9,8 @@ public partial class QuizGroupStat
 
     public int? QuizUserId { get; set; }
 
+    public int QuizTeamId { get; set; }
+
     public string GroupName { get; set; }
 
     public int BookNumber { get; set; }

@@ -24,4 +24,6 @@ public partial class QuizUser
     public virtual ICollection<QuizGroupStat> QuizGroupStats { get; set; } = new List<QuizGroupStat>();
 
     public virtual ICollection<QuizQuestionStat> QuizQuestionStats { get; set; } = new List<QuizQuestionStat>();
+
+    public virtual ICollection<QuizTeamCoach> QuizTeamCoaches { get; set; } = new List<QuizTeamCoach>();
 }
