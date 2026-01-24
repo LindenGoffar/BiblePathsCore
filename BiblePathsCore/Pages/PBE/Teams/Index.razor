@@ -60,13 +60,13 @@
                         <td class="m-2">
                             <div class="small">Members: @team.QuizTeamMembers.Count</div>
                             <div class="small">Coaches: @team.QuizTeamCoaches.Count</div>
-                            <div class="small">Assigned Chapters: @team.QuizTeamMemberAssignments.Count</div>
+                            <div class="small">Assignments: @team.QuizTeamMemberAssignments.Count</div>
                         </td>
                         <td class="m-2">
                             <button class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
                             <button class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
                             <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
-                            <a href="/pbe/teams/quizhistory/@team.Id" class="btn btn-sm btn-success">Quiz History</a>
+                            <a href="/pbe/teams/quizhistory/@team.Id" class="btn btn-sm btn-success">Quizzes</a>
                         </td>
                     </tr>
                 }
@@ -80,8 +80,11 @@
     {
         <hr class="my-5" />
         <div class="card">
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">@SelectedTeam.Name</h4>
+                <button type="button" class="close text-white" @onclick="() => SelectedTeam = null" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="card-body">
                 <!-- Tabs for different sections -->
@@ -93,7 +96,7 @@
                         <a class="nav-link @(ActiveTab == "coaches" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("coaches"))">Coaches</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("assignments"))">Chapter Assignments</a>
+                        <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("assignments"))">Assignments</a>
                     </li>
                 </ul>
 
@@ -184,7 +187,7 @@
                 @if (ActiveTab == "assignments")
                 {
                     <div class="tab-pane fade show active">
-                        <h5 class="mb-3">Chapter Assignments</h5>
+                        <h5 class="mb-3">Assignments</h5>
                         <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
                         
                         @if (SelectedTeamAssignments.Count == 0)
@@ -416,6 +419,7 @@
                                                 <label for="chapterFrom">From Chapter:</label>
                                                 <select class="form-control" id="chapterFrom" 
                                                         @onchange="@((ChangeEventArgs e) => OnChapterFromSelected(e))">
+                                                    <option value="0">-- Select a Chapter --</option>
                                                     @foreach (var chapter in ChapterSelectList)
                                                     {
                                                         <option value="@chapter.Value">@chapter.Text</option>
@@ -426,7 +430,8 @@
                                                 <label for="chapterTo">To Chapter:</label>
                                                 <select class="form-control" id="chapterTo" 
                                                         @onchange="@((ChangeEventArgs e) => OnChapterToSelected(e))">
-                                                    @foreach (var chapter in ChapterSelectList)
+                                                    <option value="0">-- Select a Chapter --</option>
+                                                    @foreach (var chapter in ToChapterSelectList)
                                                     {
                                                         <option value="@chapter.Value">@chapter.Text</option>
                                                     }
@@ -476,6 +481,12 @@
         </div>
     </div>
 }
+<div>
+    <hr />
+    <a href="/PBE/Quizzes?BibleId=@BibleId">Back to Quizzes</a>
+    <br />
+    <a href="/PBE/Index">Back to PBE Home</a>
+</div>
 
 @code {
 
@@ -514,6 +525,7 @@
     private int SelectedBookNumber = 0;
     private BibleBook SelectedBook = new();
     private List<SelectListItem> ChapterSelectList = new();
+    private List<SelectListItem> ToChapterSelectList = new();
     private List<int> SelectedChapters = new();
 
     // Coach email validation
@@ -808,6 +820,7 @@
             //Get opur SelectedBook so we can retrieve a chapter select list.
             SelectedBook = AvailableBooks.Where(b => b.BookNumber == bookNumber).FirstOrDefault();
             ChapterSelectList = await SelectedBook.GetChapterAndCommentarySelectListAsync(DbContext, BibleId);
+            ToChapterSelectList = ChapterSelectList;
         }
         else
         {
@@ -843,6 +856,11 @@
             {
                 ChapterRangeTo = ChapterRangeFrom;
             }
+
+            // Let's update ToChapterSelectList to exclude chapters less than ChapterRangeFrom
+            ToChapterSelectList = ChapterSelectList
+                .Where(c => int.Parse(c.Value) >= ChapterRangeFrom)
+                .ToList();
         }
     }
 

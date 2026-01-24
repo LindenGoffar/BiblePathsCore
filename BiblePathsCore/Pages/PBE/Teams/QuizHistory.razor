@@ -20,7 +20,7 @@
     }
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>Quiz History - @(SelectedTeam?.Name ?? "Loading...")</h4>
+        <h4>Team Quizzes - @(SelectedTeam?.Name ?? "Loading...")</h4>
         <a href="/pbe/teams/@BibleId" class="btn btn-secondary">Back to Teams</a>
     </div>
 
@@ -28,7 +28,7 @@
     {
         <div class="alert alert-info">
             <span class="spinner-border spinner-border-sm mr-2"></span>
-            Loading quiz history...
+            Loading Team Quizzes...
         </div>
     }
     else if (SelectedTeam == null)
@@ -40,7 +40,7 @@
     else if (QHistory == null || QHistory.Count == 0)
     {
         <div class="alert alert-info">
-            No quiz history available for this team yet.
+            No quizzes available for this team yet.
         </div>
     }
     else
@@ -55,7 +55,7 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Quiz Name</th>
-                                <th>Date Modified</th>
+                                <th>Updated</th>
                                 <th>Quiz Stats</th>
                                 <th>Actions</th>
                             </tr>
@@ -68,7 +68,7 @@
                                         <strong>@quiz.GroupName</strong>
                                     </td>
                                     <td>
-                                        <small>@quiz.Modified</small>
+                                        <small>@(quiz.Modified?.ToString("g") ?? "N/A")</small>
                                     </td>
                                     <td>
                                         <span>
@@ -91,7 +91,7 @@
     }
 
     <hr class="my-4" />
-    <a href="/pbe/teams" class="btn btn-secondary">Back to Teams</a>
+    <a href="/pbe/teams?BibleId=@BibleId">Back to Teams</a>
 </div>
 
 @code {
