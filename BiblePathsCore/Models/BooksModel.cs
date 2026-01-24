@@ -173,6 +173,39 @@ namespace BiblePathsCore.Models.DB
             return BookSelectList;
         }
 
+        public async Task<List<SelectListItem>> GetChapterAndCommentarySelectListAsync(BiblePathsCoreDbContext context, string BibleId)
+        {
+
+            List<SelectListItem> ChapterSelectList = new List<SelectListItem>();
+            List<BibleChapter> Chapters = await context.BibleChapters
+                                      .Where(C => C.BibleId == BibleId && C.BookNumber == this.BookNumber)
+                                      .OrderBy(C => C.ChapterNumber)
+                                      .ToListAsync();
+
+
+            foreach (BibleChapter Chapter in Chapters)
+            {
+                ChapterSelectList.Add(new SelectListItem
+                {
+                    Text = Chapter.ChapterNumber.ToString(),
+                    Value = Chapter.ChapterNumber.ToString(),
+                });
+            }
+
+            // This check uses an Any will work fine with the multi Commentary books scenario 
+            HasCommentary = await HasCommentaryAsync(context);
+            if (HasCommentary)
+            {
+                this.HasCommentary = true;
+                ChapterSelectList.Add(new SelectListItem
+                {
+                    Text = "Bible Commentary",
+                    Value = "1000",
+                });
+            }
+            return ChapterSelectList;
+        }
+
         public static async Task<List<BibleBook>> GetBooksByBibleIDAsync(BiblePathsCoreDbContext context, string BibleId)
         {
 

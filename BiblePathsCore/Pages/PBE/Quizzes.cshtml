@@ -38,7 +38,6 @@
                     <tr>
                         <th>Quiz</th>
                         <th>Book/Template</th>
-                        <th>Team</th>
                         <th>Stats</th>
                         <th>Action</th>
                     </tr>
@@ -49,9 +48,13 @@
                         <tr>
                             <td>
                                 <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId">@quiz.GroupName</a>
+                                @if(quiz.TeamName != null)
+                                {
+                                    <br />
+                                    <span class="text-muted">@quiz.TeamName</span>
+                                }
                             </td>
                             <td>@quiz.BookOrTemplateName</td>
-                            <td>@quiz.TeamName</td>
                             <td>
                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id">
                                     <span>

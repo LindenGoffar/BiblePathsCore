@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Mvc.Rendering
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.JSInterop
@@ -209,7 +210,17 @@
                                             <tr>
                                                 <td>@assignment.Member.Name</td>
                                                 <td>@GetBookName(assignment.BookNumber)</td>
-                                                <td>@assignment.ChapterNumber</td>
+                                                <td> 
+                                                    @if (@assignment.ChapterNumber != @Bible.CommentaryChapter)
+                                                    {
+                                                        <span>@assignment.ChapterNumber</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Bible Commentary</span>
+                                                    }
+                                                    
+                                                </td>
 @*                                                 <td>@GetAssignmentTypeName(assignment.AssignmentType)</td> *@
                                                 <td>
                                                     <button class="btn btn-sm btn-danger" @onclick="() => DeleteAssignment(assignment.Id)">Remove</button>
@@ -347,6 +358,12 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    @if (!string.IsNullOrWhiteSpace(AssignmentErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @AssignmentErrorMessage
+                        </div>
+                    }
                     <div class="form-group">
                         <label for="memberSelect">Select Member</label>
                         <select class="form-control" id="memberSelect" 
@@ -399,10 +416,9 @@
                                                 <label for="chapterFrom">From Chapter:</label>
                                                 <select class="form-control" id="chapterFrom" 
                                                         @onchange="@((ChangeEventArgs e) => OnChapterFromSelected(e))">
-                                                    <option value="0">Select...</option>
-                                                    @foreach (var chapter in AvailableChapters)
+                                                    @foreach (var chapter in ChapterSelectList)
                                                     {
-                                                        <option value="@chapter" selected="@(ChapterRangeFrom == chapter)">@chapter</option>
+                                                        <option value="@chapter.Value">@chapter.Text</option>
                                                     }
                                                 </select>
                                             </div>
@@ -410,10 +426,9 @@
                                                 <label for="chapterTo">To Chapter:</label>
                                                 <select class="form-control" id="chapterTo" 
                                                         @onchange="@((ChangeEventArgs e) => OnChapterToSelected(e))">
-                                                    <option value="0">Select...</option>
-                                                    @foreach (var chapter in AvailableChapters.Where(c => c >= ChapterRangeFrom || ChapterRangeFrom == 0))
+                                                    @foreach (var chapter in ChapterSelectList)
                                                     {
-                                                        <option value="@chapter" selected="@(ChapterRangeTo == chapter)">@chapter</option>
+                                                        <option value="@chapter.Value">@chapter.Text</option>
                                                     }
                                                 </select>
                                             </div>
@@ -431,7 +446,14 @@
                                                     @foreach (var chapter in SelectedChapters.OrderBy(c => c))
                                                     {
                                                         <span class="badge badge-primary mr-1 mb-1">
-                                                            Chapter @chapter
+                                                            @if (chapter != @Bible.CommentaryChapter)
+                                                            {
+                                                                @chapter
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>Bible Commentary</span>
+                                                            }
                                                             <button type="button" class="close ml-1" @onclick="() => SelectedChapters.Remove(chapter)">
                                                                 <span>&times;</span>
                                                             </button>
@@ -463,6 +485,7 @@
 
     // Optional error message shown in the UI when set
     private string ErrorMessage { get; set; } = string.Empty;
+    private string AssignmentErrorMessage { get; set; } = string.Empty;
 
     private List<QuizTeam> Teams = new();
     private QuizTeam SelectedTeam;
@@ -489,6 +512,8 @@
     // Assignment tracking
     private int SelectedAssignmentMemberId = 0;
     private int SelectedBookNumber = 0;
+    private BibleBook SelectedBook = new();
+    private List<SelectListItem> ChapterSelectList = new();
     private List<int> SelectedChapters = new();
 
     // Coach email validation
@@ -780,11 +805,9 @@
         SelectedChapters.Clear();
         if (int.TryParse(e.Value?.ToString(), out int bookNumber) && bookNumber > 0)
         {
-            AvailableChapters = await DbContext.BibleChapters
-                .Where(c => c.BibleId == BibleId && c.BookNumber == bookNumber)
-                .Select(c => c.ChapterNumber)
-                .OrderBy(c => c)
-                .ToListAsync();
+            //Get opur SelectedBook so we can retrieve a chapter select list.
+            SelectedBook = AvailableBooks.Where(b => b.BookNumber == bookNumber).FirstOrDefault();
+            ChapterSelectList = await SelectedBook.GetChapterAndCommentarySelectListAsync(DbContext, BibleId);
         }
         else
         {
@@ -809,7 +832,7 @@
         if (int.TryParse(e.Value?.ToString(), out int fromChapter))
         {
             ChapterRangeFrom = fromChapter;
-            
+
             // If ChapterRangeFrom is set and ChapterRangeTo is not set (0), set it to the same value
             if (ChapterRangeFrom > 0 && ChapterRangeTo == 0)
             {
@@ -830,7 +853,7 @@
             // Ensure ChapterRangeTo is not less than ChapterRangeFrom
             if (ChapterRangeFrom > 0 && toChapter > 0 && toChapter < ChapterRangeFrom)
             {
-                ErrorMessage = $"To Chapter must be greater than or equal to From Chapter ({ChapterRangeFrom}).";
+                AssignmentErrorMessage = $"To Chapter must be greater than or equal to From Chapter ({ChapterRangeFrom}).";
                 ChapterRangeTo = ChapterRangeFrom; // Reset to ChapterRangeFrom
             }
             else
@@ -845,16 +868,21 @@
     {
         if (ChapterRangeFrom == 0 || ChapterRangeTo == 0 || ChapterRangeFrom > ChapterRangeTo)
         {
-            ErrorMessage = "Please select a valid range.";
+            AssignmentErrorMessage = "Please select a valid range.";
             return;
         }
 
-        for (int chapter = ChapterRangeFrom; chapter <= ChapterRangeTo; chapter++)
+        for (int chapter = ChapterRangeFrom; chapter <= ChapterRangeTo && chapter <= SelectedBook.Chapters; chapter++)
         {
             if (!SelectedChapters.Contains(chapter))
                 SelectedChapters.Add(chapter);
         }
-
+        // And handle the Commentary Scenario one-off
+        if (ChapterRangeTo == Bible.CommentaryChapter)
+        {
+            if (!SelectedChapters.Contains(Bible.CommentaryChapter))
+                SelectedChapters.Add(Bible.CommentaryChapter);
+        }
         ChapterRangeFrom = 0;
         ChapterRangeTo = 0;
     }
@@ -932,27 +960,6 @@
     {
         ActiveTab = tab;
     }
-
-    // private string GetMemberTypeName(int type) => type switch
-    // {
-    //     0 => "Standard",
-    //     1 => "Premium",
-    //     _ => "Unknown"
-    // };
-
-    // private string GetCoachTypeName(int type) => type switch
-    // {
-    //     0 => "Standard",
-    //     1 => "Head Coach",
-    //     _ => "Unknown"
-    // };
-
-    // private string GetAssignmentTypeName(int type) => type switch
-    // {
-    //     0 => "Study",
-    //     1 => "Quiz",
-    //     _ => "Unknown"
-    // };
 
     private string GetBookName(int? bookNumber)
     {

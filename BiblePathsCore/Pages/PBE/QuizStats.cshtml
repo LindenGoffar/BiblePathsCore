@@ -35,7 +35,6 @@
                                     <th>Chapter</th>
                                     <th>Questions</th>
                                     <th>Score</th>
-                                    <th>Team Members</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,9 +86,9 @@
                                                 </div>
                                             </div>
                                     </td>
-                                    <td>@ChapterStat.Percentage%</td>
-                                    <td>
+                                    <td>@ChapterStat.Percentage%
                                         @if (ChapterStat.TeamMembers != null){
+                                            <br />
                                             @foreach (var Member in ChapterStat.TeamMembers)
                                             {
                                                 <span class="badge badge-light">@Member.Name</span>
