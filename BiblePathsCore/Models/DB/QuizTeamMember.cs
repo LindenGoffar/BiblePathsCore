@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BiblePathsCore.Models.DB;
 
@@ -24,4 +25,5 @@ public partial class QuizTeamMember
     public virtual ICollection<QuizTeamMemberAssignment> QuizTeamMemberAssignments { get; set; } = new List<QuizTeamMemberAssignment>();
 
     public virtual QuizTeam Team { get; set; }
+
 }

@@ -29,6 +29,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int QuestionNumber { get; set; }
         [NotMapped]
+        public string TeamName { get; set; }
+        [NotMapped]
         public List<QuestionHistory> QuizHistory { get; set; }
 
         public void CalculateQuizStats()
@@ -58,6 +60,14 @@ namespace BiblePathsCore.Models.DB
             else
             {
                 BookOrTemplateName = await BibleBook.GetBookorBookListNameAsync(context, bibleId, BookNumber);
+            }
+            if (QuizTeamId != 0) 
+            { 
+                QuizTeam team = await context.QuizTeams.FindAsync(QuizTeamId);
+                if (team != null)
+                {
+                    TeamName = team.Name;
+                }
             }
             QuestionNumber = QuestionsAsked + 1;
             CalculateQuizStats();
@@ -123,6 +133,13 @@ namespace BiblePathsCore.Models.DB
                         Question.BookName = bookStat.BookName; // set this cause we need it for the Commentary scenario
                         Question.Verses = await Question.GetCommentaryMetadataAsVersesAsync(context, true);
                     }
+
+                    // If there is a team associated with this quiz let's find team members associated with this question.
+                    if (QuizTeamId != 0)
+                    {
+                        _ = await Question.AddTeamMemberInfoAsync(context, QuizTeamId);
+                    }
+
                     // Now let's go update this bookStat
                     bookStat.AddQuestionToBookStat(Stat, Question);
 
@@ -565,6 +582,7 @@ namespace BiblePathsCore.Models.DB
             public int PointsAwarded { get; set; }
             public float Percentage { get; set; }
             public List<QuizQuestionStats> QuestionStats { get; set; }
+            public List<QuizTeamMember> TeamMembers { get; set; }
             public QuizChapterStats()
             {
                 Chapter = 0;
@@ -582,6 +600,9 @@ namespace BiblePathsCore.Models.DB
                 QuestionStats.Add(QuestionStat);
                 // Now let's go update this chapterStat
                 QuestionStat.AddQuestionToQuestionStat(stat, question);
+
+                // We should have grabbed these earlier when we loaded the question.
+                TeamMembers = question.TeamMembers;
 
                 // Now let's deal with ChapterStats
                 QuestionsAsked++;

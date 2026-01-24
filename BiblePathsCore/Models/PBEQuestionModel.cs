@@ -37,6 +37,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public string BookName { get; set; }
         [NotMapped]
+        public string TeamName { get; set; }
+        [NotMapped]
         public string PBEQuestion { get; set; }
         [NotMapped]
         public string PBEQuestionIntro { get; set; }
@@ -52,6 +54,8 @@ namespace BiblePathsCore.Models.DB
         public int PointsAwarded { get; set; }
         [NotMapped]
         public List<BibleVerse> Verses { get; set; }
+        [NotMapped]
+        public List<QuizTeamMember> TeamMembers { get; set; }
         [NotMapped]
         public string CommentarySectionTitle { get; set; }
         [NotMapped]
@@ -182,6 +186,17 @@ namespace BiblePathsCore.Models.DB
             Type = DetectQuestionType();
             LastAsked = DateTime.Now;
             await context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> AddTeamMemberInfoAsync(BiblePathsCoreDbContext context, int teamID)
+        {
+            // Need to go grab this team object 
+            QuizTeam team = await QuizTeam.GetTeamByIdAsync(context, teamID);
+            if (team == null) { return false; }
+            TeamName = team.Name;
+
+            // Get all Team members with an assignment to the chapter in this question.
+            TeamMembers = await team.GetTeamMembersWithAssignmentToQuestionAsync(context, this);
             return true;
         }
 

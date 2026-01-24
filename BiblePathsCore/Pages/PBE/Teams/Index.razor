@@ -15,7 +15,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime js
 
-<div class="container mt-4">
+<div class="container mt-2">
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <div class="alert alert-danger" role="alert">
@@ -43,24 +43,34 @@
     else
     {
         <div class="row">
-            @foreach (var team in Teams)
-            {
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">@team.Name</h5>
-                    </div>
-                    <div class="card-body">
-                        <div><strong>Members:</strong> @team.QuizTeamMembers.Count</div>
-                        <div><strong>Coaches:</strong> @team.QuizTeamCoaches.Count</div>
-                        <div><strong>Assigned Chapters:</strong>@team.QuizTeamMemberAssignments.Count</div>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
-                        <button class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
-                    </div>
-                </div>
-            }
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th>Details</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var team in Teams)
+                {
+                    <tr>
+                        <td class="m-2"><h5 class="mb-0">@team.Name</h5></td>
+                        <td class="m-2">
+                            <div class="small">Members: @team.QuizTeamMembers.Count</div>
+                            <div class="small">Coaches: @team.QuizTeamCoaches.Count</div>
+                            <div class="small">Assigned Chapters: @team.QuizTeamMemberAssignments.Count</div>
+                        </td>
+                        <td class="m-2">
+                            <button class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
+                            <button class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
+                            <a href="/pbe/teams/quizhistory/@team.Id" class="btn btn-sm btn-success">Quiz History</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
         </div>
     }
 
@@ -70,7 +80,7 @@
         <hr class="my-5" />
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h4 class="mb-0">@SelectedTeam.Name - Team Details</h4>
+                <h4 class="mb-0">@SelectedTeam.Name</h4>
             </div>
             <div class="card-body">
                 <!-- Tabs for different sections -->
@@ -387,21 +397,23 @@
                                         <div class="row mb-3">
                                             <div class="col-md-4">
                                                 <label for="chapterFrom">From Chapter:</label>
-                                                <select class="form-control" id="chapterFrom" @bind="ChapterRangeFrom">
+                                                <select class="form-control" id="chapterFrom" 
+                                                        @onchange="@((ChangeEventArgs e) => OnChapterFromSelected(e))">
                                                     <option value="0">Select...</option>
                                                     @foreach (var chapter in AvailableChapters)
                                                     {
-                                                        <option value="@chapter">@chapter</option>
+                                                        <option value="@chapter" selected="@(ChapterRangeFrom == chapter)">@chapter</option>
                                                     }
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="chapterTo">To Chapter:</label>
-                                                <select class="form-control" id="chapterTo" @bind="ChapterRangeTo">
+                                                <select class="form-control" id="chapterTo" 
+                                                        @onchange="@((ChangeEventArgs e) => OnChapterToSelected(e))">
                                                     <option value="0">Select...</option>
-                                                    @foreach (var chapter in AvailableChapters)
+                                                    @foreach (var chapter in AvailableChapters.Where(c => c >= ChapterRangeFrom || ChapterRangeFrom == 0))
                                                     {
-                                                        <option value="@chapter">@chapter</option>
+                                                        <option value="@chapter" selected="@(ChapterRangeTo == chapter)">@chapter</option>
                                                     }
                                                 </select>
                                             </div>
@@ -497,8 +509,8 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // Ensure some defaults only when values are null
-        BibleId ??= await QuizQuestion.GetValidBibleIdAsync(DbContext, null);
+        // Ensure a valid BibleId
+        BibleId = await QuizQuestion.GetValidBibleIdAsync(DbContext, BibleId);
         await LoadTeams();
     }
 
@@ -789,6 +801,43 @@
         else if (!isSelected && SelectedChapters.Contains(chapter))
         {
             SelectedChapters.Remove(chapter);
+        }
+    }
+
+    private void OnChapterFromSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int fromChapter))
+        {
+            ChapterRangeFrom = fromChapter;
+            
+            // If ChapterRangeFrom is set and ChapterRangeTo is not set (0), set it to the same value
+            if (ChapterRangeFrom > 0 && ChapterRangeTo == 0)
+            {
+                ChapterRangeTo = ChapterRangeFrom;
+            }
+            // If ChapterRangeTo is already set but is less than ChapterRangeFrom, adjust it
+            else if (ChapterRangeFrom > 0 && ChapterRangeTo > 0 && ChapterRangeTo < ChapterRangeFrom)
+            {
+                ChapterRangeTo = ChapterRangeFrom;
+            }
+        }
+    }
+
+    private void OnChapterToSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int toChapter))
+        {
+            // Ensure ChapterRangeTo is not less than ChapterRangeFrom
+            if (ChapterRangeFrom > 0 && toChapter > 0 && toChapter < ChapterRangeFrom)
+            {
+                ErrorMessage = $"To Chapter must be greater than or equal to From Chapter ({ChapterRangeFrom}).";
+                ChapterRangeTo = ChapterRangeFrom; // Reset to ChapterRangeFrom
+            }
+            else
+            {
+                ChapterRangeTo = toChapter;
+                ErrorMessage = string.Empty;
+            }
         }
     }
 

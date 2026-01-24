@@ -15,6 +15,7 @@
     <span class="list-group-item"><a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold" >Host a Quiz</a> Start or continue a Quiz, host a Mock Quiz, review Quiz statistics</span>
     <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/AddQuestion" class="btn btn-light btn-sm font-weight-bold">Add PBE Questions</a> Choose a Book and Chapter then add some PBE Questions for all to use</span>
     <span class="list-group-item"><a asp-page="/Shared/SelectChapter" asp-route-BibleId="@Model.BibleId" asp-route-TargetPage="/PBE/Questions" class="btn btn-light btn-sm font-weight-bold">PBE Question List</a> Choose a Book and Chapter to review questions, edit them and resolve challenges</span>
+    <span class="list-group-item"><a href="/PBE/Teams/@Model.BibleId" class="btn btn-light btn-sm font-weight-bold">My PBE Teams</a> PBE Coaches can add Teams and Members to track progress across Quizzes</span>
     <span class="list-group-item"><a asp-page="QuizTemplates/Templates" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold">My Quiz Templates</a> Customize your Quizzes by specifying the order and specific book/chapter combinations</span>
     <span class="list-group-item"><a asp-page="../Play/MyGames" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold">Play a PBE Game</a> The Word is a fun way for coaches to test PBE Team(s) memorization progress</span>
 </div>

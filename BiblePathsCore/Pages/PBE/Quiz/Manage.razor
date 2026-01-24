@@ -1,0 +1,291 @@
+@page "/pbe/quiz/manage/{QuizId:int?}"
+@attribute [Authorize]
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@inject BiblePathsCoreDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="container mt-4">
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ErrorMessage
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">@(IsEditing ? "Edit Quiz" : "Create New Quiz")</h4>
+        </div>
+        <div class="card-body">
+            @if (Loading)
+            {
+                <div class="alert alert-info">
+                    <span class="spinner-border spinner-border-sm mr-2"></span>
+                    Loading...
+                </div>
+            }
+            else
+            {
+                <form @onsubmit="SaveQuiz">
+                    <!-- Quiz Name (Required) -->
+                    <div class="form-group">
+                        <label for="quizName" class="form-label">
+                            Quiz Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="quizName" 
+                               @bind="Quiz.GroupName" 
+                               required
+                               placeholder="Enter quiz name" />
+                        <small class="form-text text-muted">A descriptive name for this quiz.</small>
+                    </div>
+
+                    <!-- Quiz Type Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Book Selection?</label>
+                        <div class="form-check">
+                            <input type="radio" 
+                                   class="form-check-input" 
+                                   id="useTemplate" 
+                                   name="quizType" 
+                                   value="template"
+                                   checked="@UseTemplate" 
+                                   @onchange="@((ChangeEventArgs e) => UseTemplate = true)" />
+                            <label class="form-check-label" for="useTemplate">
+                                Use Quiz Template
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" 
+                                   class="form-check-input" 
+                                   id="useBook" 
+                                   name="quizType" 
+                                   value="book"
+                                   checked="@(!UseTemplate)" 
+                                   @onchange="@((ChangeEventArgs e) => UseTemplate = false)" />
+                            <label class="form-check-label" for="useBook">
+                                Use Book or PBE Book List
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Template Selection (shown if UseTemplate is true) -->
+                    @if (UseTemplate)
+                    {
+                        <div class="form-group">
+                            <label for="templateSelect" class="form-label">Select Template</label>
+                            <select class="form-control" 
+                                    id="templateSelect" 
+                                    value="@Quiz.PredefinedQuiz.ToString()" 
+                                    @onchange="@((ChangeEventArgs e) => { if (int.TryParse(e.Value?.ToString(), out int val)) { Quiz.PredefinedQuiz = val; Quiz.BookNumber = 0; } })">
+@*                                 <option value="0">-- Select a Template --</option> *@
+                                @foreach (var template in AvailableTemplates)
+                                {
+                                    <option value="@template.Value">@template.Text</option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">Select a Quiz Template.</small>
+                        </div>
+                    }
+
+                    <!-- Book Selection (shown if UseTemplate is false) -->
+                    @if (!UseTemplate)
+                    {
+                        <div class="form-group">
+                            <label for="bookSelect" class="form-label">Select Book</label>
+                            <select class="form-control" 
+                                    id="bookSelect" 
+                                    value="@Quiz.BookNumber.ToString()" 
+                                    @onchange="@((ChangeEventArgs e) => { if (int.TryParse(e.Value?.ToString(), out int val)) { Quiz.BookNumber = val; Quiz.PredefinedQuiz = 0; } })">
+@*                                 <option value="0">-- Select a Book --</option> *@
+                                @foreach (var book in AvailableBooksandBookLists)
+                                {
+                                    <option value="@book.Value">@book.Text</option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">Select a Book or Book List.</small>
+                        </div>
+                    }
+
+                    <!-- Team Assignment (Optional) -->
+                    @if (AvailableTeams.Count > 1) // there will always be one due to the default option.
+                    {
+                        <div class="form-group">
+                            <label for="teamSelect" class="form-label">Assign to Team (Optional)</label>
+                            <select class="form-control"
+                                    id="teamSelect"
+                                    value="@Quiz.QuizTeamId.ToString()"
+                                    @onchange="@((ChangeEventArgs e) => { if (int.TryParse(e.Value?.ToString(), out int val)) { Quiz.QuizTeamId = val; } })">
+                                @*                             <option value="0">-- No Team Assignment --</option> *@
+                                @foreach (var team in AvailableTeams)
+                                {
+                                    <option value="@team.Value">@team.Text</option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">Optionally assign this quiz to a team.</small>
+                        </div>
+                    }
+
+                    <!-- Form Actions -->
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            @(IsEditing ? "Update Quiz" : "Create Quiz")
+                        </button>
+                        <a href="/pbe/quizzes" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? QuizId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "BibleId")]
+    public string BibleId { get; set; }
+
+    private QuizGroupStat Quiz = new();
+    private List<SelectListItem> AvailableTemplates = new();
+    private List<SelectListItem> AvailableBooksandBookLists = new();
+    private List<SelectListItem> AvailableTeams = new();
+    private QuizUser PBEUser;
+    private string CurrentUserEmail = "";
+    private string ErrorMessage = string.Empty;
+    private bool Loading = false;
+    private bool IsEditing = false;
+    private bool UseTemplate = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        Loading = true;
+        // nothing heavy here - OnParametersSetAsync will handle defaults and initialization
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Ensure a valid BibleId
+        BibleId = await QuizQuestion.GetValidBibleIdAsync(DbContext, BibleId);
+        await InitializeQuizAsync();
+    }
+
+    protected async Task InitializeQuizAsync()
+    {
+        Loading = true;
+        try
+        {
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            CurrentUserEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            //var identityUser = await UserManager.FindByEmailAsync(CurrentUserEmail);
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, CurrentUserEmail);
+
+            // Load available templates
+            AvailableTemplates = await PredefinedQuiz.GetTemplateSelectListAsync(DbContext, PBEUser);
+
+            // Load available books
+            AvailableBooksandBookLists = await BibleBook.GetBookAndBookListSelectListAsync(DbContext, BibleId);
+
+            // Load user's teams
+            AvailableTeams = await QuizTeam.GetMyTeamsSelectListAsync(DbContext, PBEUser);
+
+            // If editing, load the quiz
+            if (QuizId.HasValue && QuizId.Value > 0)
+            {
+                IsEditing = true;
+                var quiz = await DbContext.QuizGroupStats.FindAsync(QuizId.Value);
+                if (quiz != null)
+                {
+                    Quiz = quiz;
+                    UseTemplate = quiz.PredefinedQuiz > 0;
+                }
+                else
+                {
+                    ErrorMessage = "Quiz not found.";
+                }
+            }
+            else
+            {
+                // New quiz - set defaults
+                Quiz = new QuizGroupStat
+                {
+                    Created = DateTime.Now,
+                    Modified = DateTime.Now,
+                    QuizUser = PBEUser
+                };
+                UseTemplate = false;
+            }
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task SaveQuiz()
+    {
+        ErrorMessage = string.Empty;
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(Quiz.GroupName))
+        {
+            ErrorMessage = "Quiz name is required.";
+            return;
+        }
+
+        if (UseTemplate && Quiz.PredefinedQuiz == 0)
+        {
+            ErrorMessage = "Please select a template or switch to Book mode.";
+            return;
+        }
+
+        if (!UseTemplate && Quiz.BookNumber == 0)
+        {
+            ErrorMessage = "Please select a book or switch to Template mode.";
+            return;
+        }
+
+        try
+        {
+            if (IsEditing)
+            {
+                Quiz.Modified = DateTime.Now;
+                DbContext.QuizGroupStats.Update(Quiz);
+            }
+            else
+            {
+                Quiz.Created = DateTime.Now;
+                Quiz.Modified = DateTime.Now;
+                Quiz.QuizUser = PBEUser;
+                DbContext.QuizGroupStats.Add(Quiz);
+            }
+
+            await DbContext.SaveChangesAsync();
+            
+            // Navigate back with success message
+            var message = IsEditing ? "\"Quiz updated successfully.\"" : "\"Quiz created successfully.\"";
+            var encodedMessage = Uri.EscapeDataString(message);
+            NavigationManager.NavigateTo($"/pbe/quizzes?Message={encodedMessage}", true);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred while saving the quiz: {ex.Message}";
+            Console.WriteLine($"Error saving quiz: {ex.Message}");
+        }
+    }
+}

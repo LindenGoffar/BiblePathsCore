@@ -1,16 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using SendGrid.Helpers.Mail;
 using System;
+using BiblePathsCore.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BiblePathsCore.Models.DB
 {
     public partial class QuizTeam
     {
 
+        public static async Task<QuizTeam> GetTeamByIdAsync(BiblePathsCoreDbContext context, int teamId)
+        {
+            return await context.QuizTeams
+                .Where(t => t.Id == teamId)
+                .FirstOrDefaultAsync();
+        }
         public static async Task<List<QuizTeam>> GetAllMyTeamsAsync(BiblePathsCoreDbContext context, QuizUser user)
         {
             // We need to get all Teams where our user is either the Owner, and/or a Coach so let's start by 
@@ -42,6 +51,22 @@ namespace BiblePathsCore.Models.DB
                     .ToList();
 
         }
+
+        public static async Task<QuizTeam> GetTeamFullObjectAsync(BiblePathsCoreDbContext context, int TeamId)
+        {
+            // We need to get all Teams where our user is either the Owner, and/or a Coach so let's start by 
+            // getting all of the teams the user coaches. 
+
+            return await context.QuizTeams
+                .Where(t => t.Id == TeamId)
+                .Include(t => t.QuizTeamMembers)
+                .Include(t => t.QuizTeamCoaches)
+                    .ThenInclude(c => c.Coach)
+                .Include(t => t.QuizTeamMemberAssignments)
+                    .ThenInclude(a => a.Member)
+                .FirstAsync();
+        }
+
         public static async Task<List<SelectListItem>> GetMyTeamsSelectListAsync(BiblePathsCoreDbContext context, QuizUser user)
         {
             List<SelectListItem> TeamSelectList = new List<SelectListItem>();
@@ -89,6 +114,43 @@ namespace BiblePathsCore.Models.DB
             }
 
             return TeamSelectList;
+        }
+
+        public async Task<List<QuizGroupStat>> GetTeamQuizzesDetails(BiblePathsCoreDbContext context, string BibleId)
+        {
+            List<QuizGroupStat> Quizzes = await context.QuizGroupStats
+                                       .Where(G => G.QuizTeamId == Id)
+                                       .OrderByDescending(Q => Q.Modified)
+                                       .ToListAsync();
+
+            // Populate Quiz Info 
+            foreach (QuizGroupStat quiz in Quizzes)
+            {
+                _ = await quiz.AddQuizPropertiesAsync(context, BibleId);
+            }
+
+            return Quizzes;
+
+        }
+
+        // Get all Team Members assigned to a specific Question
+        public async Task<List<QuizTeamMember>> GetTeamMembersWithAssignmentToQuestionAsync(BiblePathsCoreDbContext context, QuizQuestion question)
+        {
+            List<QuizTeamMember> Members = new();
+            List<QuizTeamMemberAssignment> Assignments = await context.QuizTeamMemberAssignments
+                                                    .Where(a => a.TeamId == Id 
+                                                            && a.BookNumber == question.BookNumber 
+                                                            && a.ChapterNumber == question.Chapter)
+                                                    .Include(a => a.Member)
+                                                    .ToListAsync();
+            // Populate Quiz Info 
+            foreach (QuizTeamMemberAssignment memberAssignment in Assignments)
+            {
+                Members.Add(memberAssignment.Member);
+            }
+
+            return Members;
+
         }
 
         public async Task<bool> DeleteTeamAsync(BiblePathsCoreDbContext context)

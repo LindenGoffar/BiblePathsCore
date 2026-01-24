@@ -1,0 +1,168 @@
+﻿@page "/pbe/teams/quizhistory/{TeamId:int}/{BibleId?}"
+@attribute [Authorize]
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject BiblePathsCoreDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<div class="container mt-4">
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ErrorMessage
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Quiz History - @(SelectedTeam?.Name ?? "Loading...")</h4>
+        <a href="/pbe/teams/@BibleId" class="btn btn-secondary">Back to Teams</a>
+    </div>
+
+    @if (Loading)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm mr-2"></span>
+            Loading quiz history...
+        </div>
+    }
+    else if (SelectedTeam == null)
+    {
+        <div class="alert alert-warning">
+            Team not found.
+        </div>
+    }
+    else if (QHistory == null || QHistory.Count == 0)
+    {
+        <div class="alert alert-info">
+            No quiz history available for this team yet.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Total Quizzes: @QHistory.Count</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Quiz Name</th>
+                                <th>Date Modified</th>
+                                <th>Quiz Stats</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var quiz in QHistory.OrderByDescending(q => q.Modified))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@quiz.GroupName</strong>
+                                    </td>
+                                    <td>
+                                        <small>@quiz.Modified</small>
+                                    </td>
+                                    <td>
+                                        <span>
+                                            Questions Answered - @quiz.QuestionsAsked <br />
+                                            Score - @quiz.Percentage%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/PBE/QuizStats?BibleID=@BibleId&QuizId=@quiz.Id" class="btn btn-sm btn-info" target="_blank">
+                                            View Stats
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <hr class="my-4" />
+    <a href="/pbe/teams" class="btn btn-secondary">Back to Teams</a>
+</div>
+
+@code {
+    [Parameter]
+    public int TeamId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "BibleId")]
+    public string BibleId { get; set; }
+
+    private QuizTeam SelectedTeam;
+    private List<QuizGroupStat> QHistory = new();
+    private string ErrorMessage = string.Empty;
+    private bool Loading = true;
+    private string CurrentUserEmail = "";
+    private QuizUser PBEUser;
+    private Dictionary<int, int> MemberCountCache = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        // nothing heavy here - OnParametersSetAsync will handle defaults and initialization
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Ensure some defaults only when values are null
+        BibleId = await QuizQuestion.GetValidBibleIdAsync(DbContext, BibleId);
+        await LoadTeamAndQuizHistory();
+    }
+
+    private async Task LoadTeamAndQuizHistory()
+    {
+        Loading = true;
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            CurrentUserEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, CurrentUserEmail);
+
+            // Load the team
+            SelectedTeam = await QuizTeam.GetTeamFullObjectAsync(DbContext, TeamId);
+
+            if (SelectedTeam == null)
+            {
+                ErrorMessage = "Team not found.";
+                return;
+            }
+
+            // Check if current user is owner or coach of this team
+            bool isAuthorized = SelectedTeam.Owner == PBEUser.Email ||
+                               SelectedTeam.QuizTeamCoaches.Any(c => c.Coach.Email == PBEUser.Email);
+
+            if (!isAuthorized)
+            {
+                ErrorMessage = "Sorry... You do not have permission to view this team's quiz history.";
+                return;
+            }
+
+            // Load quiz history for this team
+            QHistory = await SelectedTeam.GetTeamQuizzesDetails(DbContext, BibleId);
+
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred while loading quiz history: {ex.Message}";
+            Console.WriteLine($"Error loading quiz history: {ex}");
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+}

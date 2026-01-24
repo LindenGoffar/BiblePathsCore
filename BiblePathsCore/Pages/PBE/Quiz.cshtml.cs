@@ -9,7 +9,6 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using static BiblePathsCore.Models.DB.QuizQuestion;
 using BiblePathsCore.Services;
 
 namespace BiblePathsCore.Pages.PBE
@@ -61,46 +60,6 @@ namespace BiblePathsCore.Pages.PBE
                 return RedirectToPage("/error", new { errorMessage = "Sorry! We could neither find a question, nor generate one... please help by adding more questions." });
             }
 
-            //int iterations = 0;
-            //do
-            //{
-            //    Question = await Quiz.GetNextQuizQuestionAsync(_context, BibleId);
-            //    iterations++;
-            //}
-            //while (iterations < 3 && Question.QuestionSelected == false);
-
-            //// This is the no questions found scenario, first let's try an AI Generated Question. 
-            //if (Question.QuestionSelected == false) {
-
-            //    // We need to select a random Verse to build a temporary question for. 
-            //    BibleVerse bibleVerse = await Question.GetRandomVerseAsync(_context);
-            //    // If this verse is excluded we're goin to bail here for now. 
-            //    if (bibleVerse.IsPBEExcluded)
-            //    {
-            //        return RedirectToPage("/error", new { errorMessage = "Sorry! We could neither find a question, nor generate one, due to the selected verse being excluded... please help by adding more valid questions." });
-            //    }
-
-            //    QuizQuestion BuiltQuestion = new();
-            //    BuiltQuestion = await Question.BuildAIQuestionForVerseAsync(_context, bibleVerse, _openAIResponder);
-            //    if (BuiltQuestion != null)
-            //    {
-            //        Question = BuiltQuestion;
-            //        Question.QuestionSelected = true;
-            //        Question.Type = (int)QuestionType.AIProposed; // this is a temporary type so we can make appropriate decisions.
-            //        Question.Challenged = true; // We start these out challenged, because we don't fully tust them, if points are assigned by the user then we remove the challenge. 
-            //        Question.ChallengeComment = "System: This was an AI Proposed Question, that was not accepted";
-            //        Question.Owner = PBEUser.Email;
-            //        Question.Id = await Question.SaveQuestionObjectAsync(_context);
-            //    }
-            //    //At this point if we've stil failed we could resort to an FITB But let's stop here for now. 
-
-            //    //If QuestionSelected still false... well we've done all we can for now... 
-            //    if (Question.QuestionSelected == false)
-            //    {
-            //        return RedirectToPage("/error", new { errorMessage = "Sorry! We could neither find a question, nor generate one... please help by adding more questions." });
-            //    }
-            //}
-
             // no real good reason this wouldn't be set but out of an abundance of caution. 
             if (Question.BibleId == null) { Question.BibleId = BibleId;  }
 
@@ -110,7 +69,12 @@ namespace BiblePathsCore.Pages.PBE
             // Note: the Commentary Scenario requires Verses be populated before PopulatePBEQuestionInfo is called. 
             Question.Verses = await Question.GetBibleVersesAsync(_context, true);
             Question.PopulatePBEQuestionInfo(PBEBook);
-            // Not Needed already done in previous step. Question.LegalNote = Question.GetBibleLegalNote();
+
+            // See if we have a TeamId, if so let's go chase down Members. 
+            if (Quiz.QuizTeamId > 0)
+            {
+                _ = await Question.AddTeamMemberInfoAsync(_context, Quiz.QuizTeamId);
+            }
 
             // Build our Select List and set a default points value of -1 to require selection.
             ViewData["PointsSelectList"] = Question.GetQuestionPointsSelectList();

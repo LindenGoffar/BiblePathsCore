@@ -113,21 +113,24 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-12 col-sm-3">
-            <form asp-page="/PBE/ChallengeQuestion" method="post">
-                <div>
-                    <textarea id="ChallengeTextArea" name="ChallengeComment" rows="4" placeholder="Challenge Comment Required" class="scroll-box" required></textarea>
-                    <p><small class="text-info">A challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small></p>
-                </div>
-                <div>
-                    <input type="hidden" name="id" value="@Model.Question.Id" />
-                    <input type="hidden" name="ReturnPath" value="MockQuiz/MockQuiz" />
-                    <input type="hidden" name="ReturnQuizID" value="@Model.Quiz.Id" />
-                    <input type="hidden" name="QuestionType" value="@Model.Question.Type" />
-                    <button id="btnConfirmChallenge" type="submit" class="btn btn-outline-danger" disabled><u>C</u>hallenge Question</button>
-                </div>
-            </form>
-        </div>
+        @if (Model.PBEUser.IsValidPBEQuestionBuilder())
+        {
+            <div class="col-xs-12 col-sm-3">
+                <form asp-page="/PBE/ChallengeQuestion" method="post">
+                    <div>
+                        <textarea id="ChallengeTextArea" name="ChallengeComment" rows="4" placeholder="Challenge Comment Required" class="scroll-box" required></textarea>
+                        <p><small class="text-info">A challenged question is taken out of rotation until it has been reviewed and the challenge removed.</small></p>
+                    </div>
+                    <div>
+                        <input type="hidden" name="id" value="@Model.Question.Id" />
+                        <input type="hidden" name="ReturnPath" value="MockQuiz/MockQuiz" />
+                        <input type="hidden" name="ReturnQuizID" value="@Model.Quiz.Id" />
+                        <input type="hidden" name="QuestionType" value="@Model.Question.Type" />
+                        <button id="btnConfirmChallenge" type="submit" class="btn btn-outline-danger" disabled><u>C</u>hallenge Question</button>
+                    </div>
+                </form>
+            </div>
+        }
     </div>
 </div>
 

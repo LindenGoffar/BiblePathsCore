@@ -18,14 +18,16 @@
             <h4>@ViewData["Title"]</h4>
             <span class="text-muted">
                 Quizzes can be single-use or span multiple sessions, they can be for a PBE Team or an individual. A Quiz can be on a Book, 
-                Book List or a Template. In a standard <strong>Quiz</strong> the host determines the number of points awarded for each question. In a
-                <strong>Mock Quiz</strong> no points are awarded, this can be useful in a multiple team setting. In each case, per book/chapter statistics and history are maintained alongside of the Quiz.
+                Book List or a Template. In a standard <strong>Quiz</strong> the host determines the number of points awarded for each question. 
+                <br /> In a <strong>Mock Quiz</strong> no points are awarded, this can be useful in a multiple team setting. 
+                <br />In each case, per book/chapter statistics and history are maintained alongside of the Quiz.
             </span>
             <div class="row">
                 <div class="col-12">
                     <br />
                     <h6>
-                        <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+@*                         <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a> *@
+                           <a href="/PBE/Quiz/Manage?BibleId=@Model.BibleId">Add a Quiz</a>
                     </h6>
                     <br />
                 </div>
@@ -35,8 +37,9 @@
                     <tr>
                         <th>Quiz</th>
                         <th>Book/Template</th>
+                        <th>Team</th>
                         <th>Stats</th>
-                        <th></th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,6 +50,7 @@
                                 <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId">@quiz.GroupName</a>
                             </td>
                             <td>@quiz.BookOrTemplateName</td>
+                            <td>@quiz.TeamName</td>
                             <td>
                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id">
                                     <span>
@@ -55,11 +59,14 @@
                                     </span>
                                 </a>
                                 <br />
-                                <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+@*                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Details
-                                </a>
+                                </a> *@
                             </td>
                             <td>
+                                <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">
+                                   Quiz
+                                </a>
                                 <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Mock Quiz
                                 </a>
@@ -67,11 +74,11 @@
                                 <a asp-page="/PBE/QuizHistory" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Quiz History
                                 </a>
-                                <br />
-@*                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
-                                    Stats
+                                <a href="/PBE/Quiz/Manage/@quiz.Id?BibleId=@Model.BibleId" class="btn btn-outline-primary btn-sm">
+                                    Edit Quiz
                                 </a>
-                                <br />*@
+                                <br />
+
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@quiz.Id">
                                     Delete Quiz
                                 </button>
@@ -105,7 +112,8 @@
             <div class="row">
                 <div class="col-12">
                     <h6>
-                        <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a>
+@*                         <a asp-page="AddQuiz" asp-route-BibleId="@Model.BibleId">Add a Quiz</a> *@
+                        <a href="/PBE/Quiz/Manage?BibleId=@Model.BibleId">Add a Quiz</a>
                     </h6>
                 </div>
             </div>
