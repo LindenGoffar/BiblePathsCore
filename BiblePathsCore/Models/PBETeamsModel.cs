@@ -18,6 +18,11 @@ namespace BiblePathsCore.Models.DB
         {
             return await context.QuizTeams
                 .Where(t => t.Id == teamId)
+                .Include(t => t.QuizTeamMembers)
+                .Include(t => t.QuizTeamCoaches)
+                    .ThenInclude(c => c.Coach)
+                .Include(t => t.QuizTeamMemberAssignments)
+                    .ThenInclude(a => a.Member)
                 .FirstOrDefaultAsync();
         }
         public static async Task<List<QuizTeam>> GetAllMyTeamsAsync(BiblePathsCoreDbContext context, QuizUser user)
@@ -50,6 +55,12 @@ namespace BiblePathsCore.Models.DB
                     .DistinctBy(t => t.Id)
                     .ToList();
 
+        }
+
+        public bool IsThisMyTeam(BiblePathsCoreDbContext context, QuizUser user)
+        {
+            // Return true if any of our coaches matches our UserId. 
+            return this.QuizTeamCoaches.Where(tc => tc.CoachId == user.Id).Any();
         }
 
         public static async Task<QuizTeam> GetTeamFullObjectAsync(BiblePathsCoreDbContext context, int TeamId)

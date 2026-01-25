@@ -87,7 +87,7 @@
                                             </div>
                                     </td>
                                     <td>@ChapterStat.Percentage%
-                                        @if (ChapterStat.TeamMembers != null){
+                                        @if (ChapterStat.TeamMembers != null && Model.ShowTeamInfo){
                                             <br />
                                             @foreach (var Member in ChapterStat.TeamMembers)
                                             {

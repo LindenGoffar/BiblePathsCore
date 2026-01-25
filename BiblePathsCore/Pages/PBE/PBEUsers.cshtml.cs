@@ -27,6 +27,8 @@ namespace BiblePathsCore.Pages.PBE
         [BindProperty(SupportsGet = true)]
         public string SearchString { get; set; }
         public List<QuizUser> PBEUsers { get;set; }
+        public int TotalPBEUsers { get; set; }
+        public int IncludedUsers { get; set; }
         public QuizUser PBEUser { get; set; }
         public string UserMessage { get; set;  }
 
@@ -41,14 +43,21 @@ namespace BiblePathsCore.Pages.PBE
 
             if (!string.IsNullOrEmpty(SearchString))
             {
-                pbeUsers = pbeUsers.Where(u => u.Email.Contains(SearchString)).OrderBy(u => u.Email).Take(20);
+                pbeUsers = pbeUsers.Where(u => u.Email.Contains(SearchString))
+                                    .OrderBy(u => u.Email)
+                                    .Take(100);
             }
             else
             {
-                pbeUsers = pbeUsers.Where(u => u.IsModerator).OrderBy(u => u.Email).Take(20);
+                pbeUsers = pbeUsers.Where(u => u.IsModerator || u.IsQuestionBuilderLocked || u.IsQuizTakerLocked)
+                                    .OrderBy(u => u.Email)
+                                    .Take(100);
             }
 
             PBEUsers = await pbeUsers.ToListAsync();
+
+            TotalPBEUsers = await _context.QuizUsers.CountAsync();
+            IncludedUsers = PBEUsers.Count;
 
             UserMessage = GetUserMessage(Message);
             return Page();
