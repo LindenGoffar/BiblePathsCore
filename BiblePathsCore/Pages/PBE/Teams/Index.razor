@@ -208,9 +208,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var assignment in SelectedTeamAssignments)
+                                        @foreach (var assignment in SelectedTeamAssignments.OrderBy(a => a.BookNumber).ThenBy(a => a.ChapterNumber))
                                         {
-                                            <tr>
+                                            <tr @key="assignment.Id">
                                                 <td>@assignment.Member.Name</td>
                                                 <td>@GetBookName(assignment.BookNumber)</td>
                                                 <td> 
@@ -222,9 +222,7 @@
                                                     {
                                                         <span>Bible Commentary</span>
                                                     }
-                                                    
                                                 </td>
-@*                                                 <td>@GetAssignmentTypeName(assignment.AssignmentType)</td> *@
                                                 <td>
                                                     <button class="btn btn-sm btn-danger" @onclick="() => DeleteAssignment(assignment.Id)">Remove</button>
                                                 </td> 
@@ -803,6 +801,11 @@
     private void CloseAssignmentModal()
     {
         ShowAssignmentModal = false;
+        SelectedAssignmentMemberId = 0;
+        SelectedBookNumber = 0;
+        SelectedChapters.Clear();
+        ChapterRangeFrom = 0;
+        ChapterRangeTo = 0;
     }
 
     private async Task OnMemberSelected(ChangeEventArgs e)
