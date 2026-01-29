@@ -8,15 +8,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection.Metadata.Ecma335;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BiblePathsCore.Models.DB
 {
+    public partial class QuizTeamMemberAssignment
+    {
+        [NotMapped]
+        public string BookName { get; set; }
+    }
+
     public partial class QuizTeam
     {
-
-        public static async Task<QuizTeam> GetTeamByIdAsync(BiblePathsCoreDbContext context, int teamId)
+        public static async Task<QuizTeam> GetTeamByIdAsync(BiblePathsCoreDbContext context, int teamId, string BibleId)
         {
-            return await context.QuizTeams
+            // Make sure we have a valid BibleId to find Book Names
+            BibleId = await Bible.GetValidPBEBibleIdAsync(context, BibleId);
+            QuizTeam team = await context.QuizTeams
                 .Where(t => t.Id == teamId)
                 .Include(t => t.QuizTeamMembers)
                 .Include(t => t.QuizTeamCoaches)
@@ -24,9 +33,19 @@ namespace BiblePathsCore.Models.DB
                 .Include(t => t.QuizTeamMemberAssignments)
                     .ThenInclude(a => a.Member)
                 .FirstOrDefaultAsync();
+
+            // Populate Book Names for Assignments
+            foreach (QuizTeamMemberAssignment assignment in team.QuizTeamMemberAssignments)
+            {
+                assignment.BookName = await BibleBook.GetBookNameAsync(context, BibleId, assignment.BookNumber ?? 1);
+            }
+            return team;
+
         }
-        public static async Task<List<QuizTeam>> GetAllMyTeamsAsync(BiblePathsCoreDbContext context, QuizUser user)
+        public static async Task<List<QuizTeam>> GetAllMyTeamsAsync(BiblePathsCoreDbContext context, QuizUser user, string BibleId)
         {
+            // Make sure we have a valid BibleId to Find Book Names
+            BibleId = await Bible.GetValidPBEBibleIdAsync(context, BibleId);
             // We need to get all Teams where our user is either the Owner, and/or a Coach so let's start by 
             // getting all of the teams the user coaches. 
             List<QuizTeam> coachedTeams = await context.QuizTeamCoaches
@@ -50,11 +69,22 @@ namespace BiblePathsCore.Models.DB
                     .ThenInclude(a => a.Member)
                 .ToListAsync();
 
-            return coachedTeams
-                    .Concat(ownedTeams)
-                    .DistinctBy(t => t.Id)
-                    .ToList();
+            coachedTeams = coachedTeams
+                            .Concat(ownedTeams)
+                            .DistinctBy(t => t.Id)
+                            .ToList();
 
+            // Iterate each of our teams to populate Book Names
+            foreach (QuizTeam team in coachedTeams)
+            {
+                // Populate Book Names for Assignments
+                foreach (QuizTeamMemberAssignment assignment in team.QuizTeamMemberAssignments)
+                {
+                    assignment.BookName = await BibleBook.GetBookNameAsync(context, BibleId, assignment.BookNumber ?? 1);
+                }
+            }
+
+            return coachedTeams;
         }
 
         public bool IsThisMyTeam(BiblePathsCoreDbContext context, QuizUser user)

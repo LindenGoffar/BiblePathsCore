@@ -137,7 +137,7 @@ namespace BiblePathsCore.Models.DB
                     // If there is a team associated with this quiz let's find team members associated with this question.
                     if (QuizTeamId != 0)
                     {
-                        _ = await Question.AddTeamMemberInfoAsync(context, QuizTeamId);
+                        _ = await Question.AddTeamMemberInfoAsync(context, QuizTeamId, bibleId);
                     }
 
                     // Now let's go update this bookStat

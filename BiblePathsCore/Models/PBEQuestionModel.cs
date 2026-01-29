@@ -188,10 +188,10 @@ namespace BiblePathsCore.Models.DB
             await context.SaveChangesAsync();
             return true;
         }
-        public async Task<bool> AddTeamMemberInfoAsync(BiblePathsCoreDbContext context, int teamID)
+        public async Task<bool> AddTeamMemberInfoAsync(BiblePathsCoreDbContext context, int teamID, string BibleId)
         {
             // Need to go grab this team object 
-            QuizTeam team = await QuizTeam.GetTeamByIdAsync(context, teamID);
+            QuizTeam team = await QuizTeam.GetTeamByIdAsync(context, teamID, BibleId);
             if (team == null) { return false; }
             TeamName = team.Name;
 

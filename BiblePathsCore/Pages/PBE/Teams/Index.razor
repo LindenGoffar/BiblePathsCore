@@ -25,7 +25,7 @@
     }
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4>My PBE Teams</h4>
-        <button class="btn btn-primary" @onclick="ShowAddTeamModal">+ Add New Team</button>
+        <button type="button" class="btn btn-primary" @onclick="ShowAddTeamModal">+ Add New Team</button>
     </div>
 
     @if (LoadingTeams)
@@ -63,9 +63,9 @@
                             <div class="small">Assignments: @team.QuizTeamMemberAssignments.Count</div>
                         </td>
                         <td class="m-2">
-                            <button class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
-                            <button class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
+                            <button type="button" class="btn btn-sm btn-info" @onclick="() => SelectTeam(team)">Manage</button>
+                            <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowEditTeamModal(team)">Rename</button>
+                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteTeam(team.Id)">Delete</button>
                             <a href="/pbe/teams/quizhistory/@team.Id" class="btn btn-sm btn-success">Quizzes</a>
                         </td>
                     </tr>
@@ -90,13 +90,13 @@
                 <!-- Tabs for different sections -->
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link @(ActiveTab == "members" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("members"))">Members</a>
+                        <a class="nav-link @(ActiveTab == "members" ? "active" : "")" href="#" @onclick="@((e) => {SetActiveTab("members"); })" @onclick:preventDefault="true">Members</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ActiveTab == "coaches" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("coaches"))">Coaches</a>
+                        <a class="nav-link @(ActiveTab == "coaches" ? "active" : "")" href="#" @onclick="@((e) => {SetActiveTab("coaches"); })" @onclick:preventDefault="true">Coaches</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@(() => SetActiveTab("assignments"))">Assignments</a>
+                        <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@((e) => {SetActiveTab("assignments"); })" @onclick:preventDefault="true">Assignments</a>
                     </li>
                 </ul>
 
@@ -105,7 +105,7 @@
                 {
                     <div class="tab-pane fade show active">
                         <h5 class="mb-3">Team Members</h5>
-                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddMemberModal">+ Add Member</button>
+                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddMemberModal">+ Add Member</button>
                         
                         @if (SelectedTeam.QuizTeamMembers.Count == 0)
                         {
@@ -118,8 +118,6 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-@*                                             <th>Email</th> *@
-@*                                             <th>Type</th> *@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -128,11 +126,9 @@
                                         {
                                             <tr>
                                                 <td>@member.Name</td>
-@*                                                 <td>@member.Email</td> *@
-@*                                                 <td>@GetMemberTypeName(member.MemberType)</td> *@
                                                 <td>
-                                                    <button class="btn btn-sm btn-warning" @onclick="() => ShowEditMemberModal(member)">Edit</button>
-                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteMember(member.Id)">Remove</button>
+                                                    <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowEditMemberModal(member)">Edit</button>
+                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteMember(member.Id)">Remove</button>
                                                 </td>
                                             </tr>
                                         }
@@ -148,7 +144,7 @@
                 {
                     <div class="tab-pane fade show active">
                         <h5 class="mb-3">Team Coaches</h5>
-                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddCoachModal">+ Add Coach</button>
+                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddCoachModal">+ Add Coach</button>
                         
                         @if (SelectedTeam.QuizTeamCoaches.Count == 0)
                         {
@@ -161,7 +157,6 @@
                                     <thead>
                                         <tr>
                                             <th>Coach Email</th>
-@*                                             <th>Coach Type</th> *@
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -170,9 +165,8 @@
                                         {
                                             <tr>
                                                 <td>@coach.Coach.Email</td>
-@*                                                 <td>@GetCoachTypeName(coach.CoachType)</td> *@
                                                 <td>
-                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteCoach(coach.Id)">Remove</button>
+                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteCoach(coach.Id)">Remove</button>
                                                 </td>
                                             </tr>
                                         }
@@ -188,7 +182,7 @@
                 {
                     <div class="tab-pane fade show active">
                         <h5 class="mb-3">Assignments</h5>
-                        <button class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
+                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
                         
                         @if (SelectedTeamAssignments.Count == 0)
                         {
@@ -201,31 +195,31 @@
                                     <thead>
                                         <tr>
                                             <th>Member</th>
-                                            <th>Book</th>
-                                            <th>Chapter</th>
-@*                                             <th>Assignment Type</th> *@
-                                            <th>Actions</th>
+                                            <th>Assignments</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var assignment in SelectedTeamAssignments.OrderBy(a => a.BookNumber).ThenBy(a => a.ChapterNumber))
+                                        @foreach (var MemberAssignment in SelectedTeamAssignments.DistinctBy(a => a.Member))
                                         {
-                                            <tr @key="assignment.Id">
-                                                <td>@assignment.Member.Name</td>
-                                                <td>@GetBookName(assignment.BookNumber)</td>
-                                                <td> 
-                                                    @if (@assignment.ChapterNumber != @Bible.CommentaryChapter)
+                                            <tr @key="MemberAssignment.Id">
+                                                <td>@MemberAssignment.Member.Name</td>
+                                                <td>
+                                                    @foreach (var assignment in SelectedTeamAssignments.Where(a => a.MemberId == MemberAssignment.MemberId).OrderBy(a => a.BookNumber).ThenBy(a => a.ChapterNumber))
                                                     {
-                                                        <span>@assignment.ChapterNumber</span>
+                                                <div class="badge badge-light">
+                                                    @assignment.BookName: 
+                                                    @if (assignment.ChapterNumber != Bible.CommentaryChapter)
+                                                    {
+                                                        <span> @assignment.ChapterNumber </span>
                                                     }
                                                     else
                                                     {
-                                                        <span>Bible Commentary</span>
+                                                        <span> Bible Commentary </span>
+                                                    }
+                                                    <button type="button" style="background: none; border: none; color: inherit; cursor: pointer; padding: 0 4px; font-size: 14px; line-height: 1;" @onclick="() => DeleteAssignment(assignment.Id)">&times;</button>
+                                                </div>
                                                     }
                                                 </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteAssignment(assignment.Id)">Remove</button>
-                                                </td> 
                                             </tr>
                                         }
                                     </tbody>
@@ -559,11 +553,7 @@
             CurrentUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, CurrentUserEmail);
 
             // Load teams where user is owner or coach
-            Teams = await QuizTeam.GetAllMyTeamsAsync(DbContext, CurrentUser);
-
-            // Load available coaches
-            // Let's validated rather than load... there are too many QuizUsers to make this effecient.
-            // AvailableCoaches = await DbContext.QuizUsers.ToListAsync();
+            Teams = await QuizTeam.GetAllMyTeamsAsync(DbContext, CurrentUser, BibleId);
 
             // Load available books
             AvailableBooks = await BibleBook.GetBooksByBibleIDAsync(DbContext, BibleId);
@@ -941,8 +931,8 @@
 
     private async Task DeleteAssignment(int assignmentId)
     {
-        if (!await ConfirmDelete("Are you sure you want to remove this assignment?"))
-            return;
+        // if (!await ConfirmDelete("Are you sure you want to remove this assignment?"))
+        //     return;
 
         try
         {
@@ -964,14 +954,7 @@
     {
         if (SelectedTeam != null)
         {
-            SelectedTeam = await DbContext.QuizTeams
-                .Where(t => t.Id == SelectedTeam.Id)
-                .Include(t => t.QuizTeamMembers)
-                .Include(t => t.QuizTeamCoaches)
-                    .ThenInclude(c => c.Coach)
-                .Include(t => t.QuizTeamMemberAssignments)
-                    .ThenInclude(a => a.Member)
-                .FirstAsync();
+            SelectedTeam = await QuizTeam.GetTeamByIdAsync(DbContext, SelectedTeam.Id, BibleId);
 
             SelectedTeamAssignments = SelectedTeam.QuizTeamMemberAssignments.ToList();
         }
@@ -980,15 +963,6 @@
     private void SetActiveTab(string tab)
     {
         ActiveTab = tab;
-    }
-
-    private string GetBookName(int? bookNumber)
-    {
-        if (!bookNumber.HasValue)
-            return "Unknown";
-            
-        var book = AvailableBooks.FirstOrDefault(b => b.BookNumber == bookNumber.Value);
-        return book?.Name ?? "Unknown";
     }
 
     private async Task<bool> ConfirmDelete(string message)

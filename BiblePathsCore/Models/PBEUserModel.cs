@@ -11,15 +11,26 @@ namespace BiblePathsCore.Models.DB
     {
         public static async Task<QuizUser> GetOrAddPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
         {
-            // First we'll try to find the user in the DB.
+            // This might be a bit inefficient as it could result in two similar queries, but the goal is to protect
+            // from having to rely on Exceptions to identify whether the user exists or not. 
+
             QuizUser ReturnUser = new QuizUser();
-            try
+            // We've gotten bit by this so first let's check whether this user exists, if so we'll grab the user.
+            // if not we'll go create them. 
+            if (await context.QuizUsers.Where(u => u.Email == LoggedOnUserName).AnyAsync())
             {
-                ReturnUser = await context.QuizUsers.Where(U => U.Email == LoggedOnUserName).SingleAsync();
+                try
+                {
+                    ReturnUser = await context.QuizUsers.Where(u => u.Email == LoggedOnUserName)
+                                    .OrderBy(u => u.Id)
+                                    .FirstAsync();
+                }
+                catch { } // not much to do here other than handle and return null. 
+
             }
-            catch (InvalidOperationException) // Generally means the user was not found. So Let's add one.
+            else
             {
-                //Let's add our user.
+                //Let's add a user and return the newly added user. 
                 ReturnUser.Email = LoggedOnUserName;
                 ReturnUser.Added = DateTime.Now;
                 ReturnUser.Modified = DateTime.Now;
@@ -31,15 +42,16 @@ namespace BiblePathsCore.Models.DB
 
         public static async Task<QuizUser> GetPBEUserAsync(BiblePathsCoreDbContext context, string LoggedOnUserName)
         {
-            // First we'll try to find the user in the DB.
+            // Try to find the user in the DB... we should not have dupes but a bug has allowed dupes we need to clean up. 
             QuizUser ReturnUser = new QuizUser();
+
             try
             {
-                ReturnUser = await context.QuizUsers.Where(U => U.Email == LoggedOnUserName).SingleAsync();
+                ReturnUser = await context.QuizUsers.Where(u => u.Email == LoggedOnUserName)
+                                .OrderBy(u => u.Id)
+                                .FirstAsync();
             }
-            catch (InvalidOperationException) // Generally means the user was not found. So Let's add one.
-            {
-            }
+            catch { } // not much to do here other than handle and return null. 
             return ReturnUser;
         }
 

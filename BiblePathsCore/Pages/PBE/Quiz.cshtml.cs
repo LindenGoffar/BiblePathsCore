@@ -73,7 +73,7 @@ namespace BiblePathsCore.Pages.PBE
             // See if we have a TeamId, if so let's go chase down Members. 
             if (Quiz.QuizTeamId > 0)
             {
-                _ = await Question.AddTeamMemberInfoAsync(_context, Quiz.QuizTeamId);
+                _ = await Question.AddTeamMemberInfoAsync(_context, Quiz.QuizTeamId, BibleId);
             }
 
             // Build our Select List and set a default points value of -1 to require selection.

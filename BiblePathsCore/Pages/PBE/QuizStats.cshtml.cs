@@ -45,7 +45,7 @@ namespace BiblePathsCore.Pages.PBE
             { 
                 // User is Auth'd let's go see if they are a Team Coach, if so we'll show Team Details.
                 QuizUser PBEUser = await QuizUser.GetOrAddPBEUserAsync(_context, user.Email);
-                QuizTeam Team = await QuizTeam.GetTeamByIdAsync(_context, Quiz.QuizTeamId);
+                QuizTeam Team = await QuizTeam.GetTeamByIdAsync(_context, Quiz.QuizTeamId, BibleId );
                 if (Team.IsThisMyTeam(_context, PBEUser)) { ShowTeamInfo = true; } // Only Show Team Info if we have an Authenticated Coach
             }
 
