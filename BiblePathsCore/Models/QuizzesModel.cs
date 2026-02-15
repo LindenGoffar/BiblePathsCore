@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using static BiblePathsCore.Models.DB.QuizQuestion;
@@ -176,6 +177,12 @@ namespace BiblePathsCore.Models.DB
                 }
                 else
                 {
+
+                    // We need to load answers as well in order to show them in the history.
+                    await context.Entry(Question)
+                        .Collection(q => q.QuizAnswers)
+                        .LoadAsync();
+
                     QuestionHistory QuestionAsked = new QuestionHistory();
 
                     //We can't simply add a question, first we must populate some info on the question.

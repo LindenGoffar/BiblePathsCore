@@ -31,6 +31,12 @@
                 <td>@Question.QuestionNumber</td>
                 <td>
                     <div>@Question.Question.PBEQuestion</div>
+                    @foreach (var Answer in Question.Question.Answers)
+                    {
+                        <div class="badge badge-pill badge-light">
+                            @Answer
+                        </div>
+                    }
                 </td>
                 <td>@Question.Question.Points</td>
                 <td>@Question.PointsAwarded</td>

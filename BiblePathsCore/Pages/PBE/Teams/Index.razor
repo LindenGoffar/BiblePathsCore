@@ -511,6 +511,7 @@
     private bool IsEditingTeam = false;
     private bool IsEditingMember = false;
     private bool LoadingTeams = false;
+    private bool TeamInitialized = false;
 
     // Assignment tracking
     private int SelectedAssignmentMemberId = 0;
@@ -540,7 +541,10 @@
     {
         // Ensure a valid BibleId
         BibleId = await QuizQuestion.GetValidBibleIdAsync(DbContext, BibleId);
-        await LoadTeams();
+        if (!TeamInitialized)
+        {
+            await LoadTeams();
+        }
     }
 
     private async Task LoadTeams()
@@ -560,6 +564,7 @@
         }
         finally
         {
+            TeamInitialized = true;
             LoadingTeams = false;
         }
     }
@@ -604,6 +609,7 @@
             }
 
             await DbContext.SaveChangesAsync();
+            TeamInitialized = false;
             await LoadTeams();
             CloseTeamModal();
         }
@@ -625,6 +631,7 @@
             if (team != null)
             {
                 if (!await team.DeleteTeamAsync(DbContext)) { ErrorMessage = "We were unable to delete this team"; }
+                TeamInitialized = false;
                 await LoadTeams();
                 if (SelectedTeam?.Id == teamId)
                     SelectedTeam = null;

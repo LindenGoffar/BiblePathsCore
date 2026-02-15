@@ -1,0 +1,695 @@
+@page "/pbe/quiz/run/{BibleId?}/{QuizId:int?}"
+@attribute [Authorize]
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using BiblePathsCore.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using System.Timers
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
+
+
+@inject BiblePathsCoreDbContext DbContext
+@inject IOpenAIResponder OpenAIResponder 
+@inject IOptions<OpenAISettings> OpenAISettings
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject UserManager<IdentityUser> UserManager
+@inject IJSRuntime JS
+
+<style>
+    html, body {
+        background-color: #AECFDF !important;
+    }
+    .quiz-run-container {
+        background-color: #AECFDF;
+        min-height: 100vh;
+    }
+    .quiz-question-container {
+        background-color: #47E5BC;
+    }
+    .quiz-answer-container {
+        background-color: #81E4DA;
+    }
+    .quiz-verses-container {
+        background-color: #D4E09B;
+    }
+    .quiz-timer-container {
+        background-color: #E0E0E2
+    }
+    .quiz-challenge-container {
+        background-color: #E7DCD1;
+    }
+
+    .quiz-elements-container {
+        background-color: #F2E9E4;
+    }
+</style>
+
+<div class="container-fluid quiz-run-container" @ref="containerElement" @onkeydown="HandleKeyDown" tabindex="0">
+    @if (!string.IsNullOrWhiteSpace(UserMessage))
+    {
+        <div class="alert alert-info" role="alert">
+            @UserMessage
+        </div>
+    }
+
+    @if (LoadingComplete)
+    {
+        <div class="row">
+            <div class="col-9">
+                <h4>Question @Quiz?.QuestionNumber</h4>
+            </div>
+            <div class="col-3">
+                @if(QuizType == 1)
+                {
+                    <a href="/PBE/Quiz/Run/@BibleId/@QuizId?QuizType=0">Switch to Standard Quiz</a>
+                }
+                else
+                {
+                    <a href="/PBE/Quiz/Run/@BibleId/@QuizId?QuizType=1">Switch to Mock Quiz</a>
+                }
+
+            </div>
+        </div>
+
+        <!-- Question Display -->
+        <div class="row">
+            <div class="col-xs-12 col-sm-9">
+                <div class="card shadow h-100 quiz-question-container">
+                    <div class="card-body d-flex align-items-center">
+                        <h2>@Question?.PBEQuestion</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="col-xs-12 col-sm-3">
+                <!-- Timer Section -->
+                <div class="card mb-3 quiz-timer-container">
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h3 class="@(TimerExpired ? "text-danger" : "")">
+                                @FormatTimer(TimeRemaining)
+                            </h3>
+                        </div>
+                        <div class="btn-group w-100 mb-2" role="group">
+                            <button type="button" 
+                                    class="btn btn-sm btn-success" 
+                                    @onclick="StartTimer"
+                                    disabled="@(TimerRunning || Question == null)">
+                                Start <u>T</u>imer
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-sm btn-danger" 
+                                    @onclick="StopTimer"
+                                    disabled="@(!TimerRunning)">
+                                Stop <u>T</u>imer
+                            </button>
+                        </div>
+                        <button type="button" 
+                                class="btn sm btn-outline-secondary w-100" 
+                                @onclick="ResetTimer"
+                                disabled="@(Question == null)">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Show Answers Button -->
+                <div class="mb-3">
+                    <button type="button" 
+                            class="btn btn-danger w-100" 
+                            @onclick="@(() => ShowAnswersPanel = !ShowAnswersPanel)"
+                            disabled="@(Question == null)">
+                        <u>S</u>how Answer
+                    </button>
+                </div>
+
+                <!-- Only show Award Points or Next Question IF ShowAnswersPanel is open-->
+                @if (ShowAnswersPanel)
+                {
+                    <!-- Award Points Section (QuizType == 0 only) -->
+                    @if (QuizType == 0)
+                    {
+                        <div class="card mb-3 quiz-elements-container">
+                            <div class="card-body">
+                                <label class="form-label">Points Awarded:</label>
+                                <select class="form-select mb-2" @onchange="OnPointsSelected">
+                                    @if (PointsSelectList != null)
+                                    {
+                                        @foreach (var item in PointsSelectList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                                <button type="button"
+                                        class="btn btn-outline-primary w-100 mb-2"
+                                        @onclick="AwardPoints"
+                                        disabled="@(SelectedPoints < 0 || Question == null)">
+                                    Award Points
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Next Question Button -->
+                        <button type="button"
+                                class="btn btn-outline-success w-100 mb-3"
+                                @onclick="NextQuestion"
+                                disabled="@(!CanProceedToNext)">
+                            <u>N</u>ext Question
+                        </button>
+
+                    }
+                }
+
+
+                <!-- Team Info -->
+                @if (Question?.TeamName != null)
+                {
+                    <div class="small">
+                        <span class="badge badge-info">@Question.TeamName</span>
+                        @foreach (var Member in Question.TeamMembers ?? new List<QuizTeamMember>())
+                        {
+                            <span class="badge badge-light">@Member.Name</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Answers Section -->
+        @if (ShowAnswersPanel && Question != null)
+        {
+            <div class="container-fluid my-3">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-9">
+                        <div class="card shadow quiz-answer-container">
+                            <div class="card-body">
+                                @if (Question.QuizAnswers != null)
+                                {
+                                    @foreach (var answer in Question.QuizAnswers)
+                                    {
+                                        <h5>@answer.Answer</h5>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    @if (Question.Type == (int)QuestionType.AIProposed)
+                    {
+                        <div class="col-xs-12 col-sm-3">
+                            <div class="alert alert-info small" role="alert">
+                                This question, answer, and points were generated by AI. Please add a challenge if you spot any issues.
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Reference Verses Section -->
+        @if (ShowAnswersPanel && Question != null)
+        {
+            <div class="container-fluid my-3">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-9">
+                        <div class="card quiz-verses-container">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    @if (Question.IsCommentaryQuestion)
+                                    {
+                                        <span class="font-weight-bold">Commentary for Reference: </span>
+                                        <span>@Question.CommentarySectionTitle</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="font-weight-bold">Verses for Reference: </span>
+                                        <span>@GetVerseReference()</span>
+                                    }
+                                </div>
+                                <div class="card-text scroll-box">
+                                    @if (Question.IsCommentaryQuestion)
+                                    {
+                                        @foreach (var verse in Question.Verses)
+                                        {
+                                            @verse.Text
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @foreach (var verse in Question.Verses)
+                                        {
+                                            <sup>@verse.Verse</sup>
+                                            @verse.Text
+                                            <br />
+                                        }
+                                        <br />
+                                        <div class="text-muted small">
+                                            @Question.LegalNote
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quiz Stats only applicable in standard quiz -->
+                        @if (QuizType == 0 && Quiz != null)
+                        {
+                            <div class="text-info mt-3">
+                                <span class="font-weight-bold">Quiz Stats</span><br />
+                                <span class="pl-2">Points Awarded - @Quiz.PointsAwarded</span><br />
+                                <span class="pl-2">Points Possible - @Quiz.PointsPossible</span><br />
+                                <span class="pl-2">Percentage - @Quiz.Percentage%</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Challenge Question Section -->
+                    @if (CanChallenge && Question != null)
+                    {
+                        <div class="col-xs-12 col-sm-3">
+                            <div class="card border-danger quiz-challenge-container">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">Challenge Question</h6>
+                                </div>
+                                <div class="card-body">
+                                    <textarea @bind="ChallengeComment" 
+                                              @onfocus="@(() => IsTextAreaFocused = true)"
+                                              @onblur="@(() => IsTextAreaFocused = false)"
+                                              rows="4" 
+                                              placeholder="Challenge Comment Required" 
+                                              class="form-control mb-2"></textarea>
+                                    <small class="d-block mb-2">
+                                        A challenged question is taken out of rotation until it has been reviewed and the challenge removed.
+                                    </small>
+                                    @if (QuizType == 0)
+                                    {
+                                        @if (SelectedPoints >= 0)
+                                        {
+                                            <button type="button" 
+                                                    class="btn btn-danger w-100 mb-2" 
+                                                    @onclick="@(() => ChallengeQuestion(2))"
+                                                    disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                                Challenge (Award Points)
+                                            </button>
+                                        }
+                                        <button type="button"
+                                                    class="btn btn-danger w-100"
+                                                    @onclick="@(() => ChallengeQuestion(0))"
+                                                    disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                                Challenge (New Question)
+                                        </button>
+                                    }
+
+                                    @if (QuizType == 1) 
+                                    {
+                                        <button type="button"
+                                                class="btn btn-outline-danger w-100"
+                                                @onclick="@(() => ChallengeQuestion(0))"
+                                                disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                            Challenge & New Question
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-outline-warning w-100 mt-2" 
+                                                @onclick="@(() => ChallengeQuestion(1))"
+                                                disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                            Challenge & Next Question
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Navigation -->
+        <div class="mt-4">
+            <hr />
+            <a href="/pbe/quizzes" class="btn btn-link">Back to Quizzes</a>
+            <br />
+            <a href="/pbe/quizhistory?QuizId=@QuizId&BibleID=@BibleId" target="_blank" class="btn btn-link">View Previous Questions</a>
+            <br />
+            <a href="/pbe/index" class="btn btn-link">Back to PBE Home</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <span class="spinner-border spinner-border-sm mr-2"></span>
+            Loading Question...
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string BibleId { get; set; }
+
+    [Parameter]
+    public int QuizId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "QuizType")]
+    public int QuizType { get; set; } = 0; // We default to 0 which is the standard quiz experience, 1 = MockQuiz, 2 = Future Quiz Type... 
+
+    private QuizQuestion Question { get; set; }
+    private QuizGroupStat Quiz { get; set; }
+    private QuizUser PBEUser { get; set; }
+    private bool ShowAnswersPanel { get; set; }
+    private string UserMessage { get; set; }
+
+    // Timer properties
+    private System.Timers.Timer QuizTimer { get; set; }
+    private int TimeRemaining { get; set; }
+    private bool TimerRunning { get; set; }
+    private bool TimerExpired { get; set; }
+
+    // Points and challenge
+    private int SelectedPoints { get; set; }
+    private List<SelectListItem> PointsSelectList { get; set; }
+    private string ChallengeComment { get; set; }
+    private bool CanChallenge { get; set; }
+    private bool CanProceedToNext { get; set; }
+    private bool IsTextAreaFocused { get; set; }
+
+    // Control variables 
+    private ElementReference containerElement;
+    private bool LoadingComplete = false;
+    private bool UserValidated = false;
+    private bool InitializationStarted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (InitializationStarted) return;
+        InitializationStarted = true;
+
+        // Get current user - do this once
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        var identityUser = await UserManager.FindByNameAsync(user.Identity.Name);
+        PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, identityUser.Email);
+
+        if (!PBEUser.IsValidPBEQuizHost())
+        {
+            UserMessage = "Sorry, you do not have sufficient rights to host a PBE Quiz.";
+            LoadingComplete = true;
+            return;
+        }
+
+        UserValidated = true;
+        await LoadQuizData();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Only reload data if parameters actually changed and user is validated
+        if (UserValidated && LoadingComplete && !InitializationStarted)
+        {
+            await LoadQuizData();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await containerElement.FocusAsync();
+            }
+            catch
+            {
+                // Handle any focus errors gracefully
+            }
+        }
+    }
+
+    public async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        // Only process keyboard shortcuts if textarea is not focused
+        if (!IsTextAreaFocused && e.Key.Equals("s", StringComparison.OrdinalIgnoreCase) && Question != null)
+        {
+            ShowAnswersPanel = !ShowAnswersPanel;
+        }
+        if (!IsTextAreaFocused && ShowAnswersPanel && QuizType == 1 &&  e.Key.Equals("n", StringComparison.OrdinalIgnoreCase) && Question != null)
+        {
+            await NextQuestion(); // This is  only valid on Mock Quizzes otherwise points have to be selected so no keyboard shortcut.
+        }
+        if (!IsTextAreaFocused && !ShowAnswersPanel && e.Key.Equals("t", StringComparison.OrdinalIgnoreCase) && Question != null)
+        {
+            if (!TimerRunning)
+            {
+                StartTimer();
+            }
+            else
+            {
+                StopTimer();
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        StopTimer();
+    }
+
+    private async Task LoadQuizData()
+    {
+        try
+        {
+            // Let's grab the Quiz Object
+            Quiz = await DbContext.QuizGroupStats.FindAsync(QuizId);
+            if (Quiz == null)
+            {
+                UserMessage = "That's Odd... We were unable to find this Quiz";
+                LoadingComplete = true;
+                return;
+            }
+            if (Quiz.QuizUser != PBEUser) { UserMessage = "Sorry! Only a Quiz Owner can run a Quiz"; }
+
+            _ = await Quiz.AddQuizPropertiesAsync(DbContext, BibleId);
+
+            // Now go get or build the next Question Object... we're going to take 3 swings at this for the scenario where we don't have enough questions.
+            Question = await Quiz.GetOrBuildNextQuizQuestionAsync(DbContext, BibleId, OpenAIResponder, PBEUser);
+            if (Question.QuestionSelected == false)
+            {
+                UserMessage = "We could neither find or generate a next question... please help by adding more questions.";
+            }
+
+            if (Question != null)
+            {
+                BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(DbContext, BibleId, Question.BookNumber, Question.Chapter);
+                if (PBEBook == null) { UserMessage = "That's Odd! We weren't able to find the PBE Book."; }
+
+                // Note: the Commentary Scenario requires Verses be populated before PopulatePBEQuestionInfo is called.
+                Question.Verses = await Question.GetBibleVersesAsync(DbContext, true);
+                Question.PopulatePBEQuestionInfo(PBEBook);
+
+                // See if we have a TeamId, if so let's go chase down Members.
+                if (Quiz.QuizTeamId > 0)
+                {
+                    _ = await Question.AddTeamMemberInfoAsync(DbContext, Quiz.QuizTeamId, BibleId);
+                }
+
+                TimeRemaining = Question.TimeLimit;
+                CanChallenge = PBEUser.IsValidPBEQuestionBuilder();
+                CanProceedToNext = true;
+
+                // Load points select list for Standard QuizType == 0 scenario.
+                if (QuizType == 0)
+                {
+                    PointsSelectList = Question.GetQuestionPointsSelectList();
+                    SelectedPoints = -1;
+                }
+            }
+
+            LoadingComplete = true;
+        }
+        catch (Exception ex)
+        {
+            UserMessage = $"Error loading quiz: and question {ex.Message}";
+            LoadingComplete = true;
+        }
+    }
+
+    private void StartTimer()
+    {
+        if (TimerRunning) return;
+
+        TimerRunning = true;
+        TimerExpired = false;
+
+        QuizTimer = new System.Timers.Timer(1000);
+        QuizTimer.Elapsed += (sender, e) =>
+        {
+            if (TimeRemaining > 0)
+            {
+                TimeRemaining--;
+                InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                TimerExpired = true;
+                StopTimer();
+            }
+        };
+        QuizTimer.Start();
+    }
+
+    private void StopTimer()
+    {
+        if (QuizTimer != null)
+        {
+            QuizTimer.Stop();
+            QuizTimer.Dispose();
+        }
+        TimerRunning = false;
+    }
+
+    private void ResetTimer()
+    {
+        StopTimer();
+        TimeRemaining = Question?.TimeLimit ?? 60;
+        TimerExpired = false;
+    }
+
+    private void OnPointsSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int points))
+        {
+            SelectedPoints = points;
+        }
+    }
+
+    private async Task AwardPoints()
+    {
+        if (Question != null && SelectedPoints >= 0)
+        {
+            await NextQuestion();
+        }
+    }
+
+    private async Task ChallengeQuestion(int ChallengeAction)
+    {
+        if (Question != null && !string.IsNullOrWhiteSpace(ChallengeComment))
+        {
+            // First we add the challenge
+            Question.Modified = DateTime.Now;
+            Question.Challenged = true;
+            Question.ChallengedBy = PBEUser.Email;
+            Question.ChallengeComment = ChallengeComment;
+            await DbContext.SaveChangesAsync();
+            UserMessage = "Challenge submitted successfully!";
+            ChallengeComment = string.Empty;
+
+            // now we' need to figure out next step
+            if (ChallengeAction == 0) // This is A New Question Challenge, we just want to load a new question without saving points or history for the challenged question.
+            {
+                // We do not need to do anything here, we'll just load a new qustion. 
+            }
+            else if (ChallengeAction == 1) // This is the Mock Quiz Challenge but Move to Next Question scenario.
+            {
+                // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
+                // This is a mock Quiz so we always award max points.
+                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+            }
+            else if (ChallengeAction == 2) // This is the Standard Quiz Challenge, Award Points, Move to Next Question scenario.
+            {
+                // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
+                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
+            }
+
+            await LoadQuizData(); // This will only progress the question if AddQuizPointsforQuestionAsync has been called. 
+            ShowAnswersPanel = false;
+            ResetTimer();
+            SelectedPoints = -1;
+        }
+    }
+
+    private async Task NextQuestion()
+    {
+        UserMessage = string.Empty;
+        if (QuizType == 1)
+        {
+            // For Mock Quiz, just load the next question points awarded = possible.
+            if (Question != null)
+            {
+                // If the question was AIProposed and still Challenged, let's remove the challenge before saving it.
+                if (Question.Type == (int)QuestionType.AIProposed && Question.Challenged == true)
+                {
+                    Question.Challenged = false;
+                    Question.ChallengeComment = "Challenge Removed during a Mock Quiz";
+                }
+
+                // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
+                // This is a mock Quiz so we always award max points.
+                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+            }
+        }
+        else // This is the standard quiz scenario
+        {
+            // For standard quiz, we should save the awarded points and update quiz stats before moving on.
+            if (Question != null)
+            {
+                // If the question was AIProposed and still Challenged, let's removed the challenge before saving it.
+                if (Question.Type == (int)QuestionType.AIProposed && Question.Challenged == true)
+                {
+                    Question.Challenged = false;
+                    Question.ChallengeComment = "Challenge Removed by user point assignment.";
+                }
+
+                // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
+                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
+
+            }
+        }
+
+        await LoadQuizData(); // Calling this now will advance to next question.
+        ShowAnswersPanel = false;
+        ResetTimer();
+        SelectedPoints = -1;
+    }
+
+    private string FormatTimer(int seconds)
+    {
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+        return $"{minutes:D2}:{secs:D2}";
+    }
+
+    private string GetVerseReference()
+    {
+        if (Question == null) return string.Empty;
+
+        string verseRef = $"{Question.BookName} {Question.Chapter}:{Question.StartVerse}";
+        if (Question.EndVerse > Question.StartVerse)
+        {
+            verseRef += $" - {Question.EndVerse}";
+        }
+        return verseRef;
+    }
+
+    public void Dispose()
+    {
+        StopTimer();
+    }
+}

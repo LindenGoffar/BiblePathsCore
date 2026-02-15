@@ -71,6 +71,9 @@
                                 <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">
                                    Quiz
                                 </a>
+                                <a href="/PBE/Quiz/Run/@Model.BibleId/@quiz.Id?QuizType=0" class="btn btn-outline-primary btn-sm">
+                                   Quiz (New Experience)
+                                </a>
                                 <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Mock Quiz
                                 </a>
