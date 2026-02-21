@@ -8,6 +8,8 @@
 
 
 @page "/tongues/verses/{BibleId}/{BookNumber:int}/{Chapter:int}/{VerseNum:int?}/{toLanguage}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
 @inject BiblePathsCoreDbContext DbContext
 @inject IOpenAIResponder OpenAIResponder
 

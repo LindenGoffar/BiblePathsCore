@@ -4,6 +4,8 @@
 @using Microsoft.AspNetCore.Components.Web;
 
 @page "/tongues/select/{SelectedBibleId?}/{SelectedLanguage?}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
 @inject BiblePathsCoreDbContext DbContext
 
 <h3>Where do you want to start?</h3>

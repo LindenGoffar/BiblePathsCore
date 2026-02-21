@@ -1,5 +1,6 @@
 @page "/pbe/quiz/manage/{QuizId:int?}"
 @attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using Microsoft.AspNetCore.Authorization
@@ -154,7 +155,7 @@
     <hr class="my-4" />
     <a href="/pbe/quizzes" class="btn btn-link">Back to Quizzes</a>
     <br />
-    <a href="/pbe/teams?BibleId=@BibleId">Back to Teams</a>
+    <a href="/pbe/teams?BibleId=@BibleId" class="btn btn-link">Back to Teams</a>
     <br />
     <a href="/pbe/index" class="btn btn-link">Back to PBE Home</a>
 </div>
@@ -176,7 +177,7 @@
     private string ErrorMessage = string.Empty;
     private bool Loading = false;
     private bool IsEditing = false;
-    private bool UseTemplate = false;
+    private bool UseTemplate = false; // defaulting to template 
 
     protected override Task OnInitializedAsync()
     {
@@ -231,12 +232,12 @@
             {
                 // New quiz - set defaults
                 Quiz = new QuizGroupStat
-                {
-                    Created = DateTime.Now,
-                    Modified = DateTime.Now,
-                    QuizUser = PBEUser
-                };
-                UseTemplate = false;
+                    {
+                        Created = DateTime.Now,
+                        Modified = DateTime.Now,
+                        QuizUser = PBEUser
+                    };
+                UseTemplate = AvailableTemplates.Count > 0; // If there is a template available let's default to the Template scenario. 
             }
         }
         finally

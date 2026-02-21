@@ -1,5 +1,7 @@
 ﻿@page "/pbe/teams/quizhistory/{TeamId:int}/{BibleId?}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
+
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using Microsoft.AspNetCore.Authorization

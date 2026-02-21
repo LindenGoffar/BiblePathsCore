@@ -1,5 +1,7 @@
 @page "/pbe/teams/{BibleId?}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
+
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using Microsoft.AspNetCore.Authorization
@@ -88,7 +90,8 @@
             </div>
             <div class="card-body">
                 <!-- Tabs for different sections -->
-                <ul class="nav nav-tabs mb-3" role="tablist">
+
+@*                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link @(ActiveTab == "members" ? "active" : "")" href="#" @onclick="@((e) => {SetActiveTab("members"); })" @onclick:preventDefault="true">Members</a>
                     </li>
@@ -98,91 +101,94 @@
                     <li class="nav-item">
                         <a class="nav-link @(ActiveTab == "assignments" ? "active" : "")" href="#" @onclick="@((e) => {SetActiveTab("assignments"); })" @onclick:preventDefault="true">Assignments</a>
                     </li>
-                </ul>
+                </ul> *@
 
-                <!-- Members Tab -->
-                @if (ActiveTab == "members")
-                {
-                    <div class="tab-pane fade show active">
-                        <h5 class="mb-3">Team Members</h5>
-                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddMemberModal">+ Add Member</button>
-                        
-                        @if (SelectedTeam.QuizTeamMembers.Count == 0)
-                        {
-                            <p class="text-muted">No members in this team yet.</p>
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var member in SelectedTeam.QuizTeamMembers)
-                                        {
-                                            <tr>
-                                                <td>@member.Name</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowEditMemberModal(member)">Edit</button>
-                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteMember(member.Id)">Remove</button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <!-- Members Card -->
+                        <div class="card h-100">
+                            <div class="card-header"><h5 class="mb-3">Team Members</h5></div>
+                            <div class="card-body">
+                                <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddMemberModal">+ Add Member</button>
+                                
+                                @if (SelectedTeam.QuizTeamMembers.Count == 0)
+                                {
+                                    <p class="text-muted">No members in this team yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var member in SelectedTeam.QuizTeamMembers)
+                                                {
+                                                    <tr>
+                                                        <td>@member.Name</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowEditMemberModal(member)">Edit</button>
+                                                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteMember(member.Id)">Remove</button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
                             </div>
-                        }
+                        </div>
                     </div>
-                }
 
-                <!-- Coaches Tab -->
-                @if (ActiveTab == "coaches")
-                {
-                    <div class="tab-pane fade show active">
-                        <h5 class="mb-3">Team Coaches</h5>
-                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddCoachModal">+ Add Coach</button>
-                        
-                        @if (SelectedTeam.QuizTeamCoaches.Count == 0)
-                        {
-                            <p class="text-muted">No coaches assigned to this team yet.</p>
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Coach Email</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var coach in SelectedTeam.QuizTeamCoaches)
-                                        {
-                                            <tr>
-                                                <td>@coach.Coach.Email</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteCoach(coach.Id)">Remove</button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                    <div class="col-md-6 mb-3">
+                        <!-- Coaches Card -->
+                        <div class="card h-100">
+                            <div class="card-header"><h5 class="mb-3">Team Coaches</h5></div>
+                            <div class="card-body">
+                                <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddCoachModal">+ Add Coach</button>
+                                
+                                @if (SelectedTeam.QuizTeamCoaches.Count == 0)
+                                {
+                                    <p class="text-muted">No coaches assigned to this team yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Coach Email</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var coach in SelectedTeam.QuizTeamCoaches)
+                                                {
+                                                    <tr>
+                                                        <td>@coach.Coach.Email</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteCoach(coach.Id)">Remove</button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
                             </div>
-                        }
+                        </div>
                     </div>
-                }
+                </div>
 
                 <!-- Assignments Tab -->
-                @if (ActiveTab == "assignments")
-                {
-                    <div class="tab-pane fade show active">
-                        <h5 class="mb-3">Assignments</h5>
-                        <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
+                <div class="card">
+                    <div class="card-header"><h5 class="mb-3">Assignments</h5></div>
+                    <div class="card-body">
+                                                <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
                         
                         @if (SelectedTeamAssignments.Count == 0)
                         {
@@ -227,7 +233,7 @@
                             </div>
                         }
                     </div>
-                }
+                </div>
             </div>
         </div>
     }

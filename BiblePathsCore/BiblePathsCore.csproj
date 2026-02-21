@@ -7,7 +7,7 @@
 	<SelfContained>true</SelfContained>
 	<PlatformTarget>AnyCPU</PlatformTarget>
 	<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
-	<StartupObject>BiblePathsCore.Program</StartupObject>
+	<StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

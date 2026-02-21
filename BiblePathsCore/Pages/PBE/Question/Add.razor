@@ -1,4 +1,6 @@
 @page "/pbe/question/add/{BibleId?}/{BookNumber:int?}/{Chapter:int?}/{Verse:int?}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using Microsoft.AspNetCore.Authorization
@@ -266,5 +268,3 @@ else
         </div>
     </div>
 }
-
-<script src="/js/pbe-helpers.js"></script>

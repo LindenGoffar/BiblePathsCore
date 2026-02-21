@@ -1,5 +1,8 @@
 @page "/pbe/quiz/run/{BibleId?}/{QuizId:int?}"
 @attribute [Authorize]
+@* Fully Qualifying due to Mvc.Rendering ambiguity *@
+@* @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer  *@
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using BiblePathsCore.Services
@@ -21,7 +24,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject UserManager<IdentityUser> UserManager
-@inject IJSRuntime JS
+@* @inject IJSRuntime JS *@
 
 <style>
     html, body {
@@ -52,7 +55,7 @@
     }
 </style>
 
-<div class="container-fluid quiz-run-container" @ref="containerElement" @onkeydown="HandleKeyDown" tabindex="0">
+<div class="container-fluid quiz-run-container" @onkeydown="HandleKeyDown" tabindex="0">
     @if (!string.IsNullOrWhiteSpace(UserMessage))
     {
         <div class="alert alert-info" role="alert">
@@ -385,7 +388,7 @@
     private bool IsTextAreaFocused { get; set; }
 
     // Control variables 
-    private ElementReference containerElement;
+    // private ElementReference timerElement;
     private bool LoadingComplete = false;
     private bool UserValidated = false;
     private bool InitializationStarted = false;
@@ -428,20 +431,20 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                await containerElement.FocusAsync();
-            }
-            catch
-            {
-                // Handle any focus errors gracefully
-            }
-        }
-    }
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         try
+    //         {
+    //             await timerElement.FocusAsync();
+    //         }
+    //         catch
+    //         {
+    //             // Handle any focus errors gracefully
+    //         }
+    //     }
+    // }
 
     public async Task HandleKeyDown(KeyboardEventArgs e)
     {
@@ -693,3 +696,4 @@
         StopTimer();
     }
 }
+

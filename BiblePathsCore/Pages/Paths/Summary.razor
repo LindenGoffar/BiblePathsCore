@@ -1,4 +1,6 @@
 @page "/paths/summary/{PathId:int}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @using BiblePathsCore.Services
