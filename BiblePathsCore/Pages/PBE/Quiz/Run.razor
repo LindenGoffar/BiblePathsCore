@@ -135,47 +135,6 @@
                     </button>
                 </div>
 
-                <!-- Only show Award Points or Next Question IF ShowAnswersPanel is open-->
-                @if (ShowAnswersPanel)
-                {
-                    <!-- Award Points Section (QuizType == 0 only) -->
-                    @if (QuizType == 0)
-                    {
-                        <div class="card mb-3 quiz-elements-container">
-                            <div class="card-body">
-                                <label class="form-label">Points Awarded:</label>
-                                <select class="form-select mb-2" @onchange="OnPointsSelected">
-                                    @if (PointsSelectList != null)
-                                    {
-                                        @foreach (var item in PointsSelectList)
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                </select>
-                                <button type="button"
-                                        class="btn btn-outline-primary w-100 mb-2"
-                                        @onclick="AwardPoints"
-                                        disabled="@(SelectedPoints < 0 || Question == null)">
-                                    Award Points
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- Next Question Button -->
-                        <button type="button"
-                                class="btn btn-outline-success w-100 mb-3"
-                                @onclick="NextQuestion"
-                                disabled="@(!CanProceedToNext)">
-                            <u>N</u>ext Question
-                        </button>
-
-                    }
-                }
-
-
                 <!-- Team Info -->
                 @if (Question?.TeamName != null)
                 {
@@ -216,6 +175,43 @@
                             </div>
                         </div>
                     }
+                    <!-- Award Points Section (QuizType == 0 only) -->
+                    <div class="col-xs-12 col-sm-3">
+                        @if (QuizType == 0)
+                        {
+                            <div class="card mb-3 quiz-elements-container">
+                                <div class="card-body">
+                                    <select class="form-select mb-2" @onchange="OnPointsSelected">
+                                        @if (PointsSelectList != null)
+                                        {
+                                            @foreach (var item in PointsSelectList)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                    <button type="button"
+                                            class="btn btn-outline-primary w-100 mb-2"
+                                            @onclick="AwardPoints"
+                                            disabled="@(SelectedPoints < 0 || Question == null)">
+                                        Award Points
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Next Question Button -->
+                            <button type="button"
+                                    class="btn btn-outline-success w-100 mb-3"
+                                    @onclick="NextQuestion"
+                                    disabled="@(!CanProceedToNext)">
+                                <u>N</u>ext Question
+                            </button>
+
+                        }
+                    </div>
+
                 </div>
             </div>
         }
@@ -231,13 +227,11 @@
                                 <div class="card-title">
                                     @if (Question.IsCommentaryQuestion)
                                     {
-                                        <span class="font-weight-bold">Commentary for Reference: </span>
-                                        <span>@Question.CommentarySectionTitle</span>
+                                        <span class="font-weight-bold">@Question.CommentarySectionTitle</span>
                                     }
                                     else
                                     {
-                                        <span class="font-weight-bold">Verses for Reference: </span>
-                                        <span>@GetVerseReference()</span>
+                                        <span class="font-weight-bold">@GetVerseReference()</span>
                                     }
                                 </div>
                                 <div class="card-text scroll-box">
