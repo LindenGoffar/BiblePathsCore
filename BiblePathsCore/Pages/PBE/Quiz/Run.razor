@@ -16,6 +16,7 @@
 @using System.Timers
 @using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
+@using System.Threading
 
 
 @inject BiblePathsCoreDbContext DbContext
@@ -190,12 +191,15 @@
                                             }
                                         }
                                     </select>
-                                    <button type="button"
-                                            class="btn btn-outline-primary w-100 mb-2"
+                                    @if (SelectedPoints >= 0)
+                                    {
+                                        <button type="button"
+                                            class="btn btn-primary w-100 mb-2"
                                             @onclick="AwardPoints"
                                             disabled="@(SelectedPoints < 0 || Question == null)">
-                                        Award Points
-                                    </button>
+                                            Award Points
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         }
@@ -203,7 +207,7 @@
                         {
                             <!-- Next Question Button -->
                             <button type="button"
-                                    class="btn btn-outline-success w-100 mb-3"
+                                    class="btn btn-success w-100 mb-3"
                                     @onclick="NextQuestion"
                                     disabled="@(!CanProceedToNext)">
                                 <u>N</u>ext Question
@@ -386,9 +390,13 @@
     private bool LoadingComplete = false;
     private bool UserValidated = false;
     private bool InitializationStarted = false;
+    private CancellationTokenSource _cts;
+    private bool _disposed;
 
     protected override async Task OnInitializedAsync()
     {
+        _cts = new CancellationTokenSource();
+
         if (InitializationStarted) return;
         InitializationStarted = true;
 
@@ -442,35 +450,101 @@
 
     public async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        // Only process keyboard shortcuts if textarea is not focused
-        if (!IsTextAreaFocused && e.Key.Equals("s", StringComparison.OrdinalIgnoreCase) && Question != null)
+        if (_disposed) return;
+        
+        try
         {
-            ShowAnswersPanel = !ShowAnswersPanel;
-        }
-        if (!IsTextAreaFocused && ShowAnswersPanel && QuizType == 1 &&  e.Key.Equals("n", StringComparison.OrdinalIgnoreCase) && Question != null)
-        {
-            await NextQuestion(); // This is  only valid on Mock Quizzes otherwise points have to be selected so no keyboard shortcut.
-        }
-        if (!IsTextAreaFocused && !ShowAnswersPanel && e.Key.Equals("t", StringComparison.OrdinalIgnoreCase) && Question != null)
-        {
-            if (!TimerRunning)
+            // Only process keyboard shortcuts if textarea is not focused
+            if (!IsTextAreaFocused && e.Key.Equals("s", StringComparison.OrdinalIgnoreCase) && Question != null)
             {
-                StartTimer();
+                ShowAnswersPanel = !ShowAnswersPanel;
             }
-            else
+            if (!IsTextAreaFocused && ShowAnswersPanel && QuizType == 1 &&  e.Key.Equals("n", StringComparison.OrdinalIgnoreCase) && Question != null)
             {
+                await NextQuestion(); // This is  only valid on Mock Quizzes otherwise points have to be selected so no keyboard shortcut.
+            }
+            if (!IsTextAreaFocused && !ShowAnswersPanel && e.Key.Equals("t", StringComparison.OrdinalIgnoreCase) && Question != null)
+            {
+                if (!TimerRunning)
+                {
+                    StartTimer();
+                }
+                else
+                {
+                    StopTimer();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log silently or show message
+        }
+    }
+
+        private void StartTimer()
+    {
+        if (TimerRunning) return;
+
+        TimerRunning = true;
+        TimerExpired = false;
+
+        QuizTimer = new System.Timers.Timer(1000);
+        QuizTimer.Elapsed += async (sender, e) =>
+        {
+            try
+            {
+                if (TimeRemaining > 0)
+                {
+                    TimeRemaining--;
+                    await SafeStateHasChanged();
+                }
+                else
+                {
+                    TimerExpired = true;
+                    StopTimer();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error
                 StopTimer();
             }
+        };
+        QuizTimer.Start();
+    }
+
+    private void StopTimer()
+    {
+        if (QuizTimer != null)
+        {
+            QuizTimer.Stop();
+            QuizTimer.Dispose();
+            QuizTimer = null;
         }
+        TimerRunning = false;
+    }
+
+        private void ResetTimer()
+    {
+        if (_disposed) return;
+        
+        StopTimer();
+        TimeRemaining = Question?.TimeLimit ?? 60;
+        TimerExpired = false;
     }
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+        _cts?.Cancel();
         StopTimer();
+        _cts?.Dispose();
     }
 
     private async Task LoadQuizData()
     {
+        if (_disposed) return;
+        
         try
         {
             // Let's grab the Quiz Object
@@ -521,52 +595,26 @@
 
             LoadingComplete = true;
         }
+        catch (OperationCanceledException) { }
+        catch (ObjectDisposedException) { }
         catch (Exception ex)
         {
-            UserMessage = $"Error loading quiz: and question {ex.Message}";
+            UserMessage = $"Error loading quiz: {ex.Message}";
             LoadingComplete = true;
         }
     }
 
-    private void StartTimer()
+    private async Task SafeStateHasChanged()
     {
-        if (TimerRunning) return;
-
-        TimerRunning = true;
-        TimerExpired = false;
-
-        QuizTimer = new System.Timers.Timer(1000);
-        QuizTimer.Elapsed += (sender, e) =>
+        if (!_disposed)
         {
-            if (TimeRemaining > 0)
+            try
             {
-                TimeRemaining--;
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
             }
-            else
-            {
-                TimerExpired = true;
-                StopTimer();
-            }
-        };
-        QuizTimer.Start();
-    }
-
-    private void StopTimer()
-    {
-        if (QuizTimer != null)
-        {
-            QuizTimer.Stop();
-            QuizTimer.Dispose();
+            catch (ObjectDisposedException) { }
+            catch (TaskCanceledException) { }
         }
-        TimerRunning = false;
-    }
-
-    private void ResetTimer()
-    {
-        StopTimer();
-        TimeRemaining = Question?.TimeLimit ?? 60;
-        TimerExpired = false;
     }
 
     private void OnPointsSelected(ChangeEventArgs e)
