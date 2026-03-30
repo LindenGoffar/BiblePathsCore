@@ -451,7 +451,7 @@
     public async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (_disposed) return;
-        
+
         try
         {
             // Only process keyboard shortcuts if textarea is not focused
@@ -481,7 +481,7 @@
         }
     }
 
-        private void StartTimer()
+    private void StartTimer()
     {
         if (TimerRunning) return;
 
@@ -524,10 +524,10 @@
         TimerRunning = false;
     }
 
-        private void ResetTimer()
+    private void ResetTimer()
     {
         if (_disposed) return;
-        
+
         StopTimer();
         TimeRemaining = Question?.TimeLimit ?? 60;
         TimerExpired = false;
@@ -544,7 +544,7 @@
     private async Task LoadQuizData()
     {
         if (_disposed) return;
-        
+
         try
         {
             // Let's grab the Quiz Object
@@ -627,6 +627,7 @@
 
     private async Task AwardPoints()
     {
+        UserMessage = "Awarding Points and loading next question...";
         if (Question != null && SelectedPoints >= 0)
         {
             await NextQuestion();
@@ -672,7 +673,6 @@
 
     private async Task NextQuestion()
     {
-        UserMessage = string.Empty;
         if (QuizType == 1)
         {
             // For Mock Quiz, just load the next question points awarded = possible.
@@ -707,7 +707,7 @@
 
             }
         }
-
+        UserMessage = string.Empty;
         await LoadQuizData(); // Calling this now will advance to next question.
         ShowAnswersPanel = false;
         ResetTimer();
