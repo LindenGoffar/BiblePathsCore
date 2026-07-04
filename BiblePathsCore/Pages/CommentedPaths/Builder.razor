@@ -13,6 +13,7 @@
 
 @page "/commentedpaths/builder/{PathId:int}/{BibleId?}"
 @attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <h3 class="mb-3">@Path?.Name</h3>
 

@@ -441,47 +441,76 @@ namespace BiblePathsCore.Models.DB
         {
             QuizQuestion ReturnQuestion = new QuizQuestion();
             List<QuizQuestion> PossibleQuestions = new List<QuizQuestion>();
-            try
+
+            // Per PBE Tradition the 45th and 90th questions have a high points value so in that particular scenario
+            // We will optimise for the highest points possible question in the selected chapter.
+
+            if ( this.QuestionNumber % 45 == 0)
             {
-                // We now query for 4 standard questions in the selected chapter
-                // ordered by longest time since asked,
-                // we want to avoid re-asking questions in a short period of time. 
-                PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
-                                                                    && (Q.BibleId == bibleId || Q.BibleId == null)
-                                                                    && Q.Chapter == Chapter
-                                                                    && Q.Challenged == false
-                                                                    && Q.IsAnswered == true
-                                                                    && !(Q.IsDeleted)
-                                                                    && Q.Type == (int)QuestionType.Standard)
-                                                                .OrderBy(Q => Q.LastAsked).Take(4).ToListAsync();
+                try
+                {
+                    // We now query for 5 questions in the selected chapter with the highest points value,
+                    // ordered by longest time since asked,
+                    // we want to avoid re-asking questions in a short period of time. 
+                    PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
+                                                                        && (Q.BibleId == bibleId || Q.BibleId == null)
+                                                                        && Q.Chapter == Chapter
+                                                                        && Q.Challenged == false
+                                                                        && Q.IsAnswered == true
+                                                                        && Q.IsDeleted == false)
+                                                                    .OrderByDescending(Q => Q.Points).ThenBy(Q => Q.LastAsked).Take(5).ToListAsync();
+                }
+                catch
+                {
+                    // We're not going to do anything here... we'll add some FITB
+                    // and move on. 
+                }
             }
-            catch
+            else // This is the more common not 45th or 90th question scenario
             {
-                // We're not going to do anything here... we'll add some FITB
-                // and move on. 
+                try
+                {
+                    // We now query for 4 standard questions in the selected chapter
+                    // ordered by longest time since asked,
+                    // we want to avoid re-asking questions in a short period of time. 
+                    PossibleQuestions = await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
+                                                                        && (Q.BibleId == bibleId || Q.BibleId == null)
+                                                                        && Q.Chapter == Chapter
+                                                                        && Q.Challenged == false
+                                                                        && Q.IsAnswered == true
+                                                                        && !(Q.IsDeleted)
+                                                                        && Q.Type == (int)QuestionType.Standard)
+                                                                    .OrderBy(Q => Q.LastAsked).Take(4).ToListAsync();
+                }
+                catch
+                {
+                    // We're not going to do anything here... we'll add some FITB
+                    // and move on. 
+                }
+
+                try
+                {
+                    // We now query for 1 FITB questions in the selected chapter
+                    // The 4 : 1 ratio is intended to reduce the likelihood of a FITB question popping up. 
+                    // ordered by longest time since asked,
+                    // we want to avoid re-asking questions in a short period of time. 
+                    PossibleQuestions.AddRange(await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
+                                                                        && (Q.BibleId == bibleId || Q.BibleId == null)
+                                                                        && Q.Chapter == Chapter
+                                                                        && Q.Challenged == false
+                                                                        && Q.IsAnswered == true
+                                                                        && !(Q.IsDeleted)
+                                                                        && Q.Type == (int)QuestionType.FITB)
+                                                                    .OrderBy(Q => Q.LastAsked).Take(1).ToListAsync()
+                                                );
+                }
+                catch
+                {
+                    // We're not going to do anything here... 
+                    // We'll catch the no questions scenario below.
+                }
             }
 
-            try
-            {
-                // We now query for 1 FITB questions in the selected chapter
-                // The 4 : 1 ratio is intended to reduce the likelihood of a FITB question popping up. 
-                // ordered by longest time since asked,
-                // we want to avoid re-asking questions in a short period of time. 
-                PossibleQuestions.AddRange(await context.QuizQuestions.Where(Q => Q.BookNumber == BookNumber
-                                                                    && (Q.BibleId == bibleId || Q.BibleId == null)
-                                                                    && Q.Chapter == Chapter
-                                                                    && Q.Challenged == false
-                                                                    && Q.IsAnswered == true
-                                                                    && !(Q.IsDeleted)
-                                                                    && Q.Type == (int)QuestionType.FITB)
-                                                                .OrderBy(Q => Q.LastAsked).Take(1).ToListAsync()
-                                            );
-            }
-            catch
-            {
-                // We're not going to do anything here... 
-                // We'll catch the no questions scenario below.
-            }
 
 
             if (PossibleQuestions == null)
