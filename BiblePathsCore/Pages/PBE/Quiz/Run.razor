@@ -543,7 +543,9 @@
     private async Task LoadQuizData()
     {
         if (_disposed) return;
-
+        // We're loading so let's set this till proven otherwise. 
+        LoadingComplete = false;
+        UserMessage = "Loading Quiz Details... ";
         try
         {
             // Let's grab the Quiz Object
@@ -558,6 +560,7 @@
 
             _ = await Quiz.AddQuizPropertiesAsync(DbContext, BibleId);
 
+            UserMessage = "Loading Next Question... ";
             // Now go get or build the next Question Object... we're going to take 3 swings at this for the scenario where we don't have enough questions.
             Question = await Quiz.GetOrBuildNextQuizQuestionAsync(DbContext, BibleId, OpenAIResponder, PBEUser);
             if (Question.QuestionSelected == false)
@@ -567,6 +570,7 @@
 
             if (Question != null)
             {
+                UserMessage = "Loading Question Details...";
                 BibleBook PBEBook = await BibleBook.GetPBEBookAndChapterAsync(DbContext, BibleId, Question.BookNumber, Question.Chapter);
                 if (PBEBook == null) { UserMessage = "That's Odd! We weren't able to find the PBE Book."; }
 
@@ -591,7 +595,7 @@
                     SelectedPoints = -1;
                 }
             }
-
+            UserMessage = string.Empty;
             LoadingComplete = true;
         }
         catch (OperationCanceledException) { }
@@ -626,7 +630,7 @@
 
     private async Task AwardPoints()
     {
-        UserMessage = "Awarding Points and loading next question...";
+        UserMessage = "Awarding Points.";
         if (Question != null && SelectedPoints >= 0)
         {
             await NextQuestion();
@@ -643,7 +647,7 @@
             Question.ChallengedBy = PBEUser.Email;
             Question.ChallengeComment = ChallengeComment;
             await DbContext.SaveChangesAsync();
-            UserMessage = "Challenge submitted successfully!";
+            UserMessage = "Submitting Challenge...";
             ChallengeComment = string.Empty;
 
             // now we' need to figure out next step
@@ -655,14 +659,29 @@
             {
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
                 // This is a mock Quiz so we always award max points.
-                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+                try
+                {
+                    _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+                }
+                catch (Exception ex)
+                {   
+                    UserMessage = $"Challenge Submitted with Exception:  {ex.Message}";
+                }
             }
             else if (ChallengeAction == 2) // This is the Standard Quiz Challenge, Award Points, Move to Next Question scenario.
             {
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
-                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
-            }
+                try
+                {
+                    _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
+                }
+                catch (Exception ex)
+                {
+                    UserMessage = $"Challenge Submitted with Exception:  {ex.Message}";
+                }
 
+            }
+            UserMessage = "Challenge Submitted Successfully...";
             await LoadQuizData(); // This will only progress the question if AddQuizPointsforQuestionAsync has been called. 
             ShowAnswersPanel = false;
             ResetTimer();
@@ -672,6 +691,7 @@
 
     private async Task NextQuestion()
     {
+        UserMessage = "Awarding Points...";
         if (QuizType == 1)
         {
             // For Mock Quiz, just load the next question points awarded = possible.
@@ -686,7 +706,15 @@
 
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
                 // This is a mock Quiz so we always award max points.
-                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+                try
+                {
+                    _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, Question.Points, PBEUser);
+                }
+                catch (Exception ex)
+                {
+                    UserMessage = $"Error awarding points for Mock Quiz:  {ex.Message}";
+                }
+
             }
         }
         else // This is the standard quiz scenario
@@ -702,12 +730,18 @@
                 }
 
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
-                _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
-
+                try
+                {
+                    _ = await Quiz.AddQuizPointsforQuestionAsync(DbContext, Question, SelectedPoints, PBEUser);
+                }
+                catch (Exception ex)
+                {
+                    UserMessage = $"Error returned awarding points:  {ex.Message}";
+                }
             }
         }
-        UserMessage = string.Empty;
         await LoadQuizData(); // Calling this now will advance to next question.
+        UserMessage = string.Empty;
         ShowAnswersPanel = false;
         ResetTimer();
         SelectedPoints = -1;
