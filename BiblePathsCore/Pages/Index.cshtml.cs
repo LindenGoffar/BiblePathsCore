@@ -24,11 +24,10 @@ namespace BiblePathsCore.Pages
             Random rnd = new Random();
             string[] Phrases = new string[]
             {
-                "Bible only, Bible studies, for you by you...",
+                "Bible based, Bible studies, for you by you...",
                 "Even fishers of men need a .net...",
                 "Best served with prayer...",
                 "Caution: Approach with prayer...",
-                "If it's not in the Bible, it's not here...",
                 "Lost? Find your Path here...",
                 "Welcome to the family! Now that you're here..."
             };
