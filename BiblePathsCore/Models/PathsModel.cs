@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Data.Xml.Dom;
 
 namespace BiblePathsCore.Models
 {
@@ -138,6 +139,45 @@ namespace BiblePathsCore.Models.DB
             return RetVal;             
         }
 
+        public async Task<bool> GenerateAndAddSummarytoPathAsync(BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
+        {
+            // First let's load PathNodes if not already loaded: 
+            var entry = context.Entry(this);
+            var collectionEntry = entry.Collection(e => e.PathNodes);
+            if (!collectionEntry.IsLoaded)
+            {
+                await collectionEntry.LoadAsync();
+            }
+            // now let's load the verses for each node as they aren't likely to be loaded yet 
+            foreach (var node in PathNodes)
+            {
+                node.Verses = await node.GetBibleVersesAsync(context, OwnerBibleId, true, false);
+            }
+
+            // Now go build and store
+            try
+            {
+                string SummaryText = await this.BuildAISummmaryForPathAsync(context, openAIResponder);
+
+                if (!string.IsNullOrWhiteSpace(SummaryText))
+                {
+                    this.Summary = SummaryText;
+                    this.Modified = DateTime.Now;
+                    context.Paths.Update(this);
+                    await context.SaveChangesAsync();
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
+        }
+
         public async Task<string> BuildAISummmaryForPathAsync(BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
         {
             string RetVal = null;
@@ -145,10 +185,18 @@ namespace BiblePathsCore.Models.DB
             string TextToSummarize = "";
             foreach (var node in PathNodes)
             {
-                foreach (var verse in node.Verses)
+                if (node.Type == (int)StepType.Commented)
                 {
-                    TextToSummarize += verse.BookName + " " + verse.Chapter + ":" + verse.Verse + " " + verse.Text + Environment.NewLine;
+                    TextToSummarize += "<Commentary> " + node.Text + " </Commentary>" + Environment.NewLine;
                 }
+                else // we'll assume we have verses associated with this step
+                { 
+                    foreach (var verse in node.Verses)
+                    {
+                        TextToSummarize += verse.BookName + " " + verse.Chapter + ":" + verse.Verse + " " + verse.Text + Environment.NewLine;
+                    }
+                }
+                
             }
 
             RetVal = await openAIResponder.GetPathSummaryAsync(TextToSummarize);
