@@ -140,7 +140,7 @@ namespace BiblePathsCore
                 pathToUpdate.IsPublished = true;
                 await _context.SaveChangesAsync();
 
-                return RedirectToPage("./MyCommentedPaths");
+                return RedirectToPage("./Paths/MyPaths");
 
             }
 

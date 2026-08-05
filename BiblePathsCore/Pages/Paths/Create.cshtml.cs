@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BiblePathsCore.Models;
+using BiblePathsCore.Models.DB;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BiblePathsCore.Models;
-using BiblePathsCore.Models.DB;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BiblePathsCore
 {
@@ -17,11 +18,14 @@ namespace BiblePathsCore
     public class CreateModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly NavigationManager _navigationManager;
+
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public CreateModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public CreateModel(UserManager<IdentityUser> userManager, NavigationManager navigationManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _userManager = userManager;
+            _navigationManager = navigationManager;
             _context = context;
         }
 
@@ -67,17 +71,20 @@ namespace BiblePathsCore
             var emptyPath = new Path();
             var user = await _userManager.GetUserAsync(User);
             emptyPath.SetInitialProperties(user.Email);
+            emptyPath.IsPublicEditable = false; // Default to false for new paths.
 
             if (await TryUpdateModelAsync<Path>(
                 emptyPath,
                 "Path",   // Prefix for form value.
-                p => p.IsPublicEditable, p => p.OwnerBibleId))
+                // p => p.IsPublicEditable, we are deprecating this rarely used property. 
+                p => p.OwnerBibleId))
             {
                 emptyPath.Name = Name;
                 _context.Paths.Add(emptyPath);
                 await _context.SaveChangesAsync();
 
-                return RedirectToPage("./Steps", new { PathId = emptyPath.Id });
+                //return RedirectToPage("./steps", new { PathId = emptyPath.Id });
+                _navigationManager.NavigateTo($"/builder/{emptyPath.Id}");
             }
 
             return Page();

@@ -122,17 +122,24 @@ namespace BiblePathsCore
 
                 // Finally we need to re-position each node in the path to ensure safe ordering
                 _ = await Path.RedistributeStepsAsync(_context);
-                
-                if (Path.Type == (int)PathType.Commented)
-                {
-                    // The Razor Way: return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
-                    // The Blazor Way: 
-                    return Redirect($"/commentedpaths/builder/{Path.Id}/{BibleId}");
-                }
-                else
-                {
-                    return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
-                }
+
+                // Redirect back to our unified Path Builder experience
+                // The Blazor Way: 
+                return Redirect($"/paths/builder/{Path.Id}/{BibleId}");
+
+                // We now have a unified Path editor so commenting this out. 
+                //if (Path.Type == (int)PathType.Commented)
+                //{
+                //    // The Razor Way: return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = emptyStep.Position});
+                //    // The Blazor Way: 
+                //    return Redirect($"/commentedpaths/builder/{Path.Id}/{BibleId}");
+                //}
+                //else
+                //{
+                //    return RedirectToPage("/Paths/Steps", new { PathId = Path.Id });
+                //}
+
+
             }
             return RedirectToPage("/error", new { errorMessage = "That's Odd! We weren't able to add this Step, we failed to update the Database... not sure what to tell you." });
         }

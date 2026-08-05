@@ -247,6 +247,33 @@ namespace BiblePathsCore.Models.DB
             return returnVerses;
         }
 
+        public async Task<bool> AffirmPathTypeAsync(BiblePathsCoreDbContext context)
+        {
+            // if there are ANY comment nodes in this Path then it's a commented Path. 
+            bool isCommented = false;
+            isCommented = await context.PathNodes.Where(N => N.PathId == Id &&
+                                                                N.Type == (int)StepType.Commented)
+                                                                .AnyAsync();
+            
+            // flip the path to Commented as a Commented step exists. 
+            if(isCommented && this.Type == (int)PathType.Standard)
+            {
+                this.Type = (int)PathType.Commented;
+                context.Paths.Update(this);
+                await context.SaveChangesAsync();
+            }
+
+            // flip the path to Standard if there are no commented paths. 
+            if(!isCommented && this.Type == (int)PathType.Commented)
+            {
+                this.Type = (int)PathType.Standard;
+                context.Paths.Update(this);
+                await context.SaveChangesAsync();
+            }
+            
+            return true;
+        }
+
         // Note this is a static method it is not called with an instance of a path object. 
         // This method will remain PathType agnostic it wil work on any Path 
         public static async Task<bool> PathNameAlreadyExistsStaticAsync(BiblePathsCoreDbContext context, string CheckName)
@@ -322,11 +349,12 @@ namespace BiblePathsCore.Models.DB
                     {
                         context.Attach(node);
                         node.Position = NextPosition;
-                        //TODO Doing this in the for loop seems wasteful.
-                        await context.SaveChangesAsync();
                     }
                     NextPosition += DefaultInterval;
                 }
+                // Moved out of the above loop to try and optimize writes.
+                // TODO we might consider making this rely on the caller to Save Change
+                await context.SaveChangesAsync();
             }
             catch
             {

@@ -67,7 +67,7 @@ namespace BiblePathsCore
             pathToUpdate.IsPublished = false;
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./MyCommentedPaths");
+            return RedirectToPage("./Paths/MyPaths");
         }
     }
 }

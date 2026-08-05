@@ -54,7 +54,7 @@ namespace BiblePathsCore
             }
             if (spaces > 0) // the move down scenario
             {
-                TempPosition = StartPosition + (10 * spaces) + 3; // the plus 3 pushes us above the target step, where want to be and won't conflict with add steps 5.
+                TempPosition = StartPosition + (10 * spaces) + 3; // the plus 3 pushes us below the target step, where want to be and won't conflict with add steps 5.
             }
             // Move the step
             _context.Attach(Step).State = EntityState.Modified;

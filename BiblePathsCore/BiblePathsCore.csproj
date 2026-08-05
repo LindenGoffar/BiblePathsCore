@@ -47,6 +47,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Pages\Paths\Deprecate.Index.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="Pages\PBE\QuizHistory.cshtml">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

@@ -1,4 +1,4 @@
-@page "/paths/all"
+@page "/Paths/Index"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
@@ -89,6 +89,7 @@
             @foreach (var item in CurrentPagePaths)
             {
                 var pathId = item.Id; <!-- CAPTURE THE ID LOCALLY to prevent a loop variable closure problem -->
+
                 <div class="row">
                     <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
                         @if (item.Type == (int)PathType.Commented)

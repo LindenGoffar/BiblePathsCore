@@ -99,11 +99,20 @@ else
                 <div class="path-text">
                     @foreach (var Node in PathNodes)
                     {
-                        @foreach (var verse in Node.Verses)
+                        @if (Node.Type == (int)StepType.Commented)
                         {
                             <div class="mb-2">
-                                <strong>@verse.BookName @verse.Chapter:@verse.Verse</strong> @verse.Text
+                                <strong>Comment:</strong> @Node.Text
                             </div>
+                        }
+                        else
+                        {
+                            @foreach (var verse in Node.Verses)
+                            {
+                                <div class="mb-2">
+                                    <strong>@verse.BookName @verse.Chapter:@verse.Verse</strong> @verse.Text
+                                </div>
+                            }
                         }
                     }
                 </div>

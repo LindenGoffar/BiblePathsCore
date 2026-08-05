@@ -17,6 +17,9 @@
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
+            <br />
+            <span class="text-info">This will create a standard Path, you can convert this to a commented Path later by adding a comment.</span>
+            <br />
             @*<div class="form-group">
                 <label asp-for="Path.Name" class="control-label">Name your new Path</label>
                 <input asp-for="Path.Name" class="form-control" />
@@ -27,11 +30,11 @@
                 <select asp-for="Path.OwnerBibleId" asp-items="Model.BibleSelectList" class="form-control"></select>
                 <span asp-validation-for="Path.OwnerBibleId" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
+            @* <div class="form-group form-check">
                 <label class="form-check-label">
                     <input class="form-check-input" asp-for="Path.IsPublicEditable" /> <strong>Allow others to edit this Path?</strong>
                 </label>
-            </div>
+            </div> *@
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>

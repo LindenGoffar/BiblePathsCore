@@ -30,7 +30,6 @@ namespace BiblePathsCore
         {
             var user = await _userManager.GetUserAsync(User);
             Paths = await _context.Paths.Where(P => P.Owner.ToLower() == user.Email.ToLower() 
-                                                && P.Type == (int)PathType.Standard
                                                 && P.IsDeleted == false)
                                         .ToListAsync();
         }
