@@ -81,6 +81,9 @@ builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddSingleton<IOpenAIResponder, OpenAIResponder>();
 builder.Services.Configure<OpenAISettings>(builder.Configuration);
 
+// Bot detection service for filtering crawler/bot read events
+builder.Services.AddSingleton<IBotDetectionService, BotDetectionService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

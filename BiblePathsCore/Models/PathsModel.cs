@@ -323,6 +323,7 @@ namespace BiblePathsCore.Models.DB
 
             }
             // Now let's conditionally register this as a Path Read
+            // Let's deprecate this... 
             if (MarkAsRead == true)
             {
                 _ = await RegisterReadEventAsync(context);

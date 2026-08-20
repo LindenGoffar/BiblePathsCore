@@ -6,6 +6,19 @@
 <br />
 @foreach (var item in Model)
 {
-    <a asp-page="/Steps/Step" asp-route-id="@item.FirstStepId">@item.Name</a>
+    @if (item.Type == (int)BiblePathsCore.Models.PathType.Commented)
+    {
+        <a href="/CommentedPaths/Read?PathId=@item.Id&MarkAsRead=1" class="text-decoration-none">
+            @item.Name
+        </a>
+
+        <span class="badge rounded-pill bg-primary text-light">Commented</span>
+    }
+    else
+    {
+        <a href="/steps/step?id=@item.FirstStepId" class="text-decoration-none">
+            @item.Name
+        </a>
+    }
     <br />
 }

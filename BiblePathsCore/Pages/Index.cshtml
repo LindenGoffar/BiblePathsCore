@@ -6,7 +6,9 @@
 
 <div class="text-left">
     <h1 class="display-4">Welcome to @ViewData["Title"]</h1>
-    <p><strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study. Commented Paths build on the standard Bible Path by allowing for author supplied commentary.</p>
+    <p><strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study. 
+    </p>
+    <p>Commented Paths build on the standard Bible Path by allowing for author supplied commentary.</p>
 </div>
 <div class="card m-2">
     <div class="card-body">
@@ -25,8 +27,8 @@
     <div class="card-body">
         <p><strong>BiblePaths.Net</strong> powered applications</p>
         Pathfinder Bible Experience -<a asp-page="/PBE/Index"> PBE Quiz App</a>
-        <br />
-        <a asp-page="CommentedPaths/Index">Commented Paths</a> - Like Bible Paths but with owner comments
+        @* <br />
+        <a asp-page="CommentedPaths/Index">Commented Paths</a> - Like Bible Paths but with owner comments *@
         <br />
         <a href="/Tongues/Select">Tongues</a> - Try learning a new language through verse by verse Bible study.
 

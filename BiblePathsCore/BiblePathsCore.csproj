@@ -6,7 +6,7 @@
 	<RuntimeIdentifiers>win-arm64;win-x86;win-x64</RuntimeIdentifiers>
 	<SelfContained>true</SelfContained>
 	<PlatformTarget>AnyCPU</PlatformTarget>
-	<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+	<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 	<StartupObject></StartupObject>
   </PropertyGroup>
 
