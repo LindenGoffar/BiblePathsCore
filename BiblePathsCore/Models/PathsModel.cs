@@ -467,41 +467,43 @@ namespace BiblePathsCore.Models.DB
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
             // Rating is the average of the following Scores ranging from 0 - 5 (there is a little arbitrary uplift)
-            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (for some uplift)
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5) - REMOVED - Unfairly drops the rating of older paths, can add back later.
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (for some uplift) - REMOVED - Unfairly reduces the rate for standard but not commented paths which are all read. 
             // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book and a point for spanning testaments up to 5
             // 4. Average of all UserRatings (uplift creates a 1.1 - 5.5 range)
 
             int firstNTBook = 40; // the first book in the New Testemant is book 40 in the protestant Bible.
             int ScoreCount = 0; // this becomes the number of total Scores that we will average together. 
             double TotalScore = 0;
-            // load all of the PathStats for this Path... we'll need these 
-            // We need to load the collection of Steps assocaited with this Path, as well as the Nodes. 
-            context.Entry(this)
-                .Collection(p => p.PathStats)
-                .Load();
+            // load all of the PathStats for this Path... we'll need these - REMOVED as Read Rate is a poor indicator
+    //        context.Entry(this)
+    //          .Collection(p => p.PathStats)
+    //          .Load();
+
+            // We need to load the collection of Steps assocaited with this Path, as well as the Nodes.  
+
             context.Entry(this)
                 .Collection(p => p.PathNodes)
                 .Load();
 
-            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
-            if (ComputedRating.HasValue)
-            {
-                TotalScore += (double)ComputedRating;
-                ScoreCount++;
-            }
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5) - REMOVED - Unfairly drops the rating of older paths, can add back later.
+            //if (ComputedRating.HasValue)
+            //{
+            //    TotalScore += (double)ComputedRating;
+            //    ScoreCount++;
+            //}
 
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (a half point uplift)
-            int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
-            int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
-            if (NumStarts > 0)
-            { 
-                double ReadPercent = NumCompletes / NumStarts;
-                TotalScore += ReadPercent * 6;
-                ScoreCount++;
-            }
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (a half point uplift) - REMOVED - Unfairly reduces the rate for standard but not commented paths which are all read.
+            //int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
+            //int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
+            //if (NumStarts > 0)
+            //{ 
+            //    double ReadPercent = NumCompletes / NumStarts;
+            //    TotalScore += ReadPercent * 6;
+            //    ScoreCount++;
+            //}
 
-            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 5.5)
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 6)
             if (PathNodes.Count > 0)
             {
                 int BookDiversityScore = 1; // we'll give a free book just to kick us off. 
@@ -517,7 +519,7 @@ namespace BiblePathsCore.Models.DB
                     BookDiversityScore += 2; // Add a free 2 points for spanning testaments.  
                 }
 
-                TotalScore += BookDiversityScore > 5 ? 5.5 : BookDiversityScore;
+                TotalScore += BookDiversityScore > 5 ? 6 : BookDiversityScore;
                 ScoreCount++;                
             }
 
@@ -566,10 +568,10 @@ namespace BiblePathsCore.Models.DB
 
             // Save our Rating, and True Up Reads as deemed Necessary, Now. 
             context.Attach(this).State = EntityState.Modified;
-            if (Reads < NumCompletes) // These should generally be in sync but sometimes fall out of sync. 
-            {
-                Reads = NumCompletes;
-            }
+            //if (Reads < NumCompletes) // These should generally be in sync but sometimes fall out of sync. 
+            //{
+            //    Reads = NumCompletes;
+            //}
             ComputedRating = (decimal)TempRating;
 
             await context.SaveChangesAsync();

@@ -1,6 +1,7 @@
 @page "/Paths/Index"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Web
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
@@ -90,7 +91,7 @@
             {
                 var pathId = item.Id; <!-- CAPTURE THE ID LOCALLY to prevent a loop variable closure problem -->
 
-                <div class="row">
+                <div class="row" @key="item.Id">
                     <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
                         @if (item.Type == (int)PathType.Commented)
                         {
@@ -134,12 +135,16 @@
                             }
                             else
                             {
-                                <button type="button"
-                                        class="btn btn-link btn-sm p-0 generate-summary"
-                                        style="text-decoration: none; cursor: pointer;"
-                                        @onclick="@(async (e) => await GenerateSummaryAsync(pathId))">
-                                    Generate AI Summary
-                                </button>
+                                <AuthorizeView>
+                                    <Authorized>
+                                        <button type="button"
+                                                class="btn btn-link btn-sm p-0 generate-summary"
+                                                style="text-decoration: none; cursor: pointer;"
+                                                @onclick="@(async (e) => await GenerateSummaryAsync(pathId))">
+                                            Generate AI Summary
+                                        </button>
+                                    </Authorized>
+                                </AuthorizeView>
                             }
 
                         }
@@ -196,7 +201,7 @@
 </div>
 
 @code {
-    private const int PageSize = 100;
+    private const int PageSize = 50;
     private List<Path> AllPaths = new();
     private List<Path> CurrentPagePaths = new();
     private HashSet<int> ExpandedSummaries = new();
@@ -300,7 +305,7 @@
 
     private async Task GoToPage(int pageNumber)
     {
-        if (pageNumber < 1 || pageNumber > TotalPages)
+        if (pageNumber < 1 || pageNumber > TotalPages || pageNumber == CurrentPage)
             return;
 
         CurrentPage = pageNumber;

@@ -18,14 +18,12 @@ namespace BiblePathsCore
     public class CreateModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly NavigationManager _navigationManager;
 
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
 
-        public CreateModel(UserManager<IdentityUser> userManager, NavigationManager navigationManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public CreateModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
         {
             _userManager = userManager;
-            _navigationManager = navigationManager;
             _context = context;
         }
 
@@ -83,8 +81,7 @@ namespace BiblePathsCore
                 _context.Paths.Add(emptyPath);
                 await _context.SaveChangesAsync();
 
-                //return RedirectToPage("./steps", new { PathId = emptyPath.Id });
-                _navigationManager.NavigateTo($"/builder/{emptyPath.Id}");
+                return Redirect($"/Paths/Builder/{emptyPath.Id}/{emptyPath.OwnerBibleId}");
             }
 
             return Page();

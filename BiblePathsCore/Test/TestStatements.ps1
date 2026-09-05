@@ -7,7 +7,7 @@
 # $BaseURI = "https://biblepathsppe.azurewebsites.net"
 
 # load for Local Debug
-$BaseURI = "https://localhost:44387"
+$BaseURI = "https://localhost:5001"
 
 # Get all bibles
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles"
