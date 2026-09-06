@@ -96,7 +96,9 @@
                         @if (item.Type == (int)PathType.Commented)
                         {
                             <strong>
-                                <a href="/CommentedPaths/Read?PathId=@item.Id&MarkAsRead=1" class="text-decoration-none">
+                                <a href="/CommentedPaths/Read?PathId=@item.Id&MarkAsRead=1"
+                                   class="text-decoration-none"
+                                   data-enhance-nav="false">
                                     @item.Name
                                 </a>
                             </strong>
@@ -105,7 +107,9 @@
                         else
                         {
                             <strong>
-                                <a href="/steps/step?id=@item.FirstStepId" class="text-decoration-none">
+                                <a href="/steps/step?id=@item.FirstStepId" 
+                                    class="text-decoration-none"
+                                    data-enhance-nav="false">
                                     @item.Name
                                 </a>
                             </strong>
@@ -129,7 +133,7 @@
                         }
                         else
                         {
-                            if (IsGeneratingSummary)
+                            if (IsPathGeneratingSummary(pathId))
                             {
                                 <small>Generating Summary...</small>
                             }
@@ -205,17 +209,78 @@
     private List<Path> AllPaths = new();
     private List<Path> CurrentPagePaths = new();
     private HashSet<int> ExpandedSummaries = new();
+    private HashSet<int> GeneratingSummaries = new(); // Track per-path instead of global flag
     private string SearchString = string.Empty;
     private SortBy CurrentSortOrder = SortBy.HighestRated;
     private int CurrentPage = 1;
     private int TotalPages = 0;
     private int TotalPaths = 0;
     private bool IsLoading = false;
-    private bool IsGeneratingSummary = false;
+
+    // State tracking for ShouldRender optimization
+    private string _lastSearchString;
+    private SortBy _lastSortOrder = SortBy.HighestRated;
+    private List<Path> _lastPagePaths;
+    private bool _lastIsLoading = false;
+    private int _lastExpandedSummariesCount = 0;
+    private int _lastGeneratingSummariesCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadPaths();
+    }
+
+    /// <summary>
+    /// Optimize rendering by only re-rendering when relevant state actually changes.
+    /// This prevents the entire component from re-rendering on irrelevant state changes.
+    /// </summary>
+    protected override bool ShouldRender()
+    {
+        bool shouldRender = false;
+
+        // Check if search string changed
+        if (_lastSearchString != SearchString)
+        {
+            shouldRender = true;
+            _lastSearchString = SearchString;
+        }
+
+        // Check if sort order changed
+        if (_lastSortOrder != CurrentSortOrder)
+        {
+            shouldRender = true;
+            _lastSortOrder = CurrentSortOrder;
+        }
+
+        // Check if loading state changed
+        if (_lastIsLoading != IsLoading)
+        {
+            shouldRender = true;
+            _lastIsLoading = IsLoading;
+        }
+
+        // Check if current page paths changed (use object reference comparison for performance)
+        if (_lastPagePaths != CurrentPagePaths)
+        {
+            shouldRender = true;
+            _lastPagePaths = CurrentPagePaths;
+        }
+
+        // Check if the number of ExpandedSummaries has changed
+        if (_lastExpandedSummariesCount != ExpandedSummaries.Count)
+        {
+            shouldRender = true;
+            _lastExpandedSummariesCount = ExpandedSummaries.Count;
+        }
+
+        // Check if the number of GeneratingSummaries has changed
+        if (_lastGeneratingSummariesCount != GeneratingSummaries.Count)
+        {
+            shouldRender = true;
+            _lastGeneratingSummariesCount = GeneratingSummaries.Count;
+        }
+
+        return shouldRender;
     }
 
     private async Task LoadPaths()
@@ -284,6 +349,7 @@
     {
         CurrentPage = 1;
         ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
         await LoadPaths();
     }
 
@@ -300,6 +366,7 @@
         CurrentSortOrder = sortOrder;
         CurrentPage = 1;
         ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
         await LoadPaths();
     }
 
@@ -310,28 +377,50 @@
 
         CurrentPage = pageNumber;
         ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
         await LoadPaths();
     }
 
-    private async Task ToggleSummary(int pathId)
+    private Task ToggleSummary(int pathId)
     {
+        // No async needed - just toggle the HashSet, Blazor will re-render
         if (ExpandedSummaries.Contains(pathId))
             ExpandedSummaries.Remove(pathId);
         else
             ExpandedSummaries.Add(pathId);
 
-        await Task.CompletedTask; // Blazor recognizes async methods and re-renders automatically
+        return Task.CompletedTask;
     }
 
     private async Task GenerateSummaryAsync(int pathId)
     {
-        IsGeneratingSummary = true;
-        // We need to grab the specific path needing summarization
-        Path PathToSummarize = AllPaths.FirstOrDefault(p => p.Id == pathId);
-        // Now lets try to get a summary, if we fail.. we fail... 
-        _ = await PathToSummarize.GenerateAndAddSummarytoPathAsync(DbContext, OpenAIResponder);
+        // Track this specific path as generating, not the entire component
+        if (GeneratingSummaries.Contains(pathId))
+            return; // Already generating for this path
 
-        IsGeneratingSummary = false;
-        await Task.CompletedTask; // Blazor recognizes async methods and re-renders automatically
+        GeneratingSummaries.Add(pathId);
+        try
+        {
+            // We need to grab the specific path needing summarization
+            Path PathToSummarize = AllPaths.FirstOrDefault(p => p.Id == pathId);
+            if (PathToSummarize == null)
+                return;
+
+            // Generate summary - this now won't cause full component re-render
+            _ = await PathToSummarize.GenerateAndAddSummarytoPathAsync(DbContext, OpenAIResponder);
+        }
+        finally
+        {
+            // Let's go ahead and expand this summary since we just generated it.
+            ExpandedSummaries.Add(pathId);
+            // Always remove from generating set
+            GeneratingSummaries.Remove(pathId);
+        }
     }
+
+    /// <summary>
+    /// Check if a specific path is currently generating a summary.
+    /// Used in the UI to show loading state per-path instead of globally.
+    /// </summary>
+    private bool IsPathGeneratingSummary(int pathId) => GeneratingSummaries.Contains(pathId);
 }

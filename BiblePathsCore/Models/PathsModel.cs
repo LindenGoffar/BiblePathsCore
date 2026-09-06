@@ -171,7 +171,7 @@ namespace BiblePathsCore.Models.DB
                     return false;
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -506,7 +506,7 @@ namespace BiblePathsCore.Models.DB
             // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 6)
             if (PathNodes.Count > 0)
             {
-                int BookDiversityScore = 1; // we'll give a free book just to kick us off. 
+                int BookDiversityScore = 0; // we'll give a free book just to kick us off. 
                 var BookHash = new HashSet<int>();
                 foreach (PathNode node in PathNodes)
                 {
