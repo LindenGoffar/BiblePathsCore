@@ -327,11 +327,10 @@
                 .Take(PageSize)
                 .ToListAsync();
 
-            // Load calculated properties for each path
-            foreach (Path path in AllPaths)
-            {
-                await path.AddCalculatedPropertiesAsync(DbContext);
-            }
+            // Load calculated properties for all paths concurrently using Task.WhenAll
+            // This prevents re-renders from being triggered between each path calculation
+            var tasks = AllPaths.Select(path => path.AddCalculatedPropertiesAsync(DbContext)).ToList();
+            await Task.WhenAll(tasks);
 
             CurrentPagePaths = AllPaths;
         }
@@ -423,4 +422,4 @@
     /// Used in the UI to show loading state per-path instead of globally.
     /// </summary>
     private bool IsPathGeneratingSummary(int pathId) => GeneratingSummaries.Contains(pathId);
-}
+}}
