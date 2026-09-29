@@ -3,7 +3,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
 @using BiblePathsCore.Models
 @using BiblePathsCore.Models.DB
 @inject BiblePathsCoreDbContext DbContext
@@ -225,7 +224,7 @@ else
     // track last loaded parameters to avoid redundant loads
     private int? _lastPathId;
     private string _lastBibleId;
-    private bool _isInitialized = false;
+    //private bool _isInitialized = false;
     private bool _isMoving = false;
 
     // Change from property to field
