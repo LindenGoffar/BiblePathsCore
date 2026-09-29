@@ -32,6 +32,9 @@ try {
 # Get all Paths.
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths"
 
+# Get/Calculate Path Rating
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/PathRatings/7"
+
 # Get a specific Path by ID 
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths/1"
 

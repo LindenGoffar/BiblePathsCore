@@ -38,33 +38,33 @@
     <div class="row mb-3">
         <div class="col-12">
             <small class="bg-light p-2">
-                <a href="#" 
-                   @onclick="@(() => SetSortOrder(SortBy.HighestRated))"
-                   @onclick:preventDefault="true"
-                   class="@(CurrentSortOrder == SortBy.HighestRated ? "font-weight-bold text-dark" : "text-secondary")">
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.HighestRated))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.HighestRated ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
                     Highest Rated
-                </a>
+                </button>
                 |
-                <a href="#" 
-                   @onclick="@(() => SetSortOrder(SortBy.Newest))"
-                   @onclick:preventDefault="true"
-                   class="@(CurrentSortOrder == SortBy.Newest ? "font-weight-bold text-dark" : "text-secondary")">
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Newest))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Newest ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
                     Newest
-                </a>
+                </button>
                 |
-                <a href="#" 
-                   @onclick="@(() => SetSortOrder(SortBy.Shortest))"
-                   @onclick:preventDefault="true"
-                   class="@(CurrentSortOrder == SortBy.Shortest ? "font-weight-bold text-dark" : "text-secondary")">
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Shortest))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Shortest ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
                     Shortest
-                </a>
+                </button>
                 |
-                <a href="#" 
-                   @onclick="@(() => SetSortOrder(SortBy.Reads))"
-                   @onclick:preventDefault="true"
-                   class="@(CurrentSortOrder == SortBy.Reads ? "font-weight-bold text-dark" : "text-secondary")">
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Reads))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Reads ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
                     Most Read
-                </a>
+                </button>
             </small>
         </div>
     </div>
@@ -166,25 +166,25 @@
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="#" @onclick="@(() => GoToPage(1))" @onclick:preventDefault="true">First</a>
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(1))" disabled="@(CurrentPage == 1)">First</button>
                 </li>
                 <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="#" @onclick="@(() => GoToPage(CurrentPage - 1))" @onclick:preventDefault="true">Previous</a>
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(CurrentPage - 1))" disabled="@(CurrentPage == 1)">Previous</button>
                 </li>
 
                 @for (int i = 1; i <= TotalPages; i++)
                 {
                     int pageNum = i;
                     <li class="page-item @(CurrentPage == pageNum ? "active" : "")">
-                        <a class="page-link" href="#" @onclick="@(() => GoToPage(pageNum))" @onclick:preventDefault="true">@pageNum</a>
+                        <button class="page-link" type="button" @onclick="@(() => GoToPage(pageNum))" disabled="@(CurrentPage == pageNum)">@pageNum</button>
                     </li>
                 }
 
                 <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
-                    <a class="page-link" href="#" @onclick="@(() => GoToPage(CurrentPage + 1))" @onclick:preventDefault="true">Next</a>
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(CurrentPage + 1))" disabled="@(CurrentPage == TotalPages)">Next</button>
                 </li>
                 <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
-                    <a class="page-link" href="#" @onclick="@(() => GoToPage(TotalPages))" @onclick:preventDefault="true">Last</a>
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(TotalPages))" disabled="@(CurrentPage == TotalPages)">Last</button>
                 </li>
             </ul>
         </nav>
@@ -199,8 +199,12 @@
     <!-- Footer Links -->
     <div class="mt-5">
         <hr />
-        <a href="/paths/mypaths" class="btn btn-link">Build a Path of your own</a><br />
-        <a href="/" class="btn btn-link">Back to Home</a>
+        <a href="/paths/mypaths" 
+           class="btn btn-link"
+           data-enhance-nav="false">Build a Path of your own</a><br />
+        <a href="/" 
+           class="btn btn-link"
+           data-enhance-nav="false">Back to Home</a>
     </div>
 </div>
 
@@ -422,4 +426,4 @@
     /// Used in the UI to show loading state per-path instead of globally.
     /// </summary>
     private bool IsPathGeneratingSummary(int pathId) => GeneratingSummaries.Contains(pathId);
-}}
+}
