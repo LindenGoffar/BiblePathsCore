@@ -181,24 +181,26 @@
                         {
                             <div class="card mb-3 quiz-elements-container">
                                 <div class="card-body">
-                                    <select class="form-select mb-2" @onchange="OnPointsSelected">
-                                        @if (PointsSelectList != null)
-                                        {
-                                            @foreach (var item in PointsSelectList)
+                                    <form id="pointsForm" name="pointsForm">
+                                        <select class="form-select mb-2" id="pointsSelect" @onchange="OnPointsSelected">
+                                            @if (PointsSelectList != null)
                                             {
-                                                <option value="@item.Value">@item.Text</option>
+                                                @foreach (var item in PointsSelectList)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
                                             }
+                                        </select>
+                                        @if (SelectedPoints >= 0)
+                                        {
+                                            <button type="button"
+                                                class="btn btn-primary w-100 mb-2"
+                                                @onclick="AwardPoints"
+                                                disabled="@(SelectedPoints < 0 || Question == null)">
+                                                Award Points
+                                            </button>
                                         }
-                                    </select>
-                                    @if (SelectedPoints >= 0)
-                                    {
-                                        <button type="button"
-                                            class="btn btn-primary w-100 mb-2"
-                                            @onclick="AwardPoints"
-                                            disabled="@(SelectedPoints < 0 || Question == null)">
-                                            Award Points
-                                        </button>
-                                    }
+                                    </form>
                                 </div>
                             </div>
                         }
@@ -283,49 +285,52 @@
                                     <h6 class="mb-0">Challenge Question</h6>
                                 </div>
                                 <div class="card-body">
-                                    <textarea @bind="ChallengeComment" 
-                                              @onfocus="@(() => IsTextAreaFocused = true)"
-                                              @onblur="@(() => IsTextAreaFocused = false)"
-                                              rows="4" 
-                                              placeholder="Challenge Comment Required" 
-                                              class="form-control mb-2"></textarea>
-                                    <small class="d-block mb-2">
-                                        A challenged question is taken out of rotation until it has been reviewed and the challenge removed.
-                                    </small>
-                                    @if (QuizType == 0)
-                                    {
-                                        @if (SelectedPoints >= 0)
+                                    <form id="challengeForm" name="challengeForm">
+                                        <textarea id="challengeComment"
+                                                  @bind="ChallengeComment" 
+                                                  @onfocus="@(() => IsTextAreaFocused = true)"
+                                                  @onblur="@(() => IsTextAreaFocused = false)"
+                                                  rows="4" 
+                                                  placeholder="Challenge Comment Required" 
+                                                  class="form-control mb-2"></textarea>
+                                        <small class="d-block mb-2">
+                                            A challenged question is taken out of rotation until it has been reviewed and the challenge removed.
+                                        </small>
+                                        @if (QuizType == 0)
                                         {
-                                            <button type="button" 
-                                                    class="btn btn-danger w-100 mb-2" 
-                                                    @onclick="@(() => ChallengeQuestion(2))"
-                                                    disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
-                                                Challenge (Award Points)
+                                            @if (SelectedPoints >= 0)
+                                            {
+                                                <button type="button" 
+                                                        class="btn btn-danger w-100 mb-2" 
+                                                        @onclick="@(() => ChallengeQuestion(2))"
+                                                        disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                                    Challenge (Award Points)
+                                                </button>
+                                            }
+                                            <button type="button"
+                                                        class="btn btn-danger w-100"
+                                                        @onclick="@(() => ChallengeQuestion(0))"
+                                                        disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                                Challenge (New Question)
                                             </button>
                                         }
-                                        <button type="button"
-                                                    class="btn btn-danger w-100"
+
+                                        @if (QuizType == 1) 
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-outline-danger w-100"
                                                     @onclick="@(() => ChallengeQuestion(0))"
                                                     disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
-                                                Challenge (New Question)
-                                        </button>
-                                    }
-
-                                    @if (QuizType == 1) 
-                                    {
-                                        <button type="button"
-                                                class="btn btn-outline-danger w-100"
-                                                @onclick="@(() => ChallengeQuestion(0))"
-                                                disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
-                                            Challenge & New Question
-                                        </button>
-                                        <button type="button" 
-                                                class="btn btn-outline-warning w-100 mt-2" 
-                                                @onclick="@(() => ChallengeQuestion(1))"
-                                                disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
-                                            Challenge & Next Question
-                                        </button>
-                                    }
+                                                Challenge & New Question
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-outline-warning w-100 mt-2" 
+                                                    @onclick="@(() => ChallengeQuestion(1))"
+                                                    disabled="@(string.IsNullOrWhiteSpace(ChallengeComment))">
+                                                Challenge & Next Question
+                                            </button>
+                                        }
+                                    </form>
                                 </div>
                             </div>
                         </div>
