@@ -65,7 +65,7 @@ namespace BiblePathsCore
             {
                 if (experienceID == 1)
                 {
-                    return RedirectToPage("/CommentedPaths/Builder", new { PathId = Path.Id, StepPosition = PreviousStepPosition});
+                    return RedirectToPage("/Paths/Builder", new { PathId = Path.Id, StepPosition = PreviousStepPosition});
                 }
                 else
                 {

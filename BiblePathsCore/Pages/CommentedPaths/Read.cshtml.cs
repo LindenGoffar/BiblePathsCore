@@ -9,6 +9,7 @@ using BiblePathsCore.Models;
 using BiblePathsCore.Models.DB;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using BiblePathsCore.Services;
 
 namespace BiblePathsCore
 {
@@ -17,11 +18,13 @@ namespace BiblePathsCore
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly BiblePathsCore.Models.BiblePathsCoreDbContext _context;
+        private readonly IBotDetectionService _botDetectionService;
 
-        public ReadModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context)
+        public ReadModel(UserManager<IdentityUser> userManager, BiblePathsCore.Models.BiblePathsCoreDbContext context, IBotDetectionService botDetectionService)
         {
             _userManager = userManager;
             _context = context;
+            _botDetectionService = botDetectionService;
         }
 
         public IList<PathNode> PathNodes { get;set; }
@@ -58,7 +61,7 @@ namespace BiblePathsCore
             Bible.HydrateBible();
 
             // load Path Nodes for this Path, we already have BibleId set correctly on Path
-            PathNodes = await Path.GetPathNodesAsListAsync(_context, true);
+            PathNodes = await Path.GetPathNodesAsListAsync(_context, false);
 
             //PathNodes = await _context.PathNodes.Where(pn => pn.PathId == Path.Id)
             //                                    .OrderBy(pn => pn.Position)
@@ -70,16 +73,7 @@ namespace BiblePathsCore
             int FirstStepID = 0;
             foreach (PathNode step in PathNodes)
             {
-                //if (step.Type == (int)StepType.Commented)
-                //{
-                //    _ = await step.AddPathStepPropertiesAsync(_context);
-                //}
-                //else
-                //{
-                //    _ = await step.AddGenericStepPropertiesAsync(_context, BibleId);
-                //    step.Verses = await step.GetBibleVersesAsync(_context, BibleId, true, false);
-                //    _ = await step.AddPathStepPropertiesAsync(_context);
-                //}
+
                 // Now StepID is either Null or presumably a valid Step let's make sure get's set to a valid step.
                 if (StepId == null) { StepId = step.Id; FirstStepID = step.Id; }
                 if (StepId == step.Id) { FocusStepSelected = true; FocusStepID = step.Id; }
@@ -87,17 +81,15 @@ namespace BiblePathsCore
             if (!FocusStepSelected) { FocusStepID = FirstStepID; }
 
             // Now let's register this as a Path Start and Path Read
-            //if (MarkAsRead == 1)
-            //{
-            //    // _ = await Path.RegisterEventAsync(_context, EventType.PathStarted, null);
-            //    // _ = await Path.RegisterEventAsync(_context, EventType.PathCompleted, null);
-            //    _ = await Path.RegisterReadEventAsync(_context);
-            //    // To keep the score somewhat fresh we'll recalculate score on every 10 reads.
-            //    if (Path.Reads % 10 == 0)
-            //    {
-            //        _ = await Path.ApplyPathRatingAsync(_context);
-            //    }
-            //}
+
+            // When registering the read event, check if it's a bot first
+            string userAgent = Request.Headers["User-Agent"].ToString();
+            
+            if (MarkAsRead == 1 && !_botDetectionService.IsBotUserAgent(userAgent))
+            {
+                // Only register read events for actual users, not bots
+                _ = await Path.RegisterReadEventAsync(_context);
+            }
 
             BibleSelectList = await GetBibleSelectListAsync(BibleId);
             return Page();

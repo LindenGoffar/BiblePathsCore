@@ -71,9 +71,9 @@
     @if (Model.IsPathOwner)
     {
         <a asp-page="./Edit" asp-route-id="@Model.Path.Id">Path Settings</a><br />
-        <a asp-page="./MyCommentedPaths">Back to My Commented Paths</a><br />
+        <a asp-page="/Paths/MyPaths">Back to My Paths</a><br />
     }
-    <a asp-page="./Index">Back to Commented Paths</a>
+    <a asp-page="./Paths/All">Back to Paths</a>
 </div>
 @section Scripts {
     <partial name="_ReadPathHelpers" />

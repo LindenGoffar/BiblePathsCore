@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Elfie.Serialization;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.System;
 
 namespace BiblePathsCore.Models
 {
@@ -161,6 +163,40 @@ namespace BiblePathsCore.Models.DB
             Bible Bible = await context.Bibles.FindAsync(BibleId);
             Bible.HydrateBible();
             LegalNote = Bible.LegalNote;
+            return true;
+        }
+        public async Task<bool> MoveStepUpDownAsync(BiblePathsCoreDbContext context, int spaces)
+        {
+            int StartPosition = Position;
+            int TempPosition = StartPosition;
+
+            Path = await context.Paths.FindAsync(PathId);
+            if (Path == null) { return false; }
+
+            if (spaces < 0) // this is the move up scenario
+            {
+                TempPosition = StartPosition + (10 * spaces) - 4; // the minus 4 pushes us above the target step, where want to be and won't conflict with add steps 5.
+                if (TempPosition < 0) { TempPosition = 0; }
+            }
+            if (spaces > 0) // the move down scenario
+            {
+                TempPosition = StartPosition + (10 * spaces) + 3; // the plus 3 pushes us below the target step, where want to be and won't conflict with add steps 5.
+            }
+            // Move the step
+            context.Attach(this).State = EntityState.Modified;
+            this.Modified = DateTime.Now;
+            this.Position = TempPosition;
+
+            // Update the Path modified date. 
+            context.Attach(Path);
+            Path.Modified = DateTime.Now;
+
+            //Save any unsaved changes
+            await context.SaveChangesAsync();
+
+            // Finally we need to re-position each node in the path to ensure safe ordering
+            _ = await Path.RedistributeStepsAsync(context);   
+
             return true;
         }
         private async Task<bool> AddPrevNextChapters(BiblePathsCoreDbContext context, string BibleId)

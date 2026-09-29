@@ -21,8 +21,7 @@ namespace BiblePathsCore.ViewComponents
         {
             int SupersetSize = TopN + 5; // We'll grab 5 more than requested so we can randomize slightly. 
 
-            List<Path> Superset = await _context.Paths.Where(P => P.Type == (int)PathType.Standard 
-                                                                && P.IsPublished == true
+            List<Path> Superset = await _context.Paths.Where(P => P.IsPublished == true
                                                                 && P.IsDeleted == false)
                                                        .OrderByDescending(P => P.Created)
                                                        .Take(SupersetSize)

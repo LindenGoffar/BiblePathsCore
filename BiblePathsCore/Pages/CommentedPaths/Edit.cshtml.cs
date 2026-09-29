@@ -95,7 +95,7 @@ namespace BiblePathsCore
                      p => p.OwnerBibleId))
                 {
                     await _context.SaveChangesAsync();
-                    return RedirectToPage("./MyCommentedPaths");
+                    return RedirectToPage("./Paths/MyPaths");
                 }
             }
             else
@@ -107,7 +107,7 @@ namespace BiblePathsCore
                 {
                     pathToUpdate.Name = Name; // This is handled independant of Path.Name. 
                     await _context.SaveChangesAsync();
-                    return RedirectToPage("./MyCommentedPaths");
+                    return RedirectToPage("./Paths/MyPaths");
                 }
             }
             return Page();

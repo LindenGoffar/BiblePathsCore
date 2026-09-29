@@ -1,0 +1,443 @@
+@page "/paths/Details/{PathId:int}"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using BiblePathsCore.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Forms
+@inject BiblePathsCoreDbContext DbContext
+@inject IOpenAIResponder OpenAIResponder
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+
+@if (Loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (CurrentPath == null)
+{
+    <p>Path not found.</p>
+}
+else
+{
+    <div class="mb-4">
+        <h4>@CurrentPath.Name</h4>
+        <div class="mb-2">
+            <strong>Owner:</strong> @CurrentPath.Owner
+        </div>
+        <div class="mb-3">
+            <strong>Topics:</strong> @(string.IsNullOrWhiteSpace(CurrentPath.Topics) ? "No topics assigned" : CurrentPath.Topics)
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Path Summary</h5>
+        </div>
+        <div class="card-body">
+            @if (string.IsNullOrWhiteSpace(CurrentPath.Summary))
+            {
+                <p class="text-muted">No summary exists yet.</p>
+            }
+            else
+            {
+                <p>@CurrentPath.Summary</p>
+            }
+        </div>
+    </div>
+
+    @if (CanEdit)
+    {
+        <div class="mb-4">
+            <button class="btn btn-primary" @onclick="GenerateSummaryAsync" disabled="@IsGenerating">
+                @if (IsGenerating)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="ms-2">Generating Summary...</span>
+                }
+                else
+                {
+                    <span>Generate AI Summary</span>
+                }
+            </button>
+            @if (!string.IsNullOrWhiteSpace(CurrentPath.Summary))
+            {
+                <button class="btn btn-secondary ms-2" @onclick="ClearSummary">Clear Summary</button>
+            }
+        </div>
+    }
+
+    <!-- Full Path Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Full Path</h5>
+        </div>
+        <div class="card-body">
+            @if (PathNodes?.Count == 0)
+            {
+                <p class="text-muted">No verses in this path.</p>
+            }
+            else if (DisplayVerses?.Count == 0)
+            {
+                <p class="text-muted">Loading verses...</p>
+            }
+            else
+            {
+                <div class="path-text">
+                    @foreach (var Node in PathNodes)
+                    {
+                        @if (Node.Type == (int)StepType.Commented)
+                        {
+                            <div class="mb-2">
+                                <strong>Comment:</strong> @Node.Text
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var verse in Node.Verses)
+                            {
+                                <div class="mb-2">
+                                    <strong>@verse.BookName @verse.Chapter:@verse.Verse</strong> @verse.Text
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Edit Settings Section -->
+    @if (CanEdit)
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Path Settings</h5>
+            </div>
+            <div class="card-body">
+                @if (IsEditingSettings)
+                {
+                    <EditForm Model="CurrentPath" OnValidSubmit="SaveSettingsAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        <!-- Name Field -->
+                        @if (CurrentPath.IsPublished)
+                        {
+                            <small class="text-muted d-block mb-2">Note: Published Paths cannot be renamed, you need to unpublish this Path to rename it.</small>
+                            <div class="form-group mb-3">
+                                <label for="name">Name</label>
+                                <InputText id="name" @bind-value="CurrentPath.Name" class="form-control" disabled />
+                            </div>
+                        }
+                        else
+                        {
+                            <small class="text-muted d-block mb-2">Note: When you Publish this path you will be required to select a Name from the Bible passages included in this path.</small>
+                            <div class="form-group mb-3">
+                                <label for="name">Name</label>
+                                <InputText id="name" @bind-value="EditName" class="form-control" />
+                                <ValidationMessage For="@(() => EditName)" />
+                            </div>
+                        }
+
+                        <!-- Topics Field -->
+                        @if (CurrentPath.IsPublished)
+                        {
+                            <small class="text-muted d-block mb-2">Note: Topics can not be modified on a published Path.</small>
+                            <div class="form-group mb-3">
+                                <label for="topics">Topics</label>
+                                <InputText id="topics" @bind-value="CurrentPath.Topics" class="form-control" disabled />
+                            </div>
+                        }
+                        else
+                        {
+                            <small class="text-muted d-block mb-2">Note: When you Publish this path you will be required to select Topics from the Bible passages included in this path.</small>
+                            <div class="form-group mb-3">
+                                <label for="topics">Topics</label>
+                                <InputText id="topics" @bind-value="CurrentPath.Topics" class="form-control" />
+                            </div>
+                        }
+
+                        <!-- Bible Selection -->
+                        <div class="form-group mb-3">
+                            <label for="bible">Bible</label>
+                            <InputSelect id="bible" @bind-value="CurrentPath.OwnerBibleId" class="form-control">
+                                @if (BibleSelectList != null)
+                                {
+                                    <option value="">-- Select Bible --</option>
+                                    @foreach (var bible in BibleSelectList)
+                                    {
+                                        <option value="@bible.Value">@bible.Text</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <!-- Public Editable Checkbox -->
+                        @* <div class="form-check mb-3">
+                            <InputCheckbox id="isPublicEditable" @bind-value="CurrentPath.IsPublicEditable" class="form-check-input" />
+                            <label class="form-check-label" for="isPublicEditable">
+                                Allow others to edit this Path?
+                            </label>
+                        </div> *@
+
+                        <!-- Path Metadata Display -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p><strong>Length:</strong> @CurrentPath.Length</p>
+                                <p><strong>Computed Rating:</strong> @String.Format("{0:0.00}", CurrentPath.ComputedRating)</p>
+                                <p><strong>Created:</strong> @String.Format("{0:M/d/yyyy HH:mm}", CurrentPath.Created)</p>
+                                <p><strong>Modified:</strong> @String.Format("{0:M/d/yyyy HH:mm}", CurrentPath.Modified)</p>
+                                <p><strong>Is Published:</strong> @CurrentPath.IsPublished</p>
+                                <p><strong>Is Deleted:</strong> @CurrentPath.IsDeleted</p>
+                                <p><strong>Step Count:</strong> @CurrentPath.StepCount</p>
+                                <p><strong>Reads:</strong> @CurrentPath.Reads</p>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary ms-2" @onclick="CancelEdit">Cancel</button>
+                    </EditForm>
+                }
+                else
+                {
+                    <button class="btn btn-warning" @onclick="StartEdit">Edit Settings</button>
+                    <button class="btn btn-danger ms-2" @onclick="OpenDeleteModal">Delete this Path</button>
+                }
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        @if (ShowDeleteModal)
+        {
+            <div class="modal fade show d-block" style="background-color: rgba(0,0,0,.5);">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Delete this Path?</h5>
+                            <button type="button" class="btn-close" @onclick="CloseDeleteModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete <strong>@CurrentPath.Name</strong>?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                            <button type="button" class="btn btn-danger" @onclick="DeletePathAsync">Confirm Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="mb-3 mt-4">
+        <a href="/paths/index" class="btn btn-secondary">Back to Paths</a>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int PathId { get; set; }
+
+    private Path CurrentPath;
+    private List<PathNode> PathNodes;
+    private List<BibleVerse> DisplayVerses;
+    private IdentityUser currentUser;
+    private string ErrorMessage = string.Empty;
+    private bool Loading = true;
+    private bool IsGenerating = false;
+    private bool CanEdit = false;
+    private bool isAuthenticated = false;
+    private bool IsEditingSettings = false;
+    private bool ShowDeleteModal = false;
+    private string EditName = string.Empty;
+    private List<SelectListItem> BibleSelectList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Loading = true;
+            await LoadPathAsync();
+            await LoadBibleSelectListAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading path: {ex.Message}";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task LoadPathAsync()
+    {
+        CurrentPath = await DbContext.Paths.FirstOrDefaultAsync(p => p.Id == PathId);
+
+        if (CurrentPath == null)
+        {
+            return;
+        }
+
+        // Check if current user can edit this path
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+        currentUser = isAuthenticated ? await UserManager.GetUserAsync(authState.User) : null;
+
+        CanEdit = isAuthenticated && (currentUser != null) && 
+                  (currentUser.Email == CurrentPath.Owner);
+
+        // Load path nodes along with Verses
+        PathNodes = await CurrentPath.GetPathNodesAsListAsync(DbContext, false);
+        EditName = CurrentPath.Name;
+    }
+
+    private async Task LoadBibleSelectListAsync()
+    {
+        BibleSelectList = await DbContext.Bibles
+            .Where(b => b.Id != "NKJV-EN")
+            .Select(b => new SelectListItem
+            {
+                Value = b.Id,
+                Text = b.Language + "-" + b.Version
+            })
+            .ToListAsync();
+    }
+
+    private async Task GenerateSummaryAsync()
+    {
+        if (PathNodes == null || PathNodes.Count == 0)
+        {
+            ErrorMessage = "No verses available to summarize.";
+            return;
+        }
+
+        try
+        {
+            IsGenerating = true;
+            ErrorMessage = string.Empty;
+
+            string SummaryText = await CurrentPath.BuildAISummmaryForPathAsync(DbContext, OpenAIResponder);
+
+            if (!string.IsNullOrWhiteSpace(SummaryText))
+            {
+                CurrentPath.Summary = SummaryText;
+                CurrentPath.Modified = DateTime.Now;
+                DbContext.Paths.Update(CurrentPath);
+                await DbContext.SaveChangesAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                ErrorMessage = "Failed to generate summary. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error generating summary: {ex.Message}";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private async Task ClearSummary()
+    {
+        if (CurrentPath != null)
+        {
+            CurrentPath.Summary = string.Empty;
+            CurrentPath.Modified = DateTime.Now;
+            DbContext.Paths.Update(CurrentPath);
+            await DbContext.SaveChangesAsync();
+            StateHasChanged();
+        }
+    }
+
+    private void StartEdit()
+    {
+        IsEditingSettings = true;
+        EditName = CurrentPath.Name;
+    }
+
+    private void CancelEdit()
+    {
+        IsEditingSettings = false;
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        try
+        {
+            ErrorMessage = string.Empty;
+
+            // Check for name change if path is not published
+            if (!CurrentPath.IsPublished)
+            {
+                if (CurrentPath.Name.ToLower() != EditName.ToLower())
+                {
+                    if (await Path.PathNameAlreadyExistsStaticAsync(DbContext, EditName))
+                    {
+                        ErrorMessage = "Sorry, this Name is already in use.";
+                        return;
+                    }
+                    CurrentPath.Name = EditName;
+                }
+            }
+
+            CurrentPath.Modified = DateTime.Now;
+            DbContext.Paths.Update(CurrentPath);
+            await DbContext.SaveChangesAsync();
+
+            IsEditingSettings = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error saving settings: {ex.Message}";
+        }
+    }
+
+    private void OpenDeleteModal()
+    {
+        ShowDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        ShowDeleteModal = false;
+    }
+
+    private async Task DeletePathAsync()
+    {
+        try
+        {
+            CurrentPath.IsDeleted = true;
+            CurrentPath.Modified = DateTime.Now;
+            DbContext.Paths.Update(CurrentPath);
+            await DbContext.SaveChangesAsync();
+
+            NavManager.NavigateTo("/paths/index");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error deleting path: {ex.Message}";
+        }
+    }
+}

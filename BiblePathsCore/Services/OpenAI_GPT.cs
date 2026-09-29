@@ -3,21 +3,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using BiblePathsCore.Models.DB;
-using System.Text;
-using System.Text.Json.Nodes;
 using System.Collections.Generic;
 using OpenAI.Chat;
-using Azure.AI.OpenAI; // Maybe able to deprecate
 using Azure;
-using Newtonsoft.Json.Schema.Generation;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Emit;
 using System.Text.Json;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using BiblePathsCore.Models;
 
@@ -82,17 +72,19 @@ namespace BiblePathsCore.Services
             string retVal = "";
 
             string QnASystemRequest = "You are a Christian pastor, your task is to provide a brief summary of the " +
-                "provided Bible verses within a Bible Path delimited by an xml <PathVerses> tag. " +
+                "provided Bible verses or commentary within a Bible Path." + 
+                "Each line is either a single Bible Verse, or author ommentary as incidated by <Commentary> tags." +
                 "The summary should be limited to 1024 characters, and no more than 6 sentences. " +
                 "Please capture the main themes across all of the verses focusing on key learnings and" +
                 "providing spiritiual guidance as indicated within the verse text. " +
-                "Always refer to the collection of verses using the term Path or this Path. " +
+                "treat <Commentary> text as less authoritative author commentary, focusing primarily on the Bible verses themselves. " +
+                "Always refer to the collection using the term Path or this Path. " +
                 "Please provide the summary in clear and concise language suitable for a general audience.";
 
 
-            string QnAUserRequest = "<PathVerses>"
+            string QnAUserRequest = "<PathContent>"
                                 + Pathtext
-                                + "</PathVerses>";
+                                + "</PathContent>";
 
             string key = _openAIsettings.OpenAIAPIKey;
 

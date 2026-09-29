@@ -88,7 +88,7 @@ namespace BiblePathsCore
                 Path.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
-            return RedirectToPage("./MyCommentedPaths");
+            return RedirectToPage("./Paths/MyPaths");
         }
     }
 }

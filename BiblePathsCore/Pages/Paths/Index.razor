@@ -1,0 +1,429 @@
+@page "/Paths/Index"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using BiblePathsCore.Services
+@using Microsoft.EntityFrameworkCore
+@using System.Linq
+@using System.Threading.Tasks
+@inject BiblePathsCoreDbContext DbContext
+@inject IOpenAIResponder OpenAIResponder
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid">
+    <h4>Bible Paths</h4>
+
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="text" 
+                           class="form-control" 
+                           placeholder="Search paths by Name, Topic, AI Summary..."
+                           @bind="SearchString"
+                           @onkeyup="OnSearchKeyUp" />
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" @onclick="HandleSearch">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <small class="bg-light p-2">
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.HighestRated))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.HighestRated ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
+                    Highest Rated
+                </button>
+                |
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Newest))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Newest ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
+                    Newest
+                </button>
+                |
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Shortest))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Shortest ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
+                    Shortest
+                </button>
+                |
+                <button type="button"
+                        @onclick="@(() => SetSortOrder(SortBy.Reads))"
+                        class="btn btn-link @(CurrentSortOrder == SortBy.Reads ? "font-weight-bold text-dark" : "text-secondary")"
+                        style="text-decoration: none; cursor: pointer; border: none; background: none; padding: 0;">
+                    Most Read
+                </button>
+            </small>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (IsLoading)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm mr-2"></span>
+            Loading paths...
+        </div>
+    }
+    else if (CurrentPagePaths == null || CurrentPagePaths.Count == 0)
+    {
+        <div class="alert alert-warning">
+            No paths found. Try adjusting your search criteria.
+        </div>
+    }
+    else
+    {
+        <!-- Paths List -->
+        <div class="paths-container">
+            @foreach (var item in CurrentPagePaths)
+            {
+                var pathId = item.Id; <!-- CAPTURE THE ID LOCALLY to prevent a loop variable closure problem -->
+
+                <div class="row" @key="item.Id">
+                    <div class="col-md-10 col-8 border border-top-0 border-right-0 mb-3">
+                        @if (item.Type == (int)PathType.Commented)
+                        {
+                            <strong>
+                                <a href="/CommentedPaths/Read?PathId=@item.Id&MarkAsRead=1"
+                                   class="text-decoration-none"
+                                   data-enhance-nav="false">
+                                    @item.Name
+                                </a>
+                            </strong>
+                            <span class="badge rounded-pill bg-primary text-light">Commented</span>
+                        }
+                        else
+                        {
+                            <strong>
+                                <a href="/steps/step?id=@item.FirstStepId" 
+                                    class="text-decoration-none"
+                                    data-enhance-nav="false">
+                                    @item.Name
+                                </a>
+                            </strong>
+                        }
+
+                        <small class="d-block">@item.Topics</small>
+                        @if (!string.IsNullOrWhiteSpace(item.Summary))
+                        {
+                                <button type="button"
+                                        class="btn btn-link btn-sm p-0 summary-toggle"
+                                        style="text-decoration: none; cursor: pointer;"
+                                        @onclick="@(async (e) => await ToggleSummary(pathId))">
+                                    @(ExpandedSummaries.Contains(pathId) ? "Hide" : "Show") AI Summary
+                                </button>
+                            @if (ExpandedSummaries.Contains(pathId))
+                            {
+                                <div class="summary-content" style="margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-left: 3px solid #007bff;">
+                                    <small>@item.Summary</small>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            if (IsPathGeneratingSummary(pathId))
+                            {
+                                <small>Generating Summary...</small>
+                            }
+                            else
+                            {
+                                <AuthorizeView>
+                                    <Authorized>
+                                        <button type="button"
+                                                class="btn btn-link btn-sm p-0 generate-summary"
+                                                style="text-decoration: none; cursor: pointer;"
+                                                @onclick="@(async (e) => await GenerateSummaryAsync(pathId))">
+                                            Generate AI Summary
+                                        </button>
+                                    </Authorized>
+                                </AuthorizeView>
+                            }
+
+                        }
+                    </div>
+                    <div class="col-md-2 col-4 border border-top-0 border-left-0 border-right-0 mb-3">
+                        <small>Length: @item.Length min</small><br />
+                        <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
+                        <small>Reads: @item.Reads</small>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(1))" disabled="@(CurrentPage == 1)">First</button>
+                </li>
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(CurrentPage - 1))" disabled="@(CurrentPage == 1)">Previous</button>
+                </li>
+
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    int pageNum = i;
+                    <li class="page-item @(CurrentPage == pageNum ? "active" : "")">
+                        <button class="page-link" type="button" @onclick="@(() => GoToPage(pageNum))" disabled="@(CurrentPage == pageNum)">@pageNum</button>
+                    </li>
+                }
+
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(CurrentPage + 1))" disabled="@(CurrentPage == TotalPages)">Next</button>
+                </li>
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <button class="page-link" type="button" @onclick="@(() => GoToPage(TotalPages))" disabled="@(CurrentPage == TotalPages)">Last</button>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="text-center mb-3">
+            <small class="text-muted">
+                Showing @((CurrentPage - 1) * PageSize + 1) - @Math.Min(CurrentPage * PageSize, TotalPaths) of @TotalPaths paths
+            </small>
+        </div>
+    }
+
+    <!-- Footer Links -->
+    <div class="mt-5">
+        <hr />
+        <a href="/paths/mypaths" 
+           class="btn btn-link"
+           data-enhance-nav="false">Build a Path of your own</a><br />
+        <a href="/" 
+           class="btn btn-link"
+           data-enhance-nav="false">Back to Home</a>
+    </div>
+</div>
+
+@code {
+    private const int PageSize = 50;
+    private List<Path> AllPaths = new();
+    private List<Path> CurrentPagePaths = new();
+    private HashSet<int> ExpandedSummaries = new();
+    private HashSet<int> GeneratingSummaries = new(); // Track per-path instead of global flag
+    private string SearchString = string.Empty;
+    private SortBy CurrentSortOrder = SortBy.HighestRated;
+    private int CurrentPage = 1;
+    private int TotalPages = 0;
+    private int TotalPaths = 0;
+    private bool IsLoading = false;
+
+    // State tracking for ShouldRender optimization
+    private string _lastSearchString;
+    private SortBy _lastSortOrder = SortBy.HighestRated;
+    private List<Path> _lastPagePaths;
+    private bool _lastIsLoading = false;
+    private int _lastExpandedSummariesCount = 0;
+    private int _lastGeneratingSummariesCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPaths();
+    }
+
+    /// <summary>
+    /// Optimize rendering by only re-rendering when relevant state actually changes.
+    /// This prevents the entire component from re-rendering on irrelevant state changes.
+    /// </summary>
+    protected override bool ShouldRender()
+    {
+        bool shouldRender = false;
+
+        // Check if search string changed
+        if (_lastSearchString != SearchString)
+        {
+            shouldRender = true;
+            _lastSearchString = SearchString;
+        }
+
+        // Check if sort order changed
+        if (_lastSortOrder != CurrentSortOrder)
+        {
+            shouldRender = true;
+            _lastSortOrder = CurrentSortOrder;
+        }
+
+        // Check if loading state changed
+        if (_lastIsLoading != IsLoading)
+        {
+            shouldRender = true;
+            _lastIsLoading = IsLoading;
+        }
+
+        // Check if current page paths changed (use object reference comparison for performance)
+        if (_lastPagePaths != CurrentPagePaths)
+        {
+            shouldRender = true;
+            _lastPagePaths = CurrentPagePaths;
+        }
+
+        // Check if the number of ExpandedSummaries has changed
+        if (_lastExpandedSummariesCount != ExpandedSummaries.Count)
+        {
+            shouldRender = true;
+            _lastExpandedSummariesCount = ExpandedSummaries.Count;
+        }
+
+        // Check if the number of GeneratingSummaries has changed
+        if (_lastGeneratingSummariesCount != GeneratingSummaries.Count)
+        {
+            shouldRender = true;
+            _lastGeneratingSummariesCount = GeneratingSummaries.Count;
+        }
+
+        return shouldRender;
+    }
+
+    private async Task LoadPaths()
+    {
+        IsLoading = true;
+        try
+        {
+            var query = DbContext.Paths.AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                query = query.Where(s => 
+                    (EF.Functions.Like(s.Name, $"%{SearchString}%") || 
+                     EF.Functions.Like(s.Topics, $"%{SearchString}%") ||
+                     EF.Functions.Like(s.Summary, $"%{SearchString}%")) &&
+                    s.IsPublished == true && 
+                    s.IsDeleted == false);
+            }
+            else
+            {
+                query = query.Where(s => 
+                    s.IsPublished == true && 
+                    s.IsDeleted == false);
+            }
+
+            // Apply sorting
+            query = CurrentSortOrder switch
+            {
+                SortBy.HighestRated => query.OrderByDescending(p => p.ComputedRating),
+                SortBy.Newest => query.OrderByDescending(p => p.Created),
+                SortBy.Shortest => query.OrderBy(p => p.Length),
+                SortBy.Reads => query.OrderByDescending(p => p.Reads),
+                _ => query.OrderByDescending(p => p.ComputedRating)
+            };
+
+            // Get total count before pagination
+            TotalPaths = await query.CountAsync();
+            TotalPages = (TotalPaths + PageSize - 1) / PageSize;
+
+            // Apply pagination
+            AllPaths = await query
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // Load calculated properties for all paths concurrently using Task.WhenAll
+            // This prevents re-renders from being triggered between each path calculation
+            var tasks = AllPaths.Select(path => path.AddCalculatedPropertiesAsync(DbContext)).ToList();
+            await Task.WhenAll(tasks);
+
+            CurrentPagePaths = AllPaths;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading paths: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1;
+        ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
+        await LoadPaths();
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await HandleSearch();
+        }
+    }
+
+    private async Task SetSortOrder(SortBy sortOrder)
+    {
+        CurrentSortOrder = sortOrder;
+        CurrentPage = 1;
+        ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
+        await LoadPaths();
+    }
+
+    private async Task GoToPage(int pageNumber)
+    {
+        if (pageNumber < 1 || pageNumber > TotalPages || pageNumber == CurrentPage)
+            return;
+
+        CurrentPage = pageNumber;
+        ExpandedSummaries.Clear();
+        GeneratingSummaries.Clear();
+        await LoadPaths();
+    }
+
+    private Task ToggleSummary(int pathId)
+    {
+        // No async needed - just toggle the HashSet, Blazor will re-render
+        if (ExpandedSummaries.Contains(pathId))
+            ExpandedSummaries.Remove(pathId);
+        else
+            ExpandedSummaries.Add(pathId);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task GenerateSummaryAsync(int pathId)
+    {
+        // Track this specific path as generating, not the entire component
+        if (GeneratingSummaries.Contains(pathId))
+            return; // Already generating for this path
+
+        GeneratingSummaries.Add(pathId);
+        try
+        {
+            // We need to grab the specific path needing summarization
+            Path PathToSummarize = AllPaths.FirstOrDefault(p => p.Id == pathId);
+            if (PathToSummarize == null)
+                return;
+
+            // Generate summary - this now won't cause full component re-render
+            _ = await PathToSummarize.GenerateAndAddSummarytoPathAsync(DbContext, OpenAIResponder);
+        }
+        finally
+        {
+            // Let's go ahead and expand this summary since we just generated it.
+            ExpandedSummaries.Add(pathId);
+            // Always remove from generating set
+            GeneratingSummaries.Remove(pathId);
+        }
+    }
+
+    /// <summary>
+    /// Check if a specific path is currently generating a summary.
+    /// Used in the UI to show loading state per-path instead of globally.
+    /// </summary>
+    private bool IsPathGeneratingSummary(int pathId) => GeneratingSummaries.Contains(pathId);
+}

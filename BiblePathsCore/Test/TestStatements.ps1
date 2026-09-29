@@ -7,7 +7,7 @@
 # $BaseURI = "https://biblepathsppe.azurewebsites.net"
 
 # load for Local Debug
-$BaseURI = "https://localhost:44387"
+$BaseURI = "https://localhost:5001"
 
 # Get all bibles
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Bibles"
@@ -31,6 +31,9 @@ try {
 
 # Get all Paths.
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths"
+
+# Get/Calculate Path Rating
+Invoke-RestMethod -Method Get -Uri "$BaseURI/API/PathRatings/7"
 
 # Get a specific Path by ID 
 Invoke-RestMethod -Method Get -Uri "$BaseURI/API/Paths/1"

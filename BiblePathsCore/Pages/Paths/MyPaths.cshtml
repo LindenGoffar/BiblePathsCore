@@ -26,7 +26,12 @@
                 <div class="col-6">
                     <div class="card">
                         <div class="card-body">
-                            <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                            <strong><a href="./Builder/@item.Id">@item.Name</a></strong> 
+                            @if (item.Type == (int)BiblePathsCore.Models.PathType.Commented)
+                            {
+                                <span class="badge rounded-pill bg-primary text-light">Commented</span>
+                            }
+                            <br />
                             <small> @item.Topics</small>
                         </div>
                     </div>
@@ -44,8 +49,8 @@
                 </div>
                 <div class="col">
                     <a class="btn btn-outline-primary btn-sm" asp-page="./Publish" asp-route-id="@item.Id">Publish</a>
-                    <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Settings</a>
-                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Summary/@item.Id">AI Summary</a>
+                    @* <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Settings</a> *@
+                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Details/@item.Id">Details</a>
                 </div>
             </div>
         }
@@ -56,6 +61,10 @@
                     <div class="card">
                         <div class="card-body">
                             <strong><a asp-page="./steps" asp-route-PathId="@item.Id">@item.Name</a></strong>
+                            @if (item.Type == (int)BiblePathsCore.Models.PathType.Commented)
+                            {
+                                <span class="badge rounded-pill bg-primary text-light">Commented</span>
+                            }
                             <small> @item.Topics</small>
                         </div>
                     </div>
@@ -64,17 +73,17 @@
                     <button data-toggle="collapse" data-target="#Details-@item.Id" class="btn btn-link">Details</button>
                     <div id="Details-@item.Id" class="collapse">
                         <small>Length: @item.Length min</small><br />
-                        <small><strong>Rating: </strong>@item.ComputedRating</small><br />
+                        <small><strong>Rating: </strong>@String.Format("{0:0.00}", item.ComputedRating)</small><br />
                         <small>Reads: @item.Reads</small><br />
                         <small>Public Editable: @Html.DisplayFor(modelItem => item.IsPublicEditable)</small><br>
-                        <small>Created: @Html.DisplayFor(modelItem => item.Created)</small><br />
-                        <small>Modified: @Html.DisplayFor(modelItem => item.Modified)</small>
+                        <small>Created: @String.Format("{0:M/d/yyyy HH:mm}", item.Created)</small><br />
+                        <small>Modified: @String.Format("{0:M/d/yyyy HH:mm}", item.Modified)</small>
                     </div>
                 </div>
                 <div class="col">
                     <a class="btn btn-outline-primary btn-sm" asp-page="./UnPublish" asp-route-id="@item.Id">UnPublish</a>
-                    <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Path Settings</a>
-                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Summary/@item.Id">AI Summary</a>
+                    @* <a class="btn btn-outline-primary btn-sm" asp-page="./Edit" asp-route-id="@item.Id">Settings</a> *@
+                    <a class="btn btn-outline-primary btn-sm" href="/Paths/Details/@item.Id">Details</a>
                 </div>
             </div>
         }

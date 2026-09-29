@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Data.Xml.Dom;
 
 namespace BiblePathsCore.Models
 {
@@ -138,6 +139,45 @@ namespace BiblePathsCore.Models.DB
             return RetVal;             
         }
 
+        public async Task<bool> GenerateAndAddSummarytoPathAsync(BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
+        {
+            // First let's load PathNodes if not already loaded: 
+            var entry = context.Entry(this);
+            var collectionEntry = entry.Collection(e => e.PathNodes);
+            if (!collectionEntry.IsLoaded)
+            {
+                await collectionEntry.LoadAsync();
+            }
+            // now let's load the verses for each node as they aren't likely to be loaded yet 
+            foreach (var node in PathNodes)
+            {
+                node.Verses = await node.GetBibleVersesAsync(context, OwnerBibleId, true, false);
+            }
+
+            // Now go build and store
+            try
+            {
+                string SummaryText = await this.BuildAISummmaryForPathAsync(context, openAIResponder);
+
+                if (!string.IsNullOrWhiteSpace(SummaryText))
+                {
+                    this.Summary = SummaryText;
+                    this.Modified = DateTime.Now;
+                    context.Paths.Update(this);
+                    await context.SaveChangesAsync();
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
         public async Task<string> BuildAISummmaryForPathAsync(BiblePathsCoreDbContext context, IOpenAIResponder openAIResponder)
         {
             string RetVal = null;
@@ -145,10 +185,18 @@ namespace BiblePathsCore.Models.DB
             string TextToSummarize = "";
             foreach (var node in PathNodes)
             {
-                foreach (var verse in node.Verses)
+                if (node.Type == (int)StepType.Commented)
                 {
-                    TextToSummarize += verse.BookName + " " + verse.Chapter + ":" + verse.Verse + " " + verse.Text + Environment.NewLine;
+                    TextToSummarize += "<Commentary> " + node.Text + " </Commentary>" + Environment.NewLine;
                 }
+                else // we'll assume we have verses associated with this step
+                { 
+                    foreach (var verse in node.Verses)
+                    {
+                        TextToSummarize += verse.BookName + " " + verse.Chapter + ":" + verse.Verse + " " + verse.Text + Environment.NewLine;
+                    }
+                }
+                
             }
 
             RetVal = await openAIResponder.GetPathSummaryAsync(TextToSummarize);
@@ -197,6 +245,33 @@ namespace BiblePathsCore.Models.DB
                    .ToListAsync());
             }
             return returnVerses;
+        }
+
+        public async Task<bool> AffirmPathTypeAsync(BiblePathsCoreDbContext context)
+        {
+            // if there are ANY comment nodes in this Path then it's a commented Path. 
+            bool isCommented = false;
+            isCommented = await context.PathNodes.Where(N => N.PathId == Id &&
+                                                                N.Type == (int)StepType.Commented)
+                                                                .AnyAsync();
+            
+            // flip the path to Commented as a Commented step exists. 
+            if(isCommented && this.Type == (int)PathType.Standard)
+            {
+                this.Type = (int)PathType.Commented;
+                context.Paths.Update(this);
+                await context.SaveChangesAsync();
+            }
+
+            // flip the path to Standard if there are no commented paths. 
+            if(!isCommented && this.Type == (int)PathType.Commented)
+            {
+                this.Type = (int)PathType.Standard;
+                context.Paths.Update(this);
+                await context.SaveChangesAsync();
+            }
+            
+            return true;
         }
 
         // Note this is a static method it is not called with an instance of a path object. 
@@ -248,6 +323,7 @@ namespace BiblePathsCore.Models.DB
 
             }
             // Now let's conditionally register this as a Path Read
+            // Let's deprecate this... 
             if (MarkAsRead == true)
             {
                 _ = await RegisterReadEventAsync(context);
@@ -274,11 +350,12 @@ namespace BiblePathsCore.Models.DB
                     {
                         context.Attach(node);
                         node.Position = NextPosition;
-                        //TODO Doing this in the for loop seems wasteful.
-                        await context.SaveChangesAsync();
                     }
                     NextPosition += DefaultInterval;
                 }
+                // Moved out of the above loop to try and optimize writes.
+                // TODO we might consider making this rely on the caller to Save Change
+                await context.SaveChangesAsync();
             }
             catch
             {
@@ -390,44 +467,46 @@ namespace BiblePathsCore.Models.DB
         {
             // This Rating System is likely to change over time but for now we've got the following rules. 
             // Rating is the average of the following Scores ranging from 0 - 5 (there is a little arbitrary uplift)
-            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (for some uplift)
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5) - REMOVED - Unfairly drops the rating of older paths, can add back later.
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (for some uplift) - REMOVED - Unfairly reduces the rate for standard but not commented paths which are all read. 
             // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book and a point for spanning testaments up to 5
             // 4. Average of all UserRatings (uplift creates a 1.1 - 5.5 range)
 
             int firstNTBook = 40; // the first book in the New Testemant is book 40 in the protestant Bible.
             int ScoreCount = 0; // this becomes the number of total Scores that we will average together. 
             double TotalScore = 0;
-            // load all of the PathStats for this Path... we'll need these 
-            // We need to load the collection of Steps assocaited with this Path, as well as the Nodes. 
-            context.Entry(this)
-                .Collection(p => p.PathStats)
-                .Load();
+            // load all of the PathStats for this Path... we'll need these - REMOVED as Read Rate is a poor indicator
+    //        context.Entry(this)
+    //          .Collection(p => p.PathStats)
+    //          .Load();
+
+            // We need to load the collection of Steps assocaited with this Path, as well as the Nodes.  
+
             context.Entry(this)
                 .Collection(p => p.PathNodes)
                 .Load();
 
-            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5)
-            if (ComputedRating.HasValue)
-            {
-                TotalScore += (double)ComputedRating;
-                ScoreCount++;
-            }
+            // 1. Initial Rating on entry to this method counts as one Rating (all paths start at 4.5) - REMOVED - Unfairly drops the rating of older paths, can add back later.
+            //if (ComputedRating.HasValue)
+            //{
+            //    TotalScore += (double)ComputedRating;
+            //    ScoreCount++;
+            //}
 
-            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (a half point uplift)
-            int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
-            int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
-            if (NumStarts > 0)
-            { 
-                double ReadPercent = NumCompletes / NumStarts;
-                TotalScore += ReadPercent * 6;
-                ScoreCount++;
-            }
+            // 2. A Rating is calculated from the % of Reads (FinishCount / StartCount * 100) this is a % of 6 (a half point uplift) - REMOVED - Unfairly reduces the rate for standard but not commented paths which are all read.
+            //int NumStarts = PathStats.Where(s => s.EventType == (int)EventType.PathStarted).ToList().Count;
+            //int NumCompletes = PathStats.Where(s => s.EventType == (int)EventType.PathCompleted).ToList().Count;
+            //if (NumStarts > 0)
+            //{ 
+            //    double ReadPercent = NumCompletes / NumStarts;
+            //    TotalScore += ReadPercent * 6;
+            //    ScoreCount++;
+            //}
 
-            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 5.5)
+            // 3. A "Book Diversity Rating" where a path gets 1 point for each unique Book up to 5 (any count over 5 = 6)
             if (PathNodes.Count > 0)
             {
-                int BookDiversityScore = 1; // we'll give a free book just to kick us off. 
+                int BookDiversityScore = 0; // we'll give a free book just to kick us off. 
                 var BookHash = new HashSet<int>();
                 foreach (PathNode node in PathNodes)
                 {
@@ -440,7 +519,7 @@ namespace BiblePathsCore.Models.DB
                     BookDiversityScore += 2; // Add a free 2 points for spanning testaments.  
                 }
 
-                TotalScore += BookDiversityScore > 5 ? 5.5 : BookDiversityScore;
+                TotalScore += BookDiversityScore > 5 ? 6 : BookDiversityScore;
                 ScoreCount++;                
             }
 
@@ -489,10 +568,10 @@ namespace BiblePathsCore.Models.DB
 
             // Save our Rating, and True Up Reads as deemed Necessary, Now. 
             context.Attach(this).State = EntityState.Modified;
-            if (Reads < NumCompletes) // These should generally be in sync but sometimes fall out of sync. 
-            {
-                Reads = NumCompletes;
-            }
+            //if (Reads < NumCompletes) // These should generally be in sync but sometimes fall out of sync. 
+            //{
+            //    Reads = NumCompletes;
+            //}
             ComputedRating = (decimal)TempRating;
 
             await context.SaveChangesAsync();
