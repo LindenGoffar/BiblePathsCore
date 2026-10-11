@@ -189,6 +189,9 @@
                     <div class="card-header"><h5 class="mb-3">Assignments</h5></div>
                     <div class="card-body">
                                                 <button type="button" class="btn btn-success btn-sm mb-3" @onclick="ShowAddAssignmentModal">+ Assign Chapters</button>
+<button type="button" class="btn btn-outline-secondary btn-sm mb-3 ml-2" @onclick="ExportAssignmentsCsv" disabled="@(SelectedTeamAssignments == null || SelectedTeamAssignments.Count == 0)">
+    Export CSV
+</button>
                         
                         @if (SelectedTeamAssignments.Count == 0)
                         {
@@ -1019,5 +1022,52 @@
             CoachEmailExists = false;
             CoachValidationMessage = "Coach email not found.";
         }
+    }
+
+    private string EscapeCsv(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return "";
+        var s = input.Replace("\"", "\"\"");
+        if (s.Contains(",") || s.Contains("\"") || s.Contains("\n") || s.Contains("\r"))
+            return $"\"{s}\"";
+        return s;
+    }
+
+    private async Task ExportAssignmentsCsv()
+    {
+        if (SelectedTeamAssignments == null || SelectedTeamAssignments.Count == 0)
+            return;
+
+        // Build rows: Member.Name, BookName, ChapterNumber
+        var rows = SelectedTeamAssignments
+            .Select(a => new
+            {
+                MemberName = a.Member?.Name ?? "",
+                BookName = a.BookName ?? "",
+                ChapterNumber = a.ChapterNumber
+            })
+            .OrderBy(r => r.MemberName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(r => r.BookName)
+            .ThenBy(r => r.ChapterNumber)
+            .ToList();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("MemberName,BookName,ChapterNumber");
+
+        foreach (var r in rows)
+        {
+            var member = EscapeCsv(r.MemberName);
+            var book = EscapeCsv(r.BookName);
+            var chapterText = (r.ChapterNumber == Bible.CommentaryChapter) ? "Bible Commentary" : r.ChapterNumber.ToString();
+            sb.AppendLine($"{member},{book},{EscapeCsv(chapterText)}");
+        }
+
+        var csv = sb.ToString();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        var base64 = Convert.ToBase64String(bytes);
+
+        var filename = $"{(SelectedTeam?.Name ?? "team")}_assignments.csv";
+        await js.InvokeVoidAsync("saveAsFile", filename, base64);
     }
 }

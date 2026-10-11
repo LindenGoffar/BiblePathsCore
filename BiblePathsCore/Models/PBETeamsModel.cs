@@ -72,6 +72,7 @@ namespace BiblePathsCore.Models.DB
             coachedTeams = coachedTeams
                             .Concat(ownedTeams)
                             .DistinctBy(t => t.Id)
+                            .OrderByDescending(t => t.Modified ?? t.Created ?? DateTimeOffset.MinValue)
                             .ToList();
 
             // Iterate each of our teams to populate Book Names

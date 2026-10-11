@@ -42,6 +42,7 @@
 
   <ItemGroup>
     <None Include="Pages\Paths\Deprecate.Index.cshtml" />
+    <None Include="wwwroot\js\_FileDownload.js" />
   </ItemGroup>
 
   <ItemGroup>
