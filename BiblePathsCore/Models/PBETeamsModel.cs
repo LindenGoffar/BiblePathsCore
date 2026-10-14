@@ -33,7 +33,11 @@ namespace BiblePathsCore.Models.DB
                 .Include(t => t.QuizTeamMemberAssignments)
                     .ThenInclude(a => a.Member)
                 .FirstOrDefaultAsync();
-
+            
+            if (team == null)
+            {
+                return null;
+            }
             // Populate Book Names for Assignments
             foreach (QuizTeamMemberAssignment assignment in team.QuizTeamMemberAssignments)
             {
