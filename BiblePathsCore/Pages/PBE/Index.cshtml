@@ -4,12 +4,27 @@
     ViewData["Title"] = "PBE Quiz App";
 }
 
+
+<div class="row">
+    <div class="col-4">
+        <img src="/images/PBE-Hero.png" class="img-fluid" alt="PBE Banner with Logo" />
+    </div>
+    <div class="col-8">
+        <div class="text-left">
+            <h1 class="display-4">Welcome to the @ViewData["Title"]</h1>
+            <small>powered by <strong>BiblePaths.Net</strong></small>
+            <br />
+            <p>The Pathfinder Bible Experience (PBE) quiz app is designed for use by teams preparing for <strong>Pathfinder Bible Experience</strong>, for more information on this youth program see: <a href="https://nadpbe.org/">https://nadpbe.org/</a></p>
+        </div>
+    </div>
+</div>
+@* 
 <div class="text-left">
     <h1 class="display-4">Welcome to the @ViewData["Title"]</h1>
     <small>powered by <strong>BiblePaths.Net</strong></small>
     <br />
     <p>The Pathfinder Bible Experience (PBE) quiz app is designed for use by teams preparing for <strong>Pathfinder Bible Experience</strong>, for more information on this youth program see: <a href="https://nadpbe.org/">https://nadpbe.org/</a></p>
-</div>
+</div> *@
 <br />
 <div class="list-group list-group-flush">
     <span class="list-group-item"><a asp-page="Quizzes" asp-route-BibleId="@Model.BibleId" class="btn btn-light btn-sm font-weight-bold" >Host a Quiz</a> Start or continue a Quiz, host a Mock Quiz, review Quiz statistics</span>

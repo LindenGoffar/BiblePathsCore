@@ -1,9 +1,13 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
 <header>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container">
-            <a class="navbar-brand" href="/Index">BiblePaths</a>
+            <a href="@BrandHref" class="brand-link">
+                <img src="@BrandLogo" alt="BiblePaths" class="brand-icon" />
+@*                 <span class="brand-text">BiblePaths</span> *@
+            </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -36,3 +40,43 @@
         &copy; @DateTime.Now.Year - BiblePaths.Net - <a href="/About">About</a> - <a href="/Privacy">Privacy</a>
     </div>
 </footer>
+
+@code {
+    private string BrandLogo { get; set; } = "/images/BiblePath-Logo.png";
+    private string BrandHref { get; set; } = "/";
+
+    protected override void OnInitialized()
+    {
+        UpdateBrand(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateBrand(e.Location);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateBrand(string absoluteUri)
+    {
+        // Use AbsolutePath so query/fragment don't affect matching
+        var path = new Uri(absoluteUri).AbsolutePath ?? string.Empty;
+        var isPbe = path.Contains("/PBE/", StringComparison.OrdinalIgnoreCase);
+
+        if (isPbe)
+        {
+            BrandLogo = "/images/PBE-logo_600px.png";
+            BrandHref = "/PBE/";
+        }
+        else
+        {
+            BrandLogo = "/images/BiblePath-Logo.png";
+            BrandHref = "/";
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
