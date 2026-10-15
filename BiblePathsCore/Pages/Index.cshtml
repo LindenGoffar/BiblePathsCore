@@ -4,12 +4,21 @@
     ViewData["Title"] = "Bible Paths";
 }
 
-<div class="text-left">
-    <h1 class="display-4">Welcome to @ViewData["Title"]</h1>
-    <p><strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study. 
-    </p>
-    <p>Commented Paths build on the standard Bible Path by allowing for author supplied commentary.</p>
+<div class="row">
+    <div class="col-4">
+        <img src="/images/ArrowLogo-AI.png" class="img-fluid" alt="Bible Paths Logo" />
+    </div>
+    <div class="col-8">
+        <div class="text-left">
+            <h1 class="display-4">Welcome to @ViewData["Title"]</h1>
+            <p>
+                <strong>@Model.CatchPhrase</strong> Bible Paths is a crowd sourced Bible study and devotional tool. Each Bible Path is a chain of Bible verses linked together to form a simple, self contained Bible study.
+            </p>
+            <p>Commented Paths build on the standard Bible Path by allowing for author supplied commentary.</p>
+        </div>
+    </div>
 </div>
+
 <div class="card m-2">
     <div class="card-body">
         @await Component.InvokeAsync("NewPaths", new { TopN = 3 })
