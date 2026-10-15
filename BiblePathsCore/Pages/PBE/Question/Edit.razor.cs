@@ -106,6 +106,12 @@ namespace BiblePathsCore.Pages.PBE.Question
                     }
                     else
                     {
+                        // Some Older Questions are missing a BibleId so we will default these here: 
+                        if (string.IsNullOrWhiteSpace(ModelQuestion.BibleId))
+                        {
+                            ModelQuestion.BibleId = Bible.DefaultPBEBibleId;
+                        }
+
                         await InitializeQuestionAsync();
                         // Load existing answers if any. 
                         await DbContext.Entry(ModelQuestion).Collection(Q => Q.QuizAnswers).LoadAsync();

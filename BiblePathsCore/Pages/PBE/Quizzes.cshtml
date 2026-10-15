@@ -47,7 +47,7 @@
                     {
                         <tr>
                             <td>
-                                <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId">@quiz.GroupName</a>
+                                <a href="/PBE/Quiz/Run/@Model.BibleId/@quiz.Id?QuizType=0">@quiz.GroupName</a>
                                 @if(quiz.TeamName != null)
                                 {
                                     <br />
@@ -58,7 +58,7 @@
                             <td>
                                 <a asp-page="/PBE/QuizStats" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id">
                                     <span>
-                                        Questions Answered - @quiz.QuestionsAsked <br />
+                                        Questions - @quiz.QuestionsAsked <br />
                                         Score - @quiz.Percentage%
                                     </span>
                                 </a>
@@ -71,12 +71,16 @@
                                 <a href="/PBE/Quiz/Run/@Model.BibleId/@quiz.Id?QuizType=0" class="btn btn-outline-primary btn-sm">
                                     Quiz
                                 </a>
-                                <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId" class="btn btn-outline-primary btn-sm">
-                                   Quiz (Classic Experience)
-                                </a>
-                                <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                <a href="/PBE/Quiz/Run/@Model.BibleId/@quiz.Id?QuizType=1" class="btn btn-outline-primary btn-sm">
                                     Mock Quiz
                                 </a>
+                                <br />
+                                <a asp-page="/PBE/Quiz" asp-route-QuizId="@quiz.Id" asp-route-BibleId="@Model.BibleId" class="btn btn-link btn-sm">
+                                   Quiz (Classic Experience)
+                                </a>
+@*                                 <a asp-page="./MockQuiz/MockQuiz" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
+                                    Mock Quiz
+                                </a> *@
                                 <br />
                                 <a asp-page="/PBE/QuizHistory" asp-route-BibleId="@Model.BibleId" asp-route-QuizId="@quiz.Id" class="btn btn-outline-primary btn-sm">
                                     Quiz History
@@ -85,7 +89,6 @@
                                     Edit Quiz
                                 </a>
                                 <br />
-
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#DeleteModal-@quiz.Id">
                                     Delete Quiz
                                 </button>
