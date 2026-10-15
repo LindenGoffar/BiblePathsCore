@@ -33,6 +33,7 @@ namespace BiblePathsCore.Models.DB
         public const int MinBlankWordLength = 3;
         public const string FITBString = "fill in the blanks";
         public const string FITBBlankWord = "___";
+        public const int QuestionRecency = -18; //Number of Months to look back (should be negative) for recent questions. 
 
         [NotMapped]
         public string BookName { get; set; }
@@ -70,7 +71,9 @@ namespace BiblePathsCore.Models.DB
                                                                 && Q.BookNumber == BookNumber
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
-                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && (Q.Type == (int)QuestionType.Standard 
+                                                                    || Q.Type == (int)QuestionType.FITB 
+                                                                    || Q.Type == (int)QuestionType.AIProposed)
                                                                 && Q.IsAnswered == true).ToListAsync();
             }
             
@@ -80,7 +83,9 @@ namespace BiblePathsCore.Models.DB
                                                                 && Q.Chapter == Chapter
                                                                 && Q.IsDeleted == false
                                                                 && Q.Challenged == false
-                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && (Q.Type == (int)QuestionType.Standard 
+                                                                    || Q.Type == (int)QuestionType.FITB 
+                                                                    || Q.Type == (int)QuestionType.AIProposed)
                                                                 && Q.IsAnswered == true).ToListAsync();
         }
 
@@ -94,7 +99,9 @@ namespace BiblePathsCore.Models.DB
                                                     && Q.Chapter == Chapter
                                                     && Q.EndVerse == EndVerse
                                                     && Q.IsDeleted == false
-                                                    && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                    && (Q.Type == (int)QuestionType.Standard 
+                                                        || Q.Type == (int)QuestionType.FITB
+                                                        || Q.Type == (int)QuestionType.AIProposed)
                                                     && Q.IsAnswered == true).ToListAsync();
             }
             
@@ -105,28 +112,31 @@ namespace BiblePathsCore.Models.DB
                                                                 && Q.EndVerse == EndVerse
                                                                 && Q.IsDeleted == false
                                                                 && Q.Challenged == includeChallenged
-                                                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)
+                                                                && (Q.Type == (int)QuestionType.Standard
+                                                                    || Q.Type == (int)QuestionType.FITB
+                                                                    || Q.Type == (int)QuestionType.AIProposed)
                                                                 && Q.IsAnswered == true).ToListAsync();
         }
 
-        public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId)
-        {
-            return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
-                                                                && Q.IsDeleted == false
-                                                                && (Q.Type == (int)QuestionType.Standard
-                                                                    || Q.Type == (int)QuestionType.FITB))
-                                                        .ToListAsync();
-        }
+        //public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId)
+        //{
+        //    return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
+        //                                                        && Q.IsDeleted == false
+        //                                                        && (Q.Type == (int)QuestionType.Standard
+        //                                                            || Q.Type == (int)QuestionType.FITB))
+        //                                                .ToListAsync();
+        //}
         public static async Task<List<QuizQuestion>> GetQuestionOnlyListAsync(BiblePathsCoreDbContext context, string BibleId, bool recent = true)
         {
-            DateTime EighteenMonthsAgo = DateTime.Now.AddMonths(-18);
+            DateTime Recency = DateTime.Now.AddMonths(QuizQuestion.QuestionRecency);
             if (recent)
             {
                 return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                     && Q.IsDeleted == false
-                                                    && Q.Modified >= EighteenMonthsAgo
+                                                    && Q.Modified >= Recency
                                                     && (Q.Type == (int)QuestionType.Standard
-                                                        || Q.Type == (int)QuestionType.FITB))
+                                                        || Q.Type == (int)QuestionType.FITB
+                                                        || Q.Type == (int)QuestionType.AIProposed))
                                             .ToListAsync();
             }
             else
@@ -134,7 +144,8 @@ namespace BiblePathsCore.Models.DB
                 return await context.QuizQuestions.Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
                                                     && Q.IsDeleted == false
                                                     && (Q.Type == (int)QuestionType.Standard
-                                                        || Q.Type == (int)QuestionType.FITB))
+                                                        || Q.Type == (int)QuestionType.FITB
+                                                        || Q.Type == (int)QuestionType.AIProposed))
                                             .ToListAsync();
             }
         }
@@ -144,8 +155,7 @@ namespace BiblePathsCore.Models.DB
                         .Where(Q => (Q.BibleId == BibleId  || Q.BibleId == null)
                                 && Q.BookNumber == BookNumber 
                                 && Q.IsDeleted == false
-                                && (Q.Type == (int)QuestionType.Standard
-                                   || Q.Type == (int)QuestionType.FITB))
+                                && (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB || Q.Type == (int)QuestionType.AIProposed))
                         .ToListAsync();
         }
 
@@ -453,7 +463,7 @@ namespace BiblePathsCore.Models.DB
                                                                 && Q.IsDeleted == false)
                                                         .ToListAsync();
 
-            List<QuizQuestion> Questions = QuestionsAndExclusions.Where(Q => (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB)).ToList();
+            List<QuizQuestion> Questions = QuestionsAndExclusions.Where(Q => (Q.Type == (int)QuestionType.Standard || Q.Type == (int)QuestionType.FITB || Q.Type == (int)QuestionType.AIProposed)).ToList();
             List<QuizQuestion> Exclusions = QuestionsAndExclusions.Where(Q => Q.Type == (int)QuestionType.Exclusion).ToList();
 
             if (Chapter != Bible.CommentaryChapter)

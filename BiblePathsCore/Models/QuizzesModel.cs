@@ -270,6 +270,8 @@ namespace BiblePathsCore.Models.DB
                     question.Id = await question.SaveQuestionObjectAsync(context);
                     question.BibleId = bibleId;
                     question.QuestionSelected = true;
+                    question.Created = DateTime.Now;
+                    question.Modified = DateTime.Now;
                 }               //At this point if we've still failed we could resort to an FITB But let's stop here for now. 
             }
             return question;

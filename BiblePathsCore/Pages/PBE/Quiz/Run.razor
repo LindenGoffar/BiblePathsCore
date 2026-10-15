@@ -707,6 +707,7 @@
                 {
                     Question.Challenged = false;
                     Question.ChallengeComment = "Challenge Removed during a Mock Quiz";
+                    Question.Modified = DateTime.Now;
                 }
 
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.
@@ -732,6 +733,7 @@
                 {
                     Question.Challenged = false;
                     Question.ChallengeComment = "Challenge Removed by user point assignment.";
+                    Question.Modified = DateTime.Now;
                 }
 
                 // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats.

@@ -300,6 +300,9 @@ namespace BiblePathsCore.Pages.PBE.Question
             if (ModelQuestion.Challenged) { ModelQuestion.Challenged = false; } // Clear challenged flag on edit.
             ModelQuestion.ChallengeComment += " - Question lasted edited by: " + PBEUser.Email;
 
+            // Doing this will also reset the question type of AI Proposed to Standard. 
+            ModelQuestion.Type = ModelQuestion.DetectQuestionType();
+
             await DbContext.SaveChangesAsync();
 
             // Assuming success... we now navigate away

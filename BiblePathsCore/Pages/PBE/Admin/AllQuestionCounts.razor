@@ -1,0 +1,206 @@
+﻿@page "/pbe/admin/allquestioncounts"
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using System.Linq
+@using System.Threading.Tasks
+@using BiblePathsCore.Models
+@using BiblePathsCore.Models.DB
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+
+@inject BiblePathsCoreDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+
+<div class="container-fluid mt-4">
+    <h3>All Question Counts per Book</h3>
+    <hr />
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ErrorMessage
+        </div>
+    }
+
+    @if (IsLoading)
+    {
+        <div class="alert alert-info">
+            <span class="spinner-border spinner-border-sm mr-2"></span>
+            Loading question counts...
+        </div>
+    }
+    else if (BibleBooks == null || BibleBooks.Count == 0)
+    {
+        <div class="alert alert-warning">
+            No BibleBooks found for the specified BibleId: @BibleId. Please ensure that the BibleId is valid and that there are books available.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Book Name</th>
+                    <th>Book Number</th>
+                    <th>Question Count/Recent</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var bookData in BibleBooks)
+                {
+                    <tr>
+                        <td>@bookData.BookNumber</td>
+                        <td>@bookData.Name</td>
+                        <td>
+                            <span >Total: @bookData.QuestionCount <br />
+                                   Recent: @bookData.RecentQuestionCount <br />
+                            </span>
+                        </td>
+                        <td>
+                            <form id="@($"form-{bookData.BookNumber}")" name="@($"form-{bookData.BookNumber}")">
+                                <button type="button"
+                                        class="btn btn-sm btn-success me-2"
+                                        @onclick="@(() => MarkAllQuestionsRecent(bookData.BookNumber))"
+                                        disabled="@(IsProcessing)">
+                                    Mark All Recent
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm btn-warning"
+                                        @onclick="@(() => HideQuestions(bookData.BookNumber))"
+                                        disabled="@(IsProcessing)">
+                                    Hide Questions
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <hr />
+    <a href="/pbe/index" class="btn btn-link">Back to PBE Home</a>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "BibleId")]
+    public string BibleId { get; set; }
+    public QuizUser PBEUser { get; set; }
+    private IList<BibleBook> BibleBooks { get; set; }
+    private string ErrorMessage = string.Empty;
+    private bool IsLoading = false;
+    private bool IsProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookQuestionCounts();
+    }
+
+    private async Task LoadBookQuestionCounts()
+    {
+        IsLoading = true;
+
+        // Get current user - do this once
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/PBE");
+            return;
+        }
+
+        var identityUser = await UserManager.FindByNameAsync(user.Identity.Name);
+        PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, identityUser.Email);
+
+        if (!PBEUser.IsQuizModerator())
+        {
+            ErrorMessage = "Sorry, you do not have sufficient rights to host a PBE Quiz.";
+            return;
+        }
+
+
+        // Ensure a valid BibleId
+        BibleId = await QuizQuestion.GetValidBibleIdAsync(DbContext, BibleId);
+        try
+        {
+            // Get all books with their question counts
+            BibleBooks = await Models.DB.BibleBook.GetPBEBooksAsync(DbContext, BibleId, false); // Loads all, not just recent, Questions.
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading book question counts: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task MarkAllQuestionsRecent(int bookNumber)
+    {
+        if (IsProcessing) return;
+
+        IsProcessing = true;
+        try
+        {
+            var questions = await DbContext.QuizQuestions
+                .Where(q => q.BookNumber == bookNumber && q.IsDeleted == false)
+                .ToListAsync();
+
+            foreach (var question in questions)
+            {
+                question.Modified = DateTimeOffset.UtcNow;
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadBookQuestionCounts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error marking questions as recent: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async Task HideQuestions(int bookNumber)
+    {
+        if (IsProcessing) return;
+
+        IsProcessing = true;
+        try
+        {
+            var questions = await DbContext.QuizQuestions
+                .Where(q => q.BookNumber == bookNumber && q.IsDeleted == false)
+                .ToListAsync();
+
+            var twoYearsAgo = DateTimeOffset.UtcNow.AddYears(-2);
+
+            foreach (var question in questions)
+            {
+                question.Modified = twoYearsAgo;
+            }
+
+            await DbContext.SaveChangesAsync();
+            await LoadBookQuestionCounts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error hiding questions: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+}

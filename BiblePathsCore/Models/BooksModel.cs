@@ -18,6 +18,8 @@ namespace BiblePathsCore.Models.DB
         [NotMapped]
         public int QuestionCount { get; set; }
         [NotMapped]
+        public int RecentQuestionCount { get; set; }
+        [NotMapped]
         public bool HasCommentary { get; set; }
         [NotMapped]
         public string CommentaryTitle { get; set; }
@@ -301,8 +303,8 @@ namespace BiblePathsCore.Models.DB
                                                   .ToListAsync();
             // Querying for Question counts for each Book/Chapter gets expensive let's grab all of them
             // and pass them around for counting.
-            // Switch to Static Method
-            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId);
+            // We only show recent questions in this view. 
+            List<QuizQuestion> Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, true);
             //List<QuizQuestion> Questions = await context.QuizQuestions
             //                                            .Where(Q => (Q.BibleId == BibleId || Q.BibleId == null)
             //                                                    && Q.IsDeleted == false
@@ -347,11 +349,10 @@ namespace BiblePathsCore.Models.DB
                 Questions = await QuizQuestion.GetQuestionOnlyListAsync(context, BibleId, BookNumber);
             }
 
-            //TODO: Find out where and how often this is used... Seems super wasteful.
             InBookList = await IsInBookListAsync(context);
-            //InBookList = IsInBooklist(context, BookLists);
 
             QuestionCount = GetQuestionCount(Questions);
+            RecentQuestionCount = GetRecentQuestionCount(Questions);
             HasChallenge = HasChallengedQuestion(Questions);
 
             // This check uses an Any will work fine with the multi Commentary books scenario 
@@ -421,6 +422,17 @@ namespace BiblePathsCore.Models.DB
             return Questions.Where(Q => Q.BookNumber == BookNumber 
                                     && (Q.BibleId == BibleId || Q.BibleId == null)
                                     && Q.IsDeleted == false)
+                            .Count();
+        }
+        public int GetRecentQuestionCount(List<QuizQuestion> Questions)
+        {
+            DateTime Recency = DateTime.Now.AddMonths(QuizQuestion.QuestionRecency);
+            return Questions.Where(Q => Q.BookNumber == BookNumber
+                                    && (Q.BibleId == BibleId || Q.BibleId == null)
+                                    && Q.IsDeleted == false
+                                    && Q.Modified >= Recency
+                                    && (Q.Type == (int)QuestionType.Standard
+                                        || Q.Type == (int)QuestionType.FITB))
                             .Count();
         }
 

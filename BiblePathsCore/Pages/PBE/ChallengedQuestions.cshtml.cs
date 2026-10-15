@@ -48,7 +48,8 @@ namespace BiblePathsCore.Pages.PBE
                                                             && Q.Challenged == true 
                                                             && Q.IsDeleted == false
                                                             && (Q.Type == (int)QuestionType.Standard 
-                                                                || Q.Type == (int)QuestionType.FITB))
+                                                                || Q.Type == (int)QuestionType.FITB
+                                                                || Q.Type == (int)QuestionType.AIProposed))
                                         .Include(Q => Q.QuizAnswers)
                                         .OrderBy(Q => Q.EndVerse)
                                         .ToListAsync();

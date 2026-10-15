@@ -113,6 +113,7 @@ namespace BiblePathsCore.Pages.PBE
             {
                 QuestionToUpdate.Challenged = false;
                 QuestionToUpdate.ChallengeComment = "Challenge Removed during a Mock Quiz";
+                QuestionToUpdate.Modified = DateTimeOffset.UtcNow;
             }
 
             // The following method adds the points to the quiz, updates the question with LastAsked, and updates Quiz Stats. 
