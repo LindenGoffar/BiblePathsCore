@@ -342,7 +342,7 @@ namespace BiblePathsCore.Pages.PBE.Question
 
         private void UpdatePBEQuestionPreview()
         {
-            ModelQuestion.PopulatePBEQuestionInfo(PBEBook);
+            ModelQuestion.PopulatePBEQuestionInfoWithVerses(PBEBook, DisplayVerses);
         }
 
         private void TogglePreview()

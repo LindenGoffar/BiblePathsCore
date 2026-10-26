@@ -188,6 +188,36 @@ namespace BiblePathsCore.Models.DB
             TimeLimit = (Points * 5) + 20;
             LegalNote = GetBibleLegalNote();
         }
+        
+        // This version requires a specified list of verses, which is used in the Question Builder scenario
+        // where we have populated all of the verses in the chapter for selection rather than the specified verses.
+        public void PopulatePBEQuestionInfoWithVerses(BibleBook PBEBook, List<BibleVerse> SpecifiedVerses)
+        {
+            if (Chapter == Bible.CommentaryChapter)
+            {
+                IsCommentaryQuestion = true;
+                BookName = PBEBook.CommentaryTitle;
+                // This seems a little risky but in the commentary scenario we try to force a single verse. 
+                if (SpecifiedVerses != null)
+                {
+                    CommentarySectionTitle = SpecifiedVerses.FirstOrDefault().SectionTitle;
+                }
+                else { CommentarySectionTitle = ""; }
+            }
+            else
+            {
+                IsCommentaryQuestion = false;
+                BookName = PBEBook.Name;
+            }
+            // PBEQuestion = GetPBEQuestionText();
+            AddPBEQuestionTextandIntro();
+
+            // BibleId may not be set on every question, particularly old ones, so default it.
+            if (BibleId == null) { BibleId = Bible.DefaultPBEBibleId; }
+
+            TimeLimit = (Points * 5) + 20;
+            LegalNote = GetBibleLegalNote();
+        }
 
         public async Task<bool> UpdateLastAskedAsync(BiblePathsCoreDbContext context)
         {

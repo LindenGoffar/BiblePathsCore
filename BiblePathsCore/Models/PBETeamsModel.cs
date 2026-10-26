@@ -142,6 +142,7 @@ namespace BiblePathsCore.Models.DB
             List<QuizTeam> CombinedTeams = coachedTeams
                                             .Concat(ownedTeams)
                                             .DistinctBy(t => t.Id)
+                                            .OrderByDescending(t => t.Modified ?? t.Created ?? DateTimeOffset.MinValue)
                                             .ToList();
 
             // Add a Default entry 

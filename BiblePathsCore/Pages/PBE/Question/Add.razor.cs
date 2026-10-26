@@ -191,8 +191,9 @@ namespace BiblePathsCore.Pages.PBE.Question
             SelectedVerse = verse;
             ModelQuestion.StartVerse = SelectedVerse.Verse;
             ModelQuestion.EndVerse = SelectedVerse.Verse;
-            UpdatePBEQuestionPreview();
             await UpdateDisplayVersesAsync();
+            UpdatePBEQuestionPreview();
+
 
             // let's check our logged on users permisions
             PBEUser = await QuizUser.GetOrAddPBEUserAsync(DbContext, currentUser.Email);
@@ -370,7 +371,7 @@ namespace BiblePathsCore.Pages.PBE.Question
 
         private void UpdatePBEQuestionPreview()
         {
-            ModelQuestion.PopulatePBEQuestionInfo(PBEBook);
+            ModelQuestion.PopulatePBEQuestionInfoWithVerses(PBEBook, DisplayVerses);
         }
 
         private void TogglePreview()
